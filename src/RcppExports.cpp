@@ -6,14 +6,27 @@
 
 using namespace Rcpp;
 
-// timesTwo
-int timesTwo(int x);
-RcppExport SEXP _SPMIX_timesTwo(SEXP xSEXP) {
+// alr
+Eigen::VectorXd alr(Eigen::VectorXd x, bool pad_zero);
+RcppExport SEXP _SPMIX_alr(SEXP xSEXP, SEXP pad_zeroSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(timesTwo(x));
+    Rcpp::traits::input_parameter< Eigen::VectorXd >::type x(xSEXP);
+    Rcpp::traits::input_parameter< bool >::type pad_zero(pad_zeroSEXP);
+    rcpp_result_gen = Rcpp::wrap(alr(x, pad_zero));
+    return rcpp_result_gen;
+END_RCPP
+}
+// inv_alr
+Eigen::VectorXd inv_alr(Eigen::VectorXd x, bool padded_zero);
+RcppExport SEXP _SPMIX_inv_alr(SEXP xSEXP, SEXP padded_zeroSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::VectorXd >::type x(xSEXP);
+    Rcpp::traits::input_parameter< bool >::type padded_zero(padded_zeroSEXP);
+    rcpp_result_gen = Rcpp::wrap(inv_alr(x, padded_zero));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -28,7 +41,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_SPMIX_timesTwo", (DL_FUNC) &_SPMIX_timesTwo, 1},
+    {"_SPMIX_alr", (DL_FUNC) &_SPMIX_alr, 2},
+    {"_SPMIX_inv_alr", (DL_FUNC) &_SPMIX_inv_alr, 2},
     {"_SPMIX_stan_HelloWorld", (DL_FUNC) &_SPMIX_stan_HelloWorld, 0},
     {NULL, NULL, 0}
 };
