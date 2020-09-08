@@ -9,3 +9,11 @@ timesTwo <- function(x) {
     .Call(`_SPMIX_timesTwo`, x)
 }
 
+#' Simple test with stan/math C++ library
+#'
+#' Simply computes logN(1|2,3)
+#' @export
+stan_HelloWorld <- function() {
+    invisible(.Call(`_SPMIX_stan_HelloWorld`))
+}
+
