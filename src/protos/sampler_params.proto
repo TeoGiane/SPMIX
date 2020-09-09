@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+import "eigen.proto";
+
+message SamplerParams {
+  message NormalGammaParams {
+    double mu0 = 1;
+    double a = 2;
+    double b = 3;
+    double lam_ = 4;
+  }
+
+  message BetaParams {
+    double a = 1;
+    double b = 2;
+  }
+
+  message InverseWishartParams {
+    double nu = 1;
+    bool identity = 2;
+    EigenMatrix V = 3; // Used only if identity is False
+  }
+
+  int32 num_components = 1;
+  NormalGammaParams p0_params = 2;
+  BetaParams rho_params = 3;
+  InverseWishartParams sigma_params = 4;
+
+  double mtilde_sigmasq = 5;
+}

@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+message EigenMatrix {
+  uint32 rows = 1;
+  uint32 cols = 2;
+  repeated double data = 3;
+}
