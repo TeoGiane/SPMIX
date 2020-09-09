@@ -1,4 +1,3 @@
-CXX = gcc
 CXX_STD = CXX14
 PKG_CXXFLAGS = -Wno-ignored-attributes -Wno-deprecated-declarations
 PKG_CXXFLAGS += $(shell "${R_HOME}/bin${R_ARCH}/Rscript.exe" -e "RcppParallel::CxxFlags()") \
