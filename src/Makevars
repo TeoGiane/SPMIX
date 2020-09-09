@@ -1,6 +1,10 @@
-CXX_STD = CXX14
+CXX_STD = CXX17
+USR_LIB = -lgsl -lprotobuf
 PKG_CXXFLAGS = -Wno-ignored-attributes -Wno-deprecated-declarations
-PKG_CXXFLAGS += $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "RcppParallel::CxxFlags()") \
-                $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "StanHeaders:::CxxFlags()")
-PKG_LIBS += $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "RcppParallel::RcppParallelLibs()") \
-            $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "StanHeaders:::LdFlags()")
+PKG_CXXFLAGS += $(shell "$(R_HOME)/bin/Rscript" -e "RcppParallel::CxxFlags()") \
+                $(shell "$(R_HOME)/bin/Rscript" -e "StanHeaders:::CxxFlags()")
+PKG_LIBS = $(shell "$(R_HOME)/bin/Rscript" -e "RcppParallel::RcppParallelLibs()") \
+           $(shell "$(R_HOME)/bin/Rscript" -e "StanHeaders:::LdFlags()") $(USR_LIB)
+
+# Adding protobuf c++ generated code in src
+$(shell ./.compile_protos.sh)
