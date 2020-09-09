@@ -1,6 +1,7 @@
+CXX = gcc
 CXX_STD = CXX14
 PKG_CXXFLAGS = -Wno-ignored-attributes -Wno-deprecated-declarations
-PKG_CXXFLAGS += $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "RcppParallel::CxxFlags()") \
-                $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "StanHeaders:::CxxFlags()")
-PKG_LIBS += $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "RcppParallel::RcppParallelLibs()") \
-            $(shell "${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "StanHeaders:::LdFlags()")
+PKG_CXXFLAGS += $(shell "${R_HOME}/bin${R_ARCH}/Rscript.exe" -e "RcppParallel::CxxFlags()") \
+                $(shell "${R_HOME}/bin${R_ARCH}/Rscript.exe" -e "StanHeaders:::CxxFlags()")
+PKG_LIBS += $(shell "${R_HOME}/bin${R_ARCH}/Rscript.exe" -e "RcppParallel::RcppParallelLibs()") \
+            $(shell "${R_HOME}/bin${R_ARCH}/Rscript.exe" -e "StanHeaders:::LdFlags()")
