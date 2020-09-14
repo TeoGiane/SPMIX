@@ -1,5 +1,5 @@
 // -*- c-basic-offset: 4; -*-
-#include "RNG.hpp"
+#include "RNG.h"
 
 // #ifdef USE_R
 // #include "RRNG.cpp"

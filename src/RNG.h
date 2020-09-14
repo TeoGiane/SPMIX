@@ -30,7 +30,7 @@
 #elif  USE_GRNGPAR
 #include "GRNGPar.hpp"
 #else
-#include "GRNG.hpp"
+#include "GRNG.h"
 #endif
 
 // #ifndef __MYMAT__

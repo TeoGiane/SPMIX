@@ -1,7 +1,7 @@
 #ifndef __POLYAGAMMAALT__
 #define __POLYAGAMMAALT__
 
-#include "RNG.hpp"
+#include "RNG.h"
 #include "PolyaGamma.h"
 
 // The numerical accuracy of __PI will affect your distribution.

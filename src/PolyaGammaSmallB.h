@@ -9,7 +9,7 @@
 #ifndef __POLYAGAMMASMALLB__
 #define __POLYAGAMMASMALLB__
 
-#include "RNG.hpp"
+#include "RNG.h"
 #include <cmath>
 
 #define _MAXITER 100
