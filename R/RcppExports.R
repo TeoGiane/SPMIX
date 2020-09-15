@@ -40,3 +40,15 @@ stan_HelloWorld <- function() {
     invisible(.Call(`_SPMIX_stan_HelloWorld`))
 }
 
+#' Serialization testing
+#' @export
+fromProto_tostring <- function() {
+    .Call(`_SPMIX_fromProto_tostring`)
+}
+
+#' Translation from serialization testing
+#' @export
+readingStates <- function(raw_vect) {
+    invisible(.Call(`_SPMIX_readingStates`, raw_vect))
+}
+

@@ -55,12 +55,34 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// fromProto_tostring
+std::vector<Rcpp::RawVector> fromProto_tostring();
+RcppExport SEXP _SPMIX_fromProto_tostring() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(fromProto_tostring());
+    return rcpp_result_gen;
+END_RCPP
+}
+// readingStates
+void readingStates(std::vector<Rcpp::RawVector> raw_vect);
+RcppExport SEXP _SPMIX_readingStates(SEXP raw_vectSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::vector<Rcpp::RawVector> >::type raw_vect(raw_vectSEXP);
+    readingStates(raw_vect);
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_alr", (DL_FUNC) &_SPMIX_alr, 2},
     {"_SPMIX_inv_alr", (DL_FUNC) &_SPMIX_inv_alr, 2},
     {"_SPMIX_SPMIX_SamplerFromFiles", (DL_FUNC) &_SPMIX_SPMIX_SamplerFromFiles, 6},
     {"_SPMIX_stan_HelloWorld", (DL_FUNC) &_SPMIX_stan_HelloWorld, 0},
+    {"_SPMIX_fromProto_tostring", (DL_FUNC) &_SPMIX_fromProto_tostring, 0},
+    {"_SPMIX_readingStates", (DL_FUNC) &_SPMIX_readingStates, 1},
     {NULL, NULL, 0}
 };
 

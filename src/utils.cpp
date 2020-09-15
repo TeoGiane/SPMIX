@@ -226,4 +226,28 @@ double matrix_normal_prec_lpdf(
     out -= 0.5 * exp;
     return out;
 }
+
+std::vector<Rcpp::RawVector> str2raw(const std::vector<std::string> & str_vect){
+    
+    std::vector<Rcpp::RawVector> out;
+    for (int i = 0; i < str_vect.size(); ++i) {
+        Rcpp::RawVector tmp(str_vect[i].size());
+        std::copy(str_vect[i].begin(), str_vect[i].end(), tmp.begin());
+        out.push_back(tmp);
+    }
+    return out;
+}
+
+std::vector<std::string> raw2str(const std::vector<Rcpp::RawVector> raw_vect) {
+
+    std::vector<std::string> out;
+    for (int i = 0; i < raw_vect.size(); ++i) {
+        std::string s;
+        for (auto elem : raw_vect[i])
+            s.push_back(elem);
+        out.push_back(s);
+    }
+    return out;
+}
+
 }

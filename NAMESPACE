@@ -2,7 +2,9 @@
 
 export(SPMIX_SamplerFromFiles)
 export(alr)
+export(fromProto_tostring)
 export(inv_alr)
+export(readingStates)
 export(stan_HelloWorld)
 importFrom(Rcpp,sourceCpp)
 useDynLib(SPMIX, .registration = TRUE)

@@ -9,6 +9,8 @@
 #include <fstream>
 #include <Eigen/Dense>
 #include <stan/math/prim/mat.hpp>
+#define STRICT_R_HEADERS
+#include <Rcpp.h>
 
 
 namespace utils {
@@ -45,6 +47,10 @@ void _dephtFirstSearch(const Eigen::MatrixXd &adjacency, int curr_node,
 double matrix_normal_prec_lpdf(
     Eigen::MatrixXd x, Eigen::MatrixXd m, Eigen::MatrixXd A,
     Eigen::MatrixXd B);
+
+std::vector<Rcpp::RawVector> str2raw(const std::vector<std::string> & str_vect);
+
+std::vector<std::string> raw2str(const std::vector<Rcpp::RawVector> raw_vect);
 
 } // namespace utils
 
