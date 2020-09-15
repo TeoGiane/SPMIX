@@ -57,6 +57,7 @@ Eigen::VectorXd InvAlr(Eigen::VectorXd x, bool padded_zero) {
 }
 
 std::vector<std::vector<double>> readDataFromCSV(std::string filename) {
+    std::cout << "readDataFromCSV ... ";
     std::ifstream infile(filename);
 
     std::map<int, std::vector<double>> out;
@@ -89,11 +90,12 @@ std::vector<std::vector<double>> readDataFromCSV(std::string filename) {
             data[g] = out[g + 1];
     }
 
+    std::cout << "done!" << std::endl;
     return data;
 }
 
 Eigen::MatrixXd readMatrixFromCSV(std::string filename) {
-    std::cout << "readMatrixFromCSV" << std::endl;
+    std::cout << "readMatrixFromCSV ... ";
     int MAXBUFSIZE = ((int) 1e6);
     int cols = 0, rows = 0;
     double buff[MAXBUFSIZE];
@@ -134,6 +136,7 @@ Eigen::MatrixXd readMatrixFromCSV(std::string filename) {
         for (int j = 0; j < cols; j++)
             result(i,j) = buff[ cols*i+j ];
 
+    std::cout << "done!" << std::endl;
     return result;
 
 }

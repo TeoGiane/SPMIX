@@ -26,6 +26,12 @@ inv_alr <- function(x, padded_zero = FALSE) {
     .Call(`_SPMIX_inv_alr`, x, padded_zero)
 }
 
+#' First try on the spatial sampler, taking input from files
+#' @export
+SPMIX_SamplerFromFiles <- function(burnin, niter, thin, data_file, w_file, params_file) {
+    .Call(`_SPMIX_SPMIX_SamplerFromFiles`, burnin, niter, thin, data_file, w_file, params_file)
+}
+
 #' Simple test with stan/math C++ library
 #'
 #' Simply computes logN(1|2,3)

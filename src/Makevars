@@ -1,9 +1,19 @@
 CXX_STD = CXX17
 USR_LIB = -lgsl -lprotobuf
 PKG_CXXFLAGS += $(shell "$(R_HOME)/bin/Rscript" -e "RcppParallel::CxxFlags()") \
-                $(shell "$(R_HOME)/bin/Rscript" -e "StanHeaders:::CxxFlags()")
+                $(shell "$(R_HOME)/bin/Rscript" -e "StanHeaders:::CxxFlags()") \
+                -I'./polyagamma' -I'./protos'
 PKG_LIBS = $(shell "$(R_HOME)/bin/Rscript" -e "RcppParallel::RcppParallelLibs()") \
            $(shell "$(R_HOME)/bin/Rscript" -e "StanHeaders:::LdFlags()") $(USR_LIB)
 
-# Adding protobuf c++ generated code in src
-$(shell ./.compile_protos.sh)
+# Compile protos
+$(shell ./protos/.compile_protos.sh)
+
+# Setting all sources
+MAIN_SOURCES = $(wildcard *.c*)
+SUBDIR_SOURCES = $(wildcard polyagamma/*.c*) $(wildcard protos/*.c*)
+SOURCES = $(MAIN_SOURCES) $(SUBDIR_SOURCES)
+
+# Setting all objects
+OBJECTS = $(addsuffix .o, $(basename $(MAIN_SOURCES))) $(addsuffix .o, $(basename $(SUBDIR_SOURCES)))
+

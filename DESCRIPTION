@@ -1,6 +1,6 @@
 Package: SPMIX
 Title: Spatial Mixture Models in R
-Version: 0.0.15
+Version: 0.0.17
 Authors@R: 
     person(given = "Matteo",
            family = "Gianella",

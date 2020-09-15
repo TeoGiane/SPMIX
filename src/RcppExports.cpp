@@ -30,6 +30,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// SPMIX_SamplerFromFiles
+Rcpp::StringVector SPMIX_SamplerFromFiles(int burnin, int niter, int thin, std::string data_file, std::string w_file, std::string params_file);
+RcppExport SEXP _SPMIX_SPMIX_SamplerFromFiles(SEXP burninSEXP, SEXP niterSEXP, SEXP thinSEXP, SEXP data_fileSEXP, SEXP w_fileSEXP, SEXP params_fileSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type burnin(burninSEXP);
+    Rcpp::traits::input_parameter< int >::type niter(niterSEXP);
+    Rcpp::traits::input_parameter< int >::type thin(thinSEXP);
+    Rcpp::traits::input_parameter< std::string >::type data_file(data_fileSEXP);
+    Rcpp::traits::input_parameter< std::string >::type w_file(w_fileSEXP);
+    Rcpp::traits::input_parameter< std::string >::type params_file(params_fileSEXP);
+    rcpp_result_gen = Rcpp::wrap(SPMIX_SamplerFromFiles(burnin, niter, thin, data_file, w_file, params_file));
+    return rcpp_result_gen;
+END_RCPP
+}
 // stan_HelloWorld
 void stan_HelloWorld();
 RcppExport SEXP _SPMIX_stan_HelloWorld() {
@@ -43,6 +59,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_alr", (DL_FUNC) &_SPMIX_alr, 2},
     {"_SPMIX_inv_alr", (DL_FUNC) &_SPMIX_inv_alr, 2},
+    {"_SPMIX_SPMIX_SamplerFromFiles", (DL_FUNC) &_SPMIX_SPMIX_SamplerFromFiles, 6},
     {"_SPMIX_stan_HelloWorld", (DL_FUNC) &_SPMIX_stan_HelloWorld, 0},
     {NULL, NULL, 0}
 };

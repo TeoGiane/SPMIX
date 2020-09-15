@@ -1,25 +1,27 @@
-/* This source file contains all utilities that are exported to R through Rcpp. Any other function 
+/* This source file contains all utilities that are exported to R through Rcpp. Any other function
  * should be put here in order to preserve coherence in the code
  */
 
 #ifndef SPMIX_EXPORTS
 #define SPMIX_EXPORTS
 
+#define STRICT_R_HEADERS
+#include <Rcpp.h>
 
 #include <deque>
 #include <string>
 #include <vector>
 #include <Eigen/Dense>
-#include <Rcpp.h>
 
 #include "utils.h"
 /* UNCOMMENT TO SE THE COMPILE ERROR */
-/*#include "sampler.h"
-#include "univariate_mixture_state.pb.h"*/
+#include "sampler.h"
+#include "univariate_mixture_state.pb.h"
 
 // using return_t = std::tuple<std::vector<std::string>, double>;
-using return_t = std::vector<std::string>; // Simplified to check if Rcpp is able to manage the output.
-
+//using return_t = std::vector<std::string>; // Simplified to check if Rcpp is able to manage the output.
+//using return_t = std::vector<Rcpp::String>;
+using return_t = Rcpp::StringVector;
 
 /*TODO: finire documentazione*/
 
@@ -53,7 +55,7 @@ Eigen::VectorXd inv_alr(Eigen::VectorXd x, bool padded_zero = false) {
 }
 
 /* FIRST ATTEMPT OF SAMPLER (no covariates, read from file) - UNCOMMENT TO SE THE COMPILE ERROR */
-/*return_t runSpatialSampler(
+return_t runSpatialSampler(
     int burnin, int niter, int thin,
     const std::vector<std::vector<double>> &data,
     const Eigen::MatrixXd &W, const SamplerParams &params) {
@@ -61,7 +63,9 @@ Eigen::VectorXd inv_alr(Eigen::VectorXd x, bool padded_zero = false) {
     SpatialMixtureSampler spSampler(params, data, W);
     spSampler.init();
 
-    std::vector<std::string> out;
+    Rcpp::StringVector out;
+    //std::vector<Rcpp::String> out;
+    //std::vector<std::string> out;
     int log_every = 200;
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -76,32 +80,33 @@ Eigen::VectorXd inv_alr(Eigen::VectorXd x, bool padded_zero = false) {
         if ((i +1) % thin == 0) {
             std::string s;
             spSampler.getStateAsProto().SerializeToString(&s);
-            out.push_back((py::bytes) s);
+            Rcpp::String r_str(s.c_str());
+            r_str.set_encoding(CE_NATIVE);
+            out.push_back(r_str);
         }
         if ((i + 1) % log_every == 0)
             Rcpp::Rcout << "Running, iter #" << i+1 << " / " << niter << std::endl;
     }
     auto end = std::chrono::high_resolution_clock::now();
     double duration = std::chrono::duration<double>(end - start).count();
-    
+
     Rcpp::Rcout << "Duration: " << duration << std::endl;
     return out;
     //return std::make_tuple(out, duration);
 }
 
-
+// std::vector<std::string>
 
 //' First try on the spatial sampler, taking input from files
 //' @export
 // [[Rcpp::export]]
-std::vector<std::string> SPMIX_SamplerFromFiles(int burnin, int niter, int thin,
-    							std::string data_file, std::string w_file, std::string params_file) {
+Rcpp::StringVector SPMIX_SamplerFromFiles(int burnin, int niter, int thin,
+												std::string data_file, std::string w_file, std::string params_file) {
 
     std::vector<std::vector<double>> data = utils::readDataFromCSV(data_file);
     Eigen::MatrixXd W = utils::readMatrixFromCSV(w_file);
     SamplerParams params = loadTextProto<SamplerParams>(params_file);
     return runSpatialSampler(burnin, niter, thin, data, W, params);
 }
-*/
 
 #endif // SPMIX_EXPORTS
