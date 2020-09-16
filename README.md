@@ -7,7 +7,7 @@ This repo collects the developing of the thesis project on Spatial Mixture model
 ## Required R Packages
 The DESCRIPTION file lists all the dependencies of this package. Opening an R terminal, these can be easily installed via
 ```r
-install.packages(c("BH", "Rcpp", "RcppEigen", "RcppParallel", "StanHeaders"))
+install.packages(c("BH", "Rcpp", "RcppEigen", "RcppParallel", "StanHeaders", "RProtoBuf"))
 ```
 Since this is a developing package, be sure that the development tools for R are installed. If only R is installed, in Linux you can quickly install them via terminal typing:
 ```shell
