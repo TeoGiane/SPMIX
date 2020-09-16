@@ -1,5 +1,4 @@
 *.o
 *.so
-*.pb.h
-*.pb.cc
 *.dll
+/cpp_proto/*
