@@ -30,19 +30,43 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// SPMIX_SamplerFromFiles
-Rcpp::StringVector SPMIX_SamplerFromFiles(int burnin, int niter, int thin, std::string data_file, std::string w_file, std::string params_file);
-RcppExport SEXP _SPMIX_SPMIX_SamplerFromFiles(SEXP burninSEXP, SEXP niterSEXP, SEXP thinSEXP, SEXP data_fileSEXP, SEXP w_fileSEXP, SEXP params_fileSEXP) {
+// runSpatialSampler
+std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, Rcpp::S4 params, const std::vector<Eigen::MatrixXd>& covariates, bool display_progress);
+RcppExport SEXP _SPMIX_runSpatialSampler(SEXP burninSEXP, SEXP niterSEXP, SEXP thinSEXP, SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP, SEXP covariatesSEXP, SEXP display_progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< int >::type burnin(burninSEXP);
     Rcpp::traits::input_parameter< int >::type niter(niterSEXP);
     Rcpp::traits::input_parameter< int >::type thin(thinSEXP);
-    Rcpp::traits::input_parameter< std::string >::type data_file(data_fileSEXP);
-    Rcpp::traits::input_parameter< std::string >::type w_file(w_fileSEXP);
-    Rcpp::traits::input_parameter< std::string >::type params_file(params_fileSEXP);
-    rcpp_result_gen = Rcpp::wrap(SPMIX_SamplerFromFiles(burnin, niter, thin, data_file, w_file, params_file));
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type params(paramsSEXP);
+    Rcpp::traits::input_parameter< const std::vector<Eigen::MatrixXd>& >::type covariates(covariatesSEXP);
+    Rcpp::traits::input_parameter< bool >::type display_progress(display_progressSEXP);
+    rcpp_result_gen = Rcpp::wrap(runSpatialSampler(burnin, niter, thin, data, W, params, covariates, display_progress));
+    return rcpp_result_gen;
+END_RCPP
+}
+// readMatrixFromCSV
+Eigen::MatrixXd readMatrixFromCSV(std::string filename);
+RcppExport SEXP _SPMIX_readMatrixFromCSV(SEXP filenameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
+    rcpp_result_gen = Rcpp::wrap(readMatrixFromCSV(filename));
+    return rcpp_result_gen;
+END_RCPP
+}
+// readDataFromCSV
+std::vector<std::vector<double>> readDataFromCSV(std::string filename);
+RcppExport SEXP _SPMIX_readDataFromCSV(SEXP filenameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
+    rcpp_result_gen = Rcpp::wrap(readDataFromCSV(filename));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -75,14 +99,27 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// messageFromR
+void messageFromR(Rcpp::S4 params);
+RcppExport SEXP _SPMIX_messageFromR(SEXP paramsSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type params(paramsSEXP);
+    messageFromR(params);
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_alr", (DL_FUNC) &_SPMIX_alr, 2},
     {"_SPMIX_inv_alr", (DL_FUNC) &_SPMIX_inv_alr, 2},
-    {"_SPMIX_SPMIX_SamplerFromFiles", (DL_FUNC) &_SPMIX_SPMIX_SamplerFromFiles, 6},
+    {"_SPMIX_runSpatialSampler", (DL_FUNC) &_SPMIX_runSpatialSampler, 8},
+    {"_SPMIX_readMatrixFromCSV", (DL_FUNC) &_SPMIX_readMatrixFromCSV, 1},
+    {"_SPMIX_readDataFromCSV", (DL_FUNC) &_SPMIX_readDataFromCSV, 1},
     {"_SPMIX_stan_HelloWorld", (DL_FUNC) &_SPMIX_stan_HelloWorld, 0},
     {"_SPMIX_fromProto_tostring", (DL_FUNC) &_SPMIX_fromProto_tostring, 0},
     {"_SPMIX_readingStates", (DL_FUNC) &_SPMIX_readingStates, 1},
+    {"_SPMIX_messageFromR", (DL_FUNC) &_SPMIX_messageFromR, 1},
     {NULL, NULL, 0}
 };
 

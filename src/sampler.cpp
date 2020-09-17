@@ -1,5 +1,8 @@
 #include "sampler.h"
 
+#define STRICT_R_HEADERS
+#include <Rcpp.h>
+
 using namespace stan::math;
 
 SpatialMixtureSampler::SpatialMixtureSampler(
@@ -145,7 +148,7 @@ void SpatialMixtureSampler::init() {
 
   _computeInvSigmaH();
 
-  std::cout << "init done" << std::endl;
+  Rcpp::Rcout << "Init done" << std::endl;
 }
 
 void SpatialMixtureSampler::sample() {

@@ -4,6 +4,7 @@
 #include <Eigen/Dense>
 #include <unsupported/Eigen/KroneckerProduct>
 #include <string>
+#include <memory>
 
 #include "PolyaGamma.h"
 #include "sampler_params.pb.h"
@@ -35,7 +36,7 @@ void stan_HelloWorld() {
 //' @export
 // [[Rcpp::export]]
 std::vector<Rcpp::RawVector> fromProto_tostring() {
-	
+
 	Rcpp::Rcout << "Reading params..." << std::endl;
 	SamplerParams params;
     params = loadTextProto<SamplerParams>("/home/m_gianella/Documents/R-Packages/SPMIX_input/sampler_params.asciipb");
@@ -61,35 +62,20 @@ std::vector<Rcpp::RawVector> fromProto_tostring() {
     }
 
     Rcpp::Rcout << "Serializing messages... ";
-    std::vector<std::string> out;
+    std::vector<std::string> tmp;
     for (int i = 0; i < states.size(); ++i) {
     	std::string s;
 		states[i].SerializeToString(&s);
-		out.push_back(s);
+		tmp.push_back(s);
     }
 
     Rcpp::Rcout << "done!" << std::endl;
 
+    std::vector<Rcpp::RawVector> out;
+    for (std::string elem : tmp)
+      out.push_back(utils::str2raw(elem));
 
-    return utils::str2raw(out);
-/*    Rcpp::Rcout << "Restoring original messages from serialized strings:" << std::endl;
-	for (int i = 0; i < out.size(); ++i) {
-		Rcpp::Rcout << "Message " << i+1 << " is:" << std::endl;
-		UnivariateMixtureState curr;
-		//std::string s(out(i));
-		curr.ParseFromString(out[i]);
-		Rcpp::Rcout << curr.DebugString() << std::endl << std::endl;
-	}
-
-	// Make everything RAW
-	std::vector<Rcpp::RawVector> test;
-	for (int i = 0; i < out.size(); ++i) {
-		Rcpp::RawVector tmp(out[i].size());
-		std::copy(out[i].begin(), out[i].end(), tmp.begin());
-		test.push_back(tmp);
-	}
-
-    return test;*/
+    return out;
 }
 
 
@@ -99,12 +85,25 @@ std::vector<Rcpp::RawVector> fromProto_tostring() {
 void readingStates(std::vector<Rcpp::RawVector> raw_vect){
 
 	Rcpp::Rcout << "Restoring original messages from raw vectors:" << std::endl;
-	std::vector<std::string> str_vect(utils::raw2str(raw_vect));
-	for (int i = 0; i < str_vect.size(); ++i) {
-		Rcpp::Rcout << "Message " << i+1 << " is:" << std::endl;
+  size_t i = 1;
+	for (Rcpp::RawVector elem : raw_vect) {
+		Rcpp::Rcout << "Message " << i++ << " is:" << std::endl;
 		UnivariateMixtureState curr;
-		curr.ParseFromString(str_vect[i]);
+		curr.ParseFromString(utils::raw2str(elem));
 		Rcpp::Rcout << curr.DebugString() << std::endl << std::endl;
 	}
 	return;
+}
+
+//' Simple test to see if messages in R can be passed to a C++ function
+//' @export
+// [[Rcpp::export]]
+void messageFromR(Rcpp::S4 params) {
+    Rcpp::Rcout << std::boolalpha << "Has pointer: " << params.hasSlot("pointer") << std::endl;
+    Rcpp::Rcout << "S4 Class of type Message?" << params.is("Message") << std::endl;
+    Rcpp::XPtr<SamplerParams> pt = params.slot("pointer");
+    SamplerParams & obj = *pt;
+    Rcpp::Rcout << "Ci siamo" << std::endl;
+    //Rcpp::Rcout << obj->DebugString() << std::endl;
+    return;
 }

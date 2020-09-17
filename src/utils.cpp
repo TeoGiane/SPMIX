@@ -1,5 +1,6 @@
 #include "utils.h"
 #include <iostream>
+#include <filesystem>
 
 namespace utils {
 
@@ -57,88 +58,102 @@ Eigen::VectorXd InvAlr(Eigen::VectorXd x, bool padded_zero) {
 }
 
 std::vector<std::vector<double>> readDataFromCSV(std::string filename) {
+    
     std::cout << "readDataFromCSV ... ";
-    std::ifstream infile(filename);
+    std::vector<std::vector<double>> data;
 
-    std::map<int, std::vector<double>> out;
+    if(std::filesystem::exists(filename)) {
+        std::ifstream infile(filename);
+        std::map<int, std::vector<double>> out;
 
-    int group;
-    double datum;
-    std::string line;
-    char delim;
+        int group;
+        double datum;
+        std::string line;
+        char delim;
 
-    // skip header
-    std::getline(infile, line);
+        // skip header
+        std::getline(infile, line);
 
-    while (std::getline(infile, line)) {
-      std::istringstream iss(line);
-      if (!(iss >> group >> delim >> datum) ) { break; }
-      out[group].push_back(datum);
-    }
+        while (std::getline(infile, line)) {
+          std::istringstream iss(line);
+          if (!(iss >> group >> delim >> datum) ) { break; }
+          out[group].push_back(datum);
+        }
 
-    // maps are sorted
-    int ngroups = out.rbegin()->first;
-    bool startsFromZero = out.begin()->first == 0;
-    if (startsFromZero)
-        ngroups += 1;
-
-    std::vector<std::vector<double>> data(ngroups);
-    for (int g=0; g < ngroups; g++) {
+        // maps are sorted
+        int ngroups = out.rbegin()->first;
+        bool startsFromZero = out.begin()->first == 0;
         if (startsFromZero)
-            data[g] = out[g];
-        else
-            data[g] = out[g + 1];
-    }
+            ngroups += 1;
 
-    std::cout << "done!" << std::endl;
+        data.resize(ngroups);
+        for (int g=0; g < ngroups; g++) {
+            if (startsFromZero)
+                data[g] = out[g];
+            else
+                data[g] = out[g + 1];
+        }
+
+        std::cout << "done!" << std::endl;
+    }
+    else {
+        std::cout << "error! File does not exist." << std::endl;
+    }
     return data;
 }
 
 Eigen::MatrixXd readMatrixFromCSV(std::string filename) {
+    
     std::cout << "readMatrixFromCSV ... ";
-    int MAXBUFSIZE = ((int) 1e6);
-    int cols = 0, rows = 0;
-    double buff[MAXBUFSIZE];
+    Eigen::MatrixXd result;
 
-    // Read numbers from file into buffer.
-    std::ifstream infile;
-    infile.open(filename);
-    double d;
-    char delim;
-    while (! infile.eof())
-        {
-        std::string line;
-        getline(infile, line);
-        int temp_cols = 0;
-        std::istringstream stream(line);
-        while(! stream.eof()) {
-            stream >> d;
-            stream >> delim;
-            buff[cols*rows+temp_cols++] = d;
-        }
+//    if(std::filesystem::exists(filename)) {
+        int MAXBUFSIZE = ((int) 1e6);
+        int cols = 0, rows = 0;
+        double buff[MAXBUFSIZE];
 
-        if (temp_cols == 0)
-            continue;
+        // Read numbers from file into buffer.
+        std::ifstream infile;
+        infile.open(filename);
+        double d;
+        char delim;
+        while (! infile.eof())
+            {
+            std::string line;
+            getline(infile, line);
+            int temp_cols = 0;
+            std::istringstream stream(line);
+            while(! stream.eof()) {
+                stream >> d;
+                stream >> delim;
+                buff[cols*rows+temp_cols++] = d;
+            }
 
-        if (cols == 0)
-            cols = temp_cols;
+            if (temp_cols == 0)
+                continue;
 
-        rows++;
-        }
+            if (cols == 0)
+                cols = temp_cols;
 
-    infile.close();
+            rows++;
+            }
 
-    rows--;
+        infile.close();
 
-    // Populate matrix with numbers.
-    Eigen::MatrixXd result(rows,cols);
-    for (int i = 0; i < rows; i++)
-        for (int j = 0; j < cols; j++)
-            result(i,j) = buff[ cols*i+j ];
+        rows--;
 
-    std::cout << "done!" << std::endl;
+        // Populate matrix with numbers.
+        result.resize(rows,cols);
+        for (int i = 0; i < rows; i++)
+            for (int j = 0; j < cols; j++)
+                result(i,j) = buff[ cols*i+j ];
+
+        std::cout << "done!" << std::endl;
+/*    }
+    else {
+        std::cout << "error! File does not exist." << std::endl;
+    }*/
     return result;
-
 }
 
 Eigen::VectorXd removeElem(Eigen::VectorXd vec, unsigned int toRemove)
@@ -227,26 +242,18 @@ double matrix_normal_prec_lpdf(
     return out;
 }
 
-std::vector<Rcpp::RawVector> str2raw(const std::vector<std::string> & str_vect){
+Rcpp::RawVector str2raw(const std::string & str){
     
-    std::vector<Rcpp::RawVector> out;
-    for (int i = 0; i < str_vect.size(); ++i) {
-        Rcpp::RawVector tmp(str_vect[i].size());
-        std::copy(str_vect[i].begin(), str_vect[i].end(), tmp.begin());
-        out.push_back(tmp);
-    }
+    Rcpp::RawVector out(str.size());
+    std::copy(str.begin(), str.end(), out.begin());
     return out;
 }
 
-std::vector<std::string> raw2str(const std::vector<Rcpp::RawVector> raw_vect) {
+std::string raw2str(const Rcpp::RawVector & raw_vect){
 
-    std::vector<std::string> out;
-    for (int i = 0; i < raw_vect.size(); ++i) {
-        std::string s;
-        for (auto elem : raw_vect[i])
-            s.push_back(elem);
-        out.push_back(s);
-    }
+    std::string out;
+    for (auto elem : raw_vect)
+        out.push_back(elem);
     return out;
 }
 

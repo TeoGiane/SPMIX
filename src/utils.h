@@ -40,7 +40,7 @@ Eigen::MatrixXd removeRowColumn(Eigen::MatrixXd matrix, unsigned int toRemove);
 std::vector<int> findConnectedComponents(const Eigen::MatrixXd& adjacency);
 
 void _dephtFirstSearch(const Eigen::MatrixXd &adjacency, int curr_node,
-                       std::vector<bool> *visited, 
+                       std::vector<bool> *visited,
                        std::vector<int> *node2comp,
                        int curr_comp);
 
@@ -48,9 +48,9 @@ double matrix_normal_prec_lpdf(
     Eigen::MatrixXd x, Eigen::MatrixXd m, Eigen::MatrixXd A,
     Eigen::MatrixXd B);
 
-std::vector<Rcpp::RawVector> str2raw(const std::vector<std::string> & str_vect);
+Rcpp::RawVector str2raw(const std::string & str);
 
-std::vector<std::string> raw2str(const std::vector<Rcpp::RawVector> raw_vect);
+std::string raw2str(const Rcpp::RawVector & raw_vect);
 
 } // namespace utils
 

@@ -4,7 +4,7 @@
 \alias{readingStates}
 \title{Translation from serialization testing}
 \usage{
-readingStates(str_vect)
+readingStates(raw_vect)
 }
 \description{
 Translation from serialization testing

@@ -26,10 +26,20 @@ inv_alr <- function(x, padded_zero = FALSE) {
     .Call(`_SPMIX_inv_alr`, x, padded_zero)
 }
 
-#' First try on the spatial sampler, taking input from files
+runSpatialSampler <- function(burnin, niter, thin, data, W, params, covariates, display_progress) {
+    .Call(`_SPMIX_runSpatialSampler`, burnin, niter, thin, data, W, params, covariates, display_progress)
+}
+
+#' Just a check for output format in R when reading a matrix
 #' @export
-SPMIX_SamplerFromFiles <- function(burnin, niter, thin, data_file, w_file, params_file) {
-    .Call(`_SPMIX_SPMIX_SamplerFromFiles`, burnin, niter, thin, data_file, w_file, params_file)
+readMatrixFromCSV <- function(filename) {
+    .Call(`_SPMIX_readMatrixFromCSV`, filename)
+}
+
+#' Just a check for output format in R when reading data
+#' @export
+readDataFromCSV <- function(filename) {
+    .Call(`_SPMIX_readDataFromCSV`, filename)
 }
 
 #' Simple test with stan/math C++ library
@@ -50,5 +60,11 @@ fromProto_tostring <- function() {
 #' @export
 readingStates <- function(raw_vect) {
     invisible(.Call(`_SPMIX_readingStates`, raw_vect))
+}
+
+#' Simple test to see if messages in R can be passed to a C++ function
+#' @export
+messageFromR <- function(params) {
+    invisible(.Call(`_SPMIX_messageFromR`, params))
 }
 
