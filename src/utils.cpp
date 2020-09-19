@@ -1,6 +1,7 @@
 #include "utils.h"
 #include <iostream>
 #include <filesystem>
+#include <exception>
 
 namespace utils {
 
@@ -58,101 +59,96 @@ Eigen::VectorXd InvAlr(Eigen::VectorXd x, bool padded_zero) {
 }
 
 std::vector<std::vector<double>> readDataFromCSV(std::string filename) {
-    
+
+    // Check if file exists
+    if (!std::filesystem::exists(filename))
+    	throw std::runtime_error("Input file does not exists.");
+
+    // Start reading file
     std::cout << "readDataFromCSV ... ";
-    std::vector<std::vector<double>> data;
+    std::ifstream infile(filename);
+    std::map<int, std::vector<double>> out;
 
-    if(std::filesystem::exists(filename)) {
-        std::ifstream infile(filename);
-        std::map<int, std::vector<double>> out;
+    int group;
+    double datum;
+    std::string line;
+    char delim;
 
-        int group;
-        double datum;
-        std::string line;
-        char delim;
+    // Skip header
+    std::getline(infile, line);
 
-        // skip header
-        std::getline(infile, line);
+    while (std::getline(infile, line)) {
+      std::istringstream iss(line);
+      if (!(iss >> group >> delim >> datum) ) { break; }
+      out[group].push_back(datum);
+    }
 
-        while (std::getline(infile, line)) {
-          std::istringstream iss(line);
-          if (!(iss >> group >> delim >> datum) ) { break; }
-          out[group].push_back(datum);
-        }
+    // Maps are sorted
+    int ngroups = out.rbegin()->first;
+    bool startsFromZero = out.begin()->first == 0;
+    if (startsFromZero)
+        ngroups += 1;
 
-        // maps are sorted
-        int ngroups = out.rbegin()->first;
-        bool startsFromZero = out.begin()->first == 0;
+    std::vector<std::vector<double>> data(ngroups);
+    for (int g=0; g < ngroups; g++) {
         if (startsFromZero)
-            ngroups += 1;
-
-        data.resize(ngroups);
-        for (int g=0; g < ngroups; g++) {
-            if (startsFromZero)
-                data[g] = out[g];
-            else
-                data[g] = out[g + 1];
-        }
-
-        std::cout << "done!" << std::endl;
+            data[g] = out[g];
+        else
+            data[g] = out[g + 1];
     }
-    else {
-        std::cout << "error! File does not exist." << std::endl;
-    }
+
+    std::cout << "done!" << std::endl;
     return data;
 }
 
 Eigen::MatrixXd readMatrixFromCSV(std::string filename) {
-    
+
+    // Check if file exists
+    if (!std::filesystem::exists(filename))
+    	throw std::runtime_error("Input file does not exists.");
+
     std::cout << "readMatrixFromCSV ... ";
-    Eigen::MatrixXd result;
+    int MAXBUFSIZE = ((int) 1e6);
+    int cols = 0, rows = 0;
+    double buff[MAXBUFSIZE];
 
-//    if(std::filesystem::exists(filename)) {
-        int MAXBUFSIZE = ((int) 1e6);
-        int cols = 0, rows = 0;
-        double buff[MAXBUFSIZE];
+    // Read numbers from file into buffer.
+    std::ifstream infile;
+    infile.open(filename);
+    double d;
+    char delim;
+    while (! infile.eof())
+        {
+        std::string line;
+        getline(infile, line);
+        int temp_cols = 0;
+        std::istringstream stream(line);
+        while(! stream.eof()) {
+            stream >> d;
+            stream >> delim;
+            buff[cols*rows+temp_cols++] = d;
+        }
 
-        // Read numbers from file into buffer.
-        std::ifstream infile;
-        infile.open(filename);
-        double d;
-        char delim;
-        while (! infile.eof())
-            {
-            std::string line;
-            getline(infile, line);
-            int temp_cols = 0;
-            std::istringstream stream(line);
-            while(! stream.eof()) {
-                stream >> d;
-                stream >> delim;
-                buff[cols*rows+temp_cols++] = d;
-            }
+        if (temp_cols == 0)
+            continue;
 
-            if (temp_cols == 0)
-                continue;
+        if (cols == 0)
+            cols = temp_cols;
 
-            if (cols == 0)
-                cols = temp_cols;
+        rows++;
+        }
 
-            rows++;
-            }
+    infile.close();
 
-        infile.close();
+    rows--;
 
-        rows--;
+    // Populate matrix with numbers.
+    Eigen::MatrixXd result(rows,cols);
+    for (int i = 0; i < rows; i++)
+        for (int j = 0; j < cols; j++)
+            result(i,j) = buff[ cols*i+j ];
 
-        // Populate matrix with numbers.
-        result.resize(rows,cols);
-        for (int i = 0; i < rows; i++)
-            for (int j = 0; j < cols; j++)
-                result(i,j) = buff[ cols*i+j ];
-
-        std::cout << "done!" << std::endl;
-/*    }
-    else {
-        std::cout << "error! File does not exist." << std::endl;
-    }*/
+    std::cout << "done!" << std::endl;
     return result;
 }
 
@@ -243,7 +239,7 @@ double matrix_normal_prec_lpdf(
 }
 
 Rcpp::RawVector str2raw(const std::string & str){
-    
+
     Rcpp::RawVector out(str.size());
     std::copy(str.begin(), str.end(), out.begin());
     return out;
