@@ -100,7 +100,7 @@ void readingStates(std::vector<Rcpp::RawVector> raw_vect){
 // [[Rcpp::export]]
 void messageFromR(Rcpp::S4 params) {
     Rcpp::Rcout << std::boolalpha << "Has pointer: " << params.hasSlot("pointer") << std::endl;
-    Rcpp::Rcout << "S4 Class of type Message?" << params.is("Message") << std::endl;
+    Rcpp::Rcout << "S4 Class of type Message? " << params.is("Message") << std::endl;
     Rcpp::XPtr<SamplerParams> pt = params.slot("pointer");
     SamplerParams & obj = *pt;
     Rcpp::Rcout << "Ci siamo" << std::endl;

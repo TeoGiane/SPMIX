@@ -60,7 +60,7 @@ Eigen::VectorXd inv_alr(Eigen::VectorXd x, bool padded_zero = false) {
 std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>> & data,
     const Eigen::MatrixXd & W, Rcpp::S4 params, const std::vector<Eigen::MatrixXd> & covariates, bool display_progress) {
 
-    // Getting the pointer to a SamplerParams class from the R Message in Input
+    // Getting the pointer to a SamplerParams class from the R Message in Input (NOT ELEGANT)
     Rcpp::XPtr<SamplerParams> params_pt = params.slot("pointer");
     std::string param_text(params_pt->DebugString());
     SamplerParams input; google::protobuf::TextFormat::ParseFromString(param_text, &input);
@@ -102,19 +102,6 @@ std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, 
 
     return out;
 }
-
-/*
-//' First try on the spatial sampler, taking input from files
-//' @export
-// [[Rcpp::export]]
-std::vector<Rcpp::RawVector> SPMIX_SamplerFromFiles(int burnin, int niter, int thin,
-								                    std::string data_file, std::string w_file, std::string params_file) {
-
-    std::vector<std::vector<double>> data = utils::readDataFromCSV(data_file);
-    Eigen::MatrixXd W = utils::readMatrixFromCSV(w_file);
-    SamplerParams params = loadTextProto<SamplerParams>(params_file);
-    return runSpatialSampler(burnin, niter, thin, data, W, params);
-}*/
 
 //' Just a check for output format in R when reading a matrix
 //' @export
