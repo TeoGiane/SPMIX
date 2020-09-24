@@ -102,8 +102,8 @@ void messageFromR(Rcpp::S4 params) {
     Rcpp::Rcout << std::boolalpha << "Has pointer: " << params.hasSlot("pointer") << std::endl;
     Rcpp::Rcout << "S4 Class of type Message? " << params.is("Message") << std::endl;
     Rcpp::XPtr<SamplerParams> pt = params.slot("pointer");
-    SamplerParams & obj = *pt;
-    Rcpp::Rcout << "Ci siamo" << std::endl;
-    //Rcpp::Rcout << obj->DebugString() << std::endl;
+    std::string tmp; SamplerParams obj; pt->SerializeToString(&tmp);
+    obj.ParseFromString(tmp); Rcpp::Rcout << obj.DebugString() << std::endl;
+    //Rcpp::Rcout << (*(pt.get())).DebugString() << std::endl;
     return;
 }
