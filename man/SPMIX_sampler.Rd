@@ -30,7 +30,7 @@ SPMIX_sampler(
 
 \item{cov}{blabla}
 
-\item{display_progres}{blabla}
+\item{display_progress}{blabla}
 }
 \value{
 bleble
