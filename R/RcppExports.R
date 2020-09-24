@@ -42,6 +42,12 @@ readDataFromCSV <- function(filename) {
     .Call(`_SPMIX_readDataFromCSV`, filename)
 }
 
+#' Loglikelihood of a Spatial Mixture model state
+#' @export
+spmixLogLikelihood <- function(data, state, params) {
+    invisible(.Call(`_SPMIX_spmixLogLikelihood`, data, state, params))
+}
+
 #' Simple test with stan/math C++ library
 #'
 #' Simply computes logN(1|2,3)

@@ -1,5 +1,9 @@
 #include "mcmc_utils.h"
 
+//#include <Eigen/Dense>
+#include <cmath>
+#include <stan/math.hpp>
+
 namespace utils {
 
 std::vector<double> normalGammaUpdate(
@@ -41,6 +45,60 @@ double marginalLogLikeNormalGamma(
     out += 0.5 * (std::log(lambda) - std::log(params[3]));
     out -= M_PI;
     return out;
+}
+
+void spmixLogLikelihood(const std::vector<std::vector<double>> & data, const UnivariateState & state, const SamplerParams & params) {
+
+    // Exporting required data from state
+    int num_components{state.num_components()};
+    std::vector<double> means; std::vector<double> std_devs;
+    for (auto elem : state.atoms()) {
+        means.emplace_back(elem.mean());
+        std_devs.emplace_back(elem.stdev());
+    }
+
+    Eigen::MatrixXd weights(state.groupparams().size(), num_components);
+    for (int i = 0; i < state.groupparams().size(); ++i) {
+        for (int j = 0; j < num_components; ++j) {
+            weights(i,j) = state.groupparams()[i].weights()[j];
+        }
+    }
+    double rho{state.rho()};
+    Eigen::MatrixXd Sigma(state.sigma().rows(), state.sigma().cols());
+    for (int i = 0; i < state.sigma().rows(); ++i) {
+        for (int j = 0; j < state.sigma().cols(); ++j) {
+            Sigma(i,j) = state.sigma().data()[i*state.sigma().rows()+j];
+        }
+    }
+
+    // Initialize output
+    double output{0.};
+
+    // Computing contribution of data (Mettiamo un po' di openmp)
+    for (int i = 0; i < data.size(); ++i) {
+        for (int j = 0; j < data[i].size(); ++j) {
+            std::vector<double> contributions(num_components);
+            for (int h = 0; h < num_components; ++h) {
+                contributions[h] = log(weights(i,h)) + stan::math::normal_lpdf(data[i][j], means[h], std_devs[h]);
+            }
+            output += stan::math::log_sum_exp(contributions);
+        }
+    }
+
+
+    // Contributions from kernels
+    for (int h = 0; i < num_components; ++h) {
+        double tau = 1.0/(std_devs[h]*std_devs[h]);
+        double sigmaNorm = 1.0 / std::sqrt(tau * params.normalgammaparams().lam_())
+        output += stan::math::gamma_lpdf(tau, params.normalgammaparams().a(), params.normalgammaparams().b()) +
+        stan::math::normal_lpdf(means[h], params.normalgammaparams().mu0(), sigmaNorm);
+    }
+
+
+    // COntribution from weights
+
+    Rcpp::Rcout << "Output: " << output << std::endl;
+    return;
 }
 
 }

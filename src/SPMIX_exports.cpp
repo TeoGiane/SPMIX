@@ -16,9 +16,11 @@
 #include <progress_bar.hpp>
 #include <utility>
 #include <google/protobuf/text_format.h>
+#include <exception>
 
 
 #include "utils.h"
+#include "mcmc_utils.h"
 #include "sampler.h"
 #include "univariate_mixture_state.pb.h"
 
@@ -115,6 +117,37 @@ Eigen::MatrixXd readMatrixFromCSV(std::string filename) {
 // [[Rcpp::export]]
 std::vector<std::vector<double>> readDataFromCSV(std::string filename) {
     return utils::readDataFromCSV(filename);
+}
+
+//' Loglikelihood of a Spatial Mixture model state
+//' @export
+// [[Rcpp::export]]
+void spmixLogLikelihood(const std::vector<std::vector<double>> & data, const Rcpp::S4 & state, const Rcpp::S4 & params) {
+
+    // Check S4 class for state
+    if (not(state.is("Message") and std::string(state.slot("type")) == "UnivariateState")) {
+        throw std::runtime_error("Input 'state' is not of type Message::UnivariateState.");
+    }
+
+    // Check S4 class for params
+    if (not(params.is("Message") and std::string(params.slot("type")) == "SamplerParams")) {
+        throw std::runtime_error("Input 'state' is not of type Message::SamplerParams.");
+    }
+
+    // Create a deep-copy of the messages with the workaround
+    std::string tmp;
+
+    // State copy
+    UnivariateState state_cp; //SamplerParams params_cp;
+    Rcpp::XPtr<UnivariateState>(state.slot("pointer"))->SerializeToString(&tmp);
+    state_cp.ParseFromString(tmp);
+
+    // Params copy
+    SamplerParams params_cp;
+    Rcpp::XPtr<SamplerParams>(params.slot("pointer"))->SerializeToString(&tmp);
+    params_cp.ParseFromString(tmp);
+
+    return utils::spmixLogLikelihood(data, state_cp, params_cp);
 }
 
 #endif // SPMIX_EXPORTS

@@ -70,6 +70,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// spmixLogLikelihood
+void spmixLogLikelihood(const std::vector<std::vector<double>>& data, const Rcpp::S4& state, const Rcpp::S4& params);
+RcppExport SEXP _SPMIX_spmixLogLikelihood(SEXP dataSEXP, SEXP stateSEXP, SEXP paramsSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type params(paramsSEXP);
+    spmixLogLikelihood(data, state, params);
+    return R_NilValue;
+END_RCPP
+}
 // stan_HelloWorld
 void stan_HelloWorld();
 RcppExport SEXP _SPMIX_stan_HelloWorld() {
@@ -116,6 +128,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_runSpatialSampler", (DL_FUNC) &_SPMIX_runSpatialSampler, 8},
     {"_SPMIX_readMatrixFromCSV", (DL_FUNC) &_SPMIX_readMatrixFromCSV, 1},
     {"_SPMIX_readDataFromCSV", (DL_FUNC) &_SPMIX_readDataFromCSV, 1},
+    {"_SPMIX_spmixLogLikelihood", (DL_FUNC) &_SPMIX_spmixLogLikelihood, 3},
     {"_SPMIX_stan_HelloWorld", (DL_FUNC) &_SPMIX_stan_HelloWorld, 0},
     {"_SPMIX_fromProto_tostring", (DL_FUNC) &_SPMIX_fromProto_tostring, 0},
     {"_SPMIX_readingStates", (DL_FUNC) &_SPMIX_readingStates, 1},
