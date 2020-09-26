@@ -4,38 +4,40 @@
 \alias{SPMIX_sampler}
 \title{Spatial Mixture Model Sampler}
 \usage{
-SPMIX_sampler(
-  burnin,
-  niter,
-  thin,
-  data,
-  W,
-  params,
-  cov = list(),
-  display_progress = TRUE
-)
+SPMIX_sampler(burnin, niter, thin, data, W, params,
+    cov = list(), display_progress = TRUE)
 }
 \arguments{
-\item{burnin}{blabla}
+\item{burnin}{Integer, the number of steps of the burnin phase.}
 
-\item{niter}{blabla}
+\item{niter}{Integer, the number of steps to run \emph{after} the burnin,}
 
-\item{thin}{blabla}
+\item{thin}{Integer, is the thinning parameter, hence only one every 'thin' iterations will be saved
+during the sampling phase.}
 
-\item{data}{blabla}
+\item{data}{The data that needs to be fitted by the model. Data can be passed either as string, thus indicating
+the path to a \code{.csv} file representing the data, or as a list of vectors. In this case, data[\link{i}] represents
+the vector of data in location i.}
 
-\item{W}{blabla}
+\item{W}{The proximity matrix between different locations. W can be passed as string, i.e. a string containing
+the path to a \code{.csv} file storing the proximity matrix, or as a simple R matrix.}
 
-\item{params}{blabla}
+\item{params}{The sampler parameters that needs to be provided as input. params can be passed as a string
+containing the path to an \code{.asciipb} file or as an \code{S4::Message} class of type SamplerParams, i.e. a
+Google Protocol Buffer Message available in the package and interfaced to R through \code{\link{RProtoBuf}}.}
 
-\item{cov}{blabla}
+\item{cov}{a list of vectors that represents covariates. As default value, is an empty list.
+In case this input parameter is not empty, the sampler performs a regression on these covariates.}
 
-\item{display_progress}{blabla}
+\item{display_progress}{Boolean, it allows you display on the console the progress bar during burn-in
+and sampling phase. As default value, is set to TRUE.}
 }
 \value{
-bleble
+A list of raw vectors where the i-th element is the i-th saved draw In order to reduce the space
+occupied by these draws, data are serialized through Google Protocol Buffers serialization procedure.
+Each state can be easily deserialized in R using the \code{\link{unserialize_proto}} function in this package.
 }
 \description{
-This function provides the sampling algorithm for Spatial Mixture Models data. A seguire, se tutto funziona,
-una bella documentazione.
+Runs the Gibbs sampler for the SPMIX model for a total of burnin + niter iterations,
+discarding the first 'burnin' ones and keeping in memory only one every 'thin' iterations.
 }

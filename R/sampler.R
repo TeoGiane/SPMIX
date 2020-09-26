@@ -1,16 +1,31 @@
 #' Spatial Mixture Model Sampler
 #'
-#' This function provides the sampling algorithm for Spatial Mixture Models data. A seguire, se tutto funziona,
-#' una bella documentazione.
-#' @param burnin blabla
-#' @param niter blabla
-#' @param thin blabla
-#' @param data blabla
-#' @param W blabla
-#' @param params blabla
-#' @param cov blabla
-#' @param display_progress blabla
-#' @return bleble
+#' Runs the Gibbs sampler for the SPMIX model for a total of burnin + niter iterations,
+#' discarding the first 'burnin' ones and keeping in memory only one every 'thin' iterations.
+#'
+#' @usage SPMIX_sampler(burnin, niter, thin, data, W, params,
+#'     cov = list(), display_progress = TRUE)
+#'
+#' @param burnin Integer, the number of steps of the burnin phase.
+#' @param niter Integer, the number of steps to run *after* the burnin,
+#' @param thin Integer, is the thinning parameter, hence only one every 'thin' iterations will be saved
+#' during the sampling phase.
+#' @param data The data that needs to be fitted by the model. Data can be passed either as string, thus indicating
+#' the path to a \code{.csv} file representing the data, or as a list of vectors. In this case, data[[i]] represents
+#' the vector of data in location i.
+#' @param W The proximity matrix between different locations. W can be passed as string, i.e. a string containing
+#' the path to a \code{.csv} file storing the proximity matrix, or as a simple R matrix.
+#' @param params The sampler parameters that needs to be provided as input. params can be passed as a string
+#' containing the path to an \code{.asciipb} file or as an \code{S4::Message} class of type SamplerParams, i.e. a
+#' Google Protocol Buffer Message available in the package and interfaced to R through \code{\link{RProtoBuf}}.
+#' @param cov a list of vectors that represents covariates. As default value, is an empty list.
+#' In case this input parameter is not empty, the sampler performs a regression on these covariates.
+#' @param display_progress Boolean, it allows you display on the console the progress bar during burn-in
+#' and sampling phase. As default value, is set to TRUE.
+#'
+#' @return A list of raw vectors where the i-th element is the i-th saved draw In order to reduce the space
+#' occupied by these draws, data are serialized through Google Protocol Buffers serialization procedure.
+#' Each state can be easily deserialized in R using the \code{\link{unserialize_proto}} function in this package.
 #'
 #' @export
 SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(), display_progress = TRUE) {
