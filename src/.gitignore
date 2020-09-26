@@ -2,3 +2,4 @@
 *.so
 *.dll
 /cpp_proto/*
+/to_test/*
