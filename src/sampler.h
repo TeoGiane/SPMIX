@@ -8,14 +8,14 @@
 #include <stdexcept>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/KroneckerProduct>
+#include <stan/math/prim/mat.hpp>
+
 #include "collector.h"
 #include "univariate_mixture_state.pb.h"
 #include "sampler_params.pb.h"
 #include "PolyaGammaHybrid.h"
-#include <stan/math/prim/mat.hpp>
 #include "mcmc_utils.h"
 #include "utils.h"
-
 
 class SpatialMixtureSampler {
  protected:

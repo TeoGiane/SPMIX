@@ -15,9 +15,7 @@
 
 namespace utils {
 
-double trunc_normal_rng(
-    double mu, double sigma, double lower, double upper,
-    std::mt19937_64& rng);
+double trunc_normal_rng( double mu, double sigma, double lower, double upper, std::mt19937_64& rng);
 
 double trunc_normal_lpdf(double x, double mu, double sigma, double lower, double upper);
 
