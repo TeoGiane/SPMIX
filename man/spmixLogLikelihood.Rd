@@ -4,7 +4,7 @@
 \alias{spmixLogLikelihood}
 \title{Loglikelihood of a Spatial Mixture model state}
 \usage{
-spmixLogLikelihood(state, params)
+spmixLogLikelihood(state, data, W, params)
 }
 \description{
 Loglikelihood of a Spatial Mixture model state

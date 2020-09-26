@@ -44,8 +44,8 @@ readDataFromCSV <- function(filename) {
 
 #' Loglikelihood of a Spatial Mixture model state
 #' @export
-spmixLogLikelihood <- function(data, state, params) {
-    invisible(.Call(`_SPMIX_spmixLogLikelihood`, data, state, params))
+spmixLogLikelihood <- function(state, data, W, params) {
+    .Call(`_SPMIX_spmixLogLikelihood`, state, data, W, params)
 }
 
 #' Simple test with stan/math C++ library

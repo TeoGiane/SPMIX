@@ -18,13 +18,10 @@
 #include <google/protobuf/text_format.h>
 #include <exception>
 
-
 #include "utils.h"
 #include "mcmc_utils.h"
 #include "sampler.h"
 #include "univariate_mixture_state.pb.h"
-
-using return_t = std::vector<Rcpp::RawVector>;
 
 /*TODO: finire documentazione*/
 
@@ -122,7 +119,8 @@ std::vector<std::vector<double>> readDataFromCSV(std::string filename) {
 //' Loglikelihood of a Spatial Mixture model state
 //' @export
 // [[Rcpp::export]]
-void spmixLogLikelihood(const std::vector<std::vector<double>> & data, const Rcpp::S4 & state, const Rcpp::S4 & params) {
+double spmixLogLikelihood(const Rcpp::S4 & state, const std::vector<std::vector<double>> & data,
+                        const Eigen::MatrixXd & W, const Rcpp::S4 & params) {
 
     // Check S4 class for state
     if (not(state.is("Message") and std::string(state.slot("type")) == "UnivariateState")) {
@@ -131,7 +129,7 @@ void spmixLogLikelihood(const std::vector<std::vector<double>> & data, const Rcp
 
     // Check S4 class for params
     if (not(params.is("Message") and std::string(params.slot("type")) == "SamplerParams")) {
-        throw std::runtime_error("Input 'state' is not of type Message::SamplerParams.");
+        throw std::runtime_error("Input 'params' is not of type Message::SamplerParams.");
     }
 
     // Create a deep-copy of the messages with the workaround
@@ -147,7 +145,7 @@ void spmixLogLikelihood(const std::vector<std::vector<double>> & data, const Rcp
     Rcpp::XPtr<SamplerParams>(params.slot("pointer"))->SerializeToString(&tmp);
     params_cp.ParseFromString(tmp);
 
-    return utils::spmixLogLikelihood(data, state_cp, params_cp);
+    return utils::spmixLogLikelihood(state_cp, data, W, params_cp);
 }
 
 #endif // SPMIX_EXPORTS
