@@ -6,12 +6,18 @@ PKG_CXXFLAGS += $(shell "$(R_HOME)/bin/Rscript" -e "RcppParallel::CxxFlags()") \
 PKG_LIBS = $(shell "$(R_HOME)/bin/Rscript" -e "RcppParallel::RcppParallelLibs()") \
            $(shell "$(R_HOME)/bin/Rscript" -e "StanHeaders:::LdFlags()") $(USR_LIB)
 
-# Compile protos
-$(shell ./.compile_protos.sh)
-
-# Setting all sources
-SOURCES = $(wildcard *.c*) $(wildcard polyagamma/*.c*) $(wildcard cpp_proto/*.c*)
-
-# Setting all objects
+PROTO_DIR = ../inst/proto
+PROTO_SRC = $(wildcard $(PROTO_DIR)/*.proto)
+SOURCES = $(wildcard *.cpp polyagamma/*.cpp) $(addprefix cpp_proto/, $(notdir $(PROTO_SRC:.proto=.pb.cc)))
 OBJECTS = $(addsuffix .o, $(basename $(SOURCES)))
 
+.PHONY = all
+
+all: compile_protos $(SHLIB)
+
+compile_protos:
+	@mkdir -p cpp_proto
+	@for file in $(PROTO_SRC); \
+		do \
+			protoc -I$(PROTO_DIR) --cpp_out=$(PWD)/cpp_proto $${file}; \
+		done
