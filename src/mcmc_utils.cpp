@@ -43,7 +43,43 @@ double marginalLogLikeNormalGamma(
     return out;
 }
 
-double spmixLogLikelihood(const UnivariateState &state, const std::vector<std::vector<double>> &data,
+spmixLogLikelihood::spmixLogLikelihood(const std::vector<std::vector<double>> & _data, const Eigen::MatrixXd & _W,
+                                       const SamplerParams & _params, const UnivariateState & _state):
+data(_data), W(_W), params(_params), numGroups(data.size()) {
+
+    //Exporting required info from state
+    numComponents = _state.num_components();
+    rho = _state.rho();
+
+    means.resize(numComponents);
+    std_devs.resize(numComponents);
+    for (int i = 0; i < numComponents; ++i) {
+        means(i) = _state.atoms()[i].mean();//.emplace_back(elem.mean());
+        std_devs(i) = _state.atoms()[i].stdev();
+    }
+
+    Eigen::MatrixXd transformed_weights(_state.groupparams().size(), numComponents-1);
+    Eigen::MatrixXd weights(_state.groupparams().size(), numComponents);
+    for (int i = 0; i < _state.groupparams().size(); ++i) {
+        Eigen::VectorXd tmp(numComponents);
+        for (int j = 0; j < numComponents; ++j) {
+            tmp(j) = _state.groupparams()[i].weights()[j];
+            weights(i,j) = _state.groupparams()[i].weights()[j];
+        }
+        transformed_weights.row(i) = utils::Alr(tmp, false);
+    }
+    transformed_weights_vect.resize(transformed_weights.size());
+    transformed_weights_vect << transformed_weights;
+
+    Sigma.resize(_state.sigma().rows(), _state.sigma().cols());
+    for (int i = 0; i < _state.sigma().rows(); ++i) {
+        for (int j = 0; j < _state.sigma().cols(); ++j) {
+            Sigma(i,j) = _state.sigma().data()[i*_state.sigma().rows()+j];
+        }
+    }
+}
+
+/*double spmixLogLikelihood(const UnivariateState &state, const std::vector<std::vector<double>> &data,
 						  const Eigen::MatrixXd &W, const SamplerParams & params) {
 
     // Exporting required data from state <- Here we can add the tracking variables stan::math::var
@@ -108,6 +144,6 @@ double spmixLogLikelihood(const UnivariateState &state, const std::vector<std::v
     // Contribution from other stuff (rho, m_tilde, H, Sigma)
     //Rcpp::Rcout << "Output: " << output << std::endl;
     return output;
-}
+}*/
 
-}
+} // namespace utils
