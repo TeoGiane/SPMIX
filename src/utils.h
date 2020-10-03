@@ -7,8 +7,8 @@
 #include <sstream>
 #include <string>
 #include <fstream>
-#include <Eigen/Dense>
 #include <stan/math/prim/mat.hpp>
+#include <Eigen/Dense>
 #define STRICT_R_HEADERS
 #include <Rcpp.h>
 
@@ -21,7 +21,23 @@ double trunc_normal_lpdf(double x, double mu, double sigma, double lower, double
 
 Eigen::VectorXd Alr(Eigen::VectorXd x, bool pad_zero = false);
 
-Eigen::VectorXd InvAlr(Eigen::VectorXd x, bool padded_zero = false);
+template<typename T>
+Eigen::Matrix<T, Eigen::Dynamic, 1> InvAlr(Eigen::Matrix<T, Eigen::Dynamic, 1> x, bool padded_zero = false) {
+    int D;
+
+    if (padded_zero)
+        D = x.size();
+    else
+        D = x.size() + 1;
+
+    Eigen::Matrix<T, Eigen::Dynamic, 1> out(D);
+    out.head(D - 1) = x.head(D-1);
+    out(D - 1) = 0;
+    T norm = stan::math::log_sum_exp(out);
+    out = (out.array() - norm).exp();
+    return out;
+}
+//Eigen::VectorXd InvAlr(Eigen::VectorXd x, bool padded_zero = false);
 
 std::vector<std::vector<double>> readDataFromCSV(std::string filename);
 

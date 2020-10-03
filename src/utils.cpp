@@ -42,7 +42,7 @@ Eigen::VectorXd Alr(Eigen::VectorXd x, bool pad_zero) {
     }
 }
 
-Eigen::VectorXd InvAlr(Eigen::VectorXd x, bool padded_zero) {
+/*Eigen::VectorXd InvAlr(Eigen::VectorXd x, bool padded_zero) {
     int D;
 
     if (padded_zero)
@@ -56,7 +56,7 @@ Eigen::VectorXd InvAlr(Eigen::VectorXd x, bool padded_zero) {
     double norm = stan::math::log_sum_exp(out);
     out = (out.array() - norm).exp();
     return out;
-}
+}*/
 
 std::vector<std::vector<double>> readDataFromCSV(std::string filename) {
 
