@@ -5,8 +5,19 @@
 #ifndef SPMIX_EXPORTS
 #define SPMIX_EXPORTS
 
+// [[Rcpp::depends(BH)]]
+// [[Rcpp::depends(RcppEigen)]]
+// [[Rcpp::depends(RcppParallel)]]
+// [[Rcpp::depends(StanHeaders)]]
 #define STRICT_R_HEADERS
+#include <stan/math/fwd/mat.hpp>
+#include <stan/math/mix/mat.hpp>
+#include <stan/math.hpp>
 #include <Rcpp.h>
+#include <RcppEigen.h>
+
+/*#define STRICT_R_HEADERS
+#include <Rcpp.h>*/
 
 #include <deque>
 #include <string>
@@ -116,11 +127,12 @@ std::vector<std::vector<double>> readDataFromCSV(std::string filename) {
     return utils::readDataFromCSV(filename);
 }
 
+
 //' Loglikelihood of a Spatial Mixture model state
 //' @export
 // [[Rcpp::export]]
 double spmixLogLikelihood(const Rcpp::S4 & state, const std::vector<std::vector<double>> & data,
-                        const Eigen::MatrixXd & W, const Rcpp::S4 & params) {
+                          const Eigen::MatrixXd & W, const Rcpp::S4 & params) {
 
     // Check S4 class for state
     if (not(state.is("Message") and std::string(state.slot("type")) == "UnivariateState")) {
@@ -136,7 +148,7 @@ double spmixLogLikelihood(const Rcpp::S4 & state, const std::vector<std::vector<
     std::string tmp;
 
     // State copy
-    UnivariateState state_cp; //SamplerParams params_cp;
+    UnivariateState state_cp;
     Rcpp::XPtr<UnivariateState>(state.slot("pointer"))->SerializeToString(&tmp);
     state_cp.ParseFromString(tmp);
 
@@ -145,7 +157,9 @@ double spmixLogLikelihood(const Rcpp::S4 & state, const std::vector<std::vector<
     Rcpp::XPtr<SamplerParams>(params.slot("pointer"))->SerializeToString(&tmp);
     params_cp.ParseFromString(tmp);
 
-    return utils::spmixLogLikelihood(state_cp, data, W, params_cp);
+    utils::spmixLogLikelihood fun(data, W, params_cp, state_cp);
+    Eigen::VectorXd x;
+    return fun(x);
 }
 
 #endif // SPMIX_EXPORTS
