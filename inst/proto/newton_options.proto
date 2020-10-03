@@ -1,6 +1,6 @@
 syntax = "proto3";
 
 message NewtonOptions {
-	double max_iter = 1
-	double tol = 2
+	double max_iter = 1;
+	double tol = 2;
 }
