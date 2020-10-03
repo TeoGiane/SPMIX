@@ -123,6 +123,15 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// hessian_test
+void hessian_test();
+RcppExport SEXP _SPMIX_hessian_test() {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    hessian_test();
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_alr", (DL_FUNC) &_SPMIX_alr, 2},
@@ -135,6 +144,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_fromProto_tostring", (DL_FUNC) &_SPMIX_fromProto_tostring, 0},
     {"_SPMIX_readingStates", (DL_FUNC) &_SPMIX_readingStates, 1},
     {"_SPMIX_messageFromR", (DL_FUNC) &_SPMIX_messageFromR, 1},
+    {"_SPMIX_hessian_test", (DL_FUNC) &_SPMIX_hessian_test, 0},
     {NULL, NULL, 0}
 };
 

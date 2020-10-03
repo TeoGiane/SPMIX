@@ -1,10 +1,19 @@
+// [[Rcpp::depends(BH)]]
+// [[Rcpp::depends(RcppEigen)]]
+// [[Rcpp::depends(RcppParallel)]]
+// [[Rcpp::depends(StanHeaders)]]
 #define STRICT_R_HEADERS
-#include <Rcpp.h>
+#include <stan/math/fwd/mat.hpp>
+#include <stan/math/mix/mat.hpp>
 #include <stan/math.hpp>
+#include <Rcpp.h>
+#include <RcppEigen.h>
+
 #include <Eigen/Dense>
 #include <unsupported/Eigen/KroneckerProduct>
 #include <string>
 #include <memory>
+#include <functional>
 
 #include "PolyaGamma.h"
 #include "sampler_params.pb.h"
@@ -106,4 +115,49 @@ void messageFromR(Rcpp::S4 params) {
     obj.ParseFromString(tmp); Rcpp::Rcout << obj.DebugString() << std::endl;
     //Rcpp::Rcout << (*(pt.get())).DebugString() << std::endl;
     return;
+}
+
+
+/*template<typename T>
+class function_test {
+	using FunctionType = std::function<T(const Eigen::Matrix<T,Eigen::Dynamic,1> &)>;
+	template<typename T> FunctionType<T> function;
+public:
+	function_test(const FunctionType<T> _function)
+};*/
+
+
+class function {
+private:
+	Eigen::VectorXd data;
+public:
+	function(const Eigen::VectorXd & _data): data(_data) {};
+	template<typename T>
+    T operator()(const Eigen::Matrix<T, Eigen::Dynamic, 1> & data_toadd) const {
+		Eigen::Matrix<T, Eigen::Dynamic, 1> data_prom(data);
+		Eigen::Matrix<T, Eigen::Dynamic, 1> data_ext(data_prom.size() + data_toadd.size());
+		data_ext << data_prom, data_toadd;
+		return stan::math::sum(data_ext);
+    }
+};
+
+//' Test to use stan math library for automatic differentiation
+//' @export
+// [[Rcpp::export]]
+void hessian_test() {
+	using StanVector = Eigen::Matrix<stan::math::var, Eigen::Dynamic, 1>;
+	Eigen::VectorXd data(4); data << 1., 2., 3., 4.;
+	Rcpp::Rcout << "data' = " << data.transpose() << std::endl;
+	function fun(data);
+	Eigen::VectorXd input(2); input << 2.5, 0.01;
+	Rcpp::Rcout << "input' = " << input.transpose() << std::endl;
+	Rcpp::Rcout << "output = " << fun(input) << std::endl;
+
+	double eval;
+	Eigen::VectorXd grad_x;
+	Eigen::MatrixXd hess_x;
+	stan::math::hessian(fun, input, eval, grad_x, hess_x);
+	Rcpp::Rcout << "grad(fun)(x):\n" << grad_x << std::endl;
+	Rcpp::Rcout << "hess(fun)(x):\n" << hess_x << std::endl;
+	return;
 }

@@ -3,6 +3,7 @@
 export(SPMIX_sampler)
 export(alr)
 export(fromProto_tostring)
+export(hessian_test)
 export(inv_alr)
 export(messageFromR)
 export(readDataFromCSV)

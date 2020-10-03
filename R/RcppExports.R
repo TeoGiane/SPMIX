@@ -74,3 +74,9 @@ messageFromR <- function(params) {
     invisible(.Call(`_SPMIX_messageFromR`, params))
 }
 
+#' Test to use stan math library for automatic differentiation
+#' @export
+hessian_test <- function() {
+    invisible(.Call(`_SPMIX_hessian_test`))
+}
+
