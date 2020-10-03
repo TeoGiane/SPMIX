@@ -1,16 +1,25 @@
+# Setting compiler standard
 CXX_STD = CXX17
-USR_LIB = -lgsl -lprotobuf
-PKG_CXXFLAGS += $(shell "$(R_HOME)/bin/Rscript" -e "RcppParallel::CxxFlags()") \
-                $(shell "$(R_HOME)/bin/Rscript" -e "StanHeaders:::CxxFlags()") \
-                -I'./polyagamma' -I'./cpp_proto'
-PKG_LIBS = $(shell "$(R_HOME)/bin/Rscript" -e "RcppParallel::RcppParallelLibs()") \
-           $(shell "$(R_HOME)/bin/Rscript" -e "StanHeaders:::LdFlags()") $(USR_LIB)
 
+# GSL library flags
+GSL_CFLAGS = $(shell gsl-config --cflags)
+GSL_LIBS = $(shell gsl-config --libs)
+
+# Google protocol buffers flags
+PROTOBUF_CFLAGS = -I'/usr/local/include'
+PROTOBUF_LIBS = -L'/usr/local/lib' -lprotobuf
+
+# Setting Package Flags
+PKG_CXXFLAGS += -D_REENTRANT -DSTAN_THREADS $(GSL_CFLAGS) $(PROTOBUF_CFLAGS) -I'./polyagamma' -I'./cpp_proto'
+PKG_LIBS = $(shell "$(R_HOME)/bin/Rscript" -e "StanHeaders:::LdFlags()") $(GSL_LIBS) $(PROTOBUF_LIBS)
+
+# Setting Package sources and object files
 PROTO_DIR = ../inst/proto
 PROTO_SRC = $(wildcard $(PROTO_DIR)/*.proto)
 SOURCES = $(wildcard *.cpp polyagamma/*.cpp) $(addprefix cpp_proto/, $(notdir $(PROTO_SRC:.proto=.pb.cc)))
 OBJECTS = $(addsuffix .o, $(basename $(SOURCES)))
 
+# Recipes
 .PHONY = all
 
 all: compile_protos $(SHLIB)
