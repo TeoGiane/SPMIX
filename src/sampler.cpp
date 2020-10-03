@@ -243,7 +243,7 @@ void SpatialMixtureSampler::sampleWeights() {
       transformed_weights(i, h) =
           normal_rng(mu_hat_ih, std::sqrt(sigma_hat_ih), rng);
     }
-    weights.row(i) = utils::InvAlr(transformed_weights.row(i), true);
+    weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), true);
   }
 
 #pragma omp parallel for
@@ -329,7 +329,7 @@ void SpatialMixtureSampler::sampleSigma() {
   double nu_n = nu + numGroups;
   Eigen::MatrixXd F_m_rhoG = F - W_init * rho;
 
-#pragma omp parallel for collapse(2)
+#pragma omp parallel for collapse(1)
   for (int i = 0; i < numGroups; i++) {
     Eigen::VectorXd wtilde_i =
         transformed_weights.row(i).head(numComponents - 1);
