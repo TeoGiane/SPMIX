@@ -17,10 +17,9 @@ PROTOBUF_LIBS = -L$(FOLDER)/lib -lprotobuf
 
 # Setting Package Flags
 PKG_CXXFLAGS += $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::CxxFlags()") \
-                $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "StanHeaders:::CxxFlags()") $(GSL_INC) $(PROTOBUF_INC) \
-                -I'./polyagamma' -I'./cpp_proto'
-PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::RcppParallelLibs()") \
-           $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "StanHeaders:::LdFlags()") $(GSL_LIBS) $(PROTOBUF_LIBS) -lstdc++fs
+                -D_REENTRANT -DSTAN_THREADS $(GSL_INC) $(PROTOBUF_INC) -I'./polyagamma' -I'./cpp_proto'
+PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::LdFlags()") \
+           $(GSL_LIBS) $(PROTOBUF_LIBS) -lstdc++fs
 
 # Setting Package sources and object files
 PROTO_DIR = ../inst/proto
@@ -31,10 +30,7 @@ OBJECTS = $(addsuffix .o, $(basename $(SOURCES)))
 # Recipes
 .PHONY = all
 
-all: print compile_protos $(SHLIB)
-
-print:
-	@echo $(GSL_INC)
+all: compile_protos $(SHLIB)
 
 compile_protos:
 	@mkdir -p cpp_proto
