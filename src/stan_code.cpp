@@ -137,7 +137,7 @@ public:
 		Eigen::Matrix<T, Eigen::Dynamic, 1> data_prom(data);
 		Eigen::Matrix<T, Eigen::Dynamic, 1> data_ext(data_prom.size() + data_toadd.size());
 		data_ext << data_prom, data_toadd;
-		return stan::math::sum(data_ext);
+		return stan::math::variance(data_ext);
     }
 };
 
@@ -156,8 +156,24 @@ void hessian_test() {
 	double eval;
 	Eigen::VectorXd grad_x;
 	Eigen::MatrixXd hess_x;
+
+	Rcpp::Rcout << "Automatic differentiation..." << std::endl;
+	auto start = std::chrono::high_resolution_clock::now();
 	stan::math::hessian(fun, input, eval, grad_x, hess_x);
+	auto end = std::chrono::high_resolution_clock::now();
+	double duration = std::chrono::duration<double>(end - start).count();
+	Rcpp::Rcout << "Duration: " << duration << std::endl;
 	Rcpp::Rcout << "grad(fun)(x):\n" << grad_x << std::endl;
 	Rcpp::Rcout << "hess(fun)(x):\n" << hess_x << std::endl;
+	Rcpp::Rcout << std::endl;
+	Rcpp::Rcout << "Finite Differences..." << std::endl;
+	start = std::chrono::high_resolution_clock::now();
+	stan::math::finite_diff_hessian(fun, input, eval, grad_x, hess_x);
+	end = std::chrono::high_resolution_clock::now();
+	duration = std::chrono::duration<double>(end - start).count();
+	Rcpp::Rcout << "Duration: " << duration << std::endl;
+	Rcpp::Rcout << "grad(fun)(x):\n" << grad_x << std::endl;
+	Rcpp::Rcout << "hess(fun)(x):\n" << hess_x << std::endl;
+
 	return;
 }
