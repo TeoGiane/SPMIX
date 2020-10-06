@@ -11,7 +11,7 @@
 #' @param thin Integer, is the thinning parameter, hence only one every 'thin' iterations will be saved
 #' during the sampling phase.
 #' @param data The data that needs to be fitted by the model. Data can be passed either as string, thus indicating
-#' the path to a \code{.csv} file representing the data, or as a list of vectors. In this case, data[[i]] represents
+#' the path to a \code{.csv} file representing the data, or as a list of vectors. In this case, i-th data represents
 #' the vector of data in location i.
 #' @param W The proximity matrix between different locations. W can be passed as string, i.e. a string containing
 #' the path to a \code{.csv} file storing the proximity matrix, or as a simple R matrix.
