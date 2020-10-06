@@ -1,8 +1,3 @@
----
-output:
-  pdf_document: default
-  html_document: default
----
 # SPMIX - Spatial Mixture Models in R
 <strong>Author</strong>: Matteo Gianella <br>
 <strong>Relator</strong>: Prof. Alessandra Guglielmi, Dott. Mario Beraha

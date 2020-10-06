@@ -1,0 +1,44 @@
+# Setting compiler standard
+CXX_STD = CXX17
+
+ifeq ($(R_ARCH), /x64)
+FOLDER = C:/rtools40/mingw64
+else
+FOLDER = C:/rtools40/mingw32
+endif
+
+# GSL library flags
+GSL_INC = $(shell $(FOLDER)/bin/gsl-config --cflags)
+GSL_LIBS = $(shell $(FOLDER)/bin/gsl-config --libs)
+
+# Google protocol buffers flags
+PROTOBUF_INC = -I$(FOLDER)/include
+PROTOBUF_LIBS = -L$(FOLDER)/lib -lprotobuf
+
+# Setting Package Flags
+PKG_CXXFLAGS += $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::CxxFlags()") \
+                $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "StanHeaders:::CxxFlags()") $(GSL_INC) $(PROTOBUF_INC) \
+                -I'./polyagamma' -I'./cpp_proto'
+PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::RcppParallelLibs()") \
+           $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "StanHeaders:::LdFlags()") $(GSL_LIBS) $(PROTOBUF_LIBS) -lstdc++fs
+
+# Setting Package sources and object files
+PROTO_DIR = ../inst/proto
+PROTO_SRC = $(wildcard $(PROTO_DIR)/*.proto)
+SOURCES = $(wildcard *.cpp polyagamma/*.cpp) $(addprefix cpp_proto/, $(notdir $(PROTO_SRC:.proto=.pb.cc)))
+OBJECTS = $(addsuffix .o, $(basename $(SOURCES)))
+
+# Recipes
+.PHONY = all
+
+all: print compile_protos $(SHLIB)
+
+print:
+	@echo $(GSL_INC)
+
+compile_protos:
+	@mkdir -p cpp_proto
+	@for file in $(PROTO_SRC); \
+		do \
+			protoc -I$(PROTO_DIR) --cpp_out=./cpp_proto $${file}; \
+		done

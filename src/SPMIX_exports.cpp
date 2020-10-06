@@ -135,12 +135,12 @@ double spmixLogLikelihood(const Rcpp::S4 & state, const std::vector<std::vector<
                           const Eigen::MatrixXd & W, const Rcpp::S4 & params) {
 
     // Check S4 class for state
-    if (not(state.is("Message") and std::string(state.slot("type")) == "UnivariateState")) {
+    if (not(state.is("Message") and Rcpp::as<std::string>(state.slot("type")) == "UnivariateState")) {
         throw std::runtime_error("Input 'state' is not of type Message::UnivariateState.");
     }
 
     // Check S4 class for params
-    if (not(params.is("Message") and std::string(params.slot("type")) == "SamplerParams")) {
+    if (not(params.is("Message") and Rcpp::as<std::string>(params.slot("type")) == "SamplerParams")) {
         throw std::runtime_error("Input 'params' is not of type Message::SamplerParams.");
     }
 
@@ -149,13 +149,13 @@ double spmixLogLikelihood(const Rcpp::S4 & state, const std::vector<std::vector<
 
     // State copy
     UnivariateState state_cp;
-    Rcpp::XPtr<UnivariateState>(state.slot("pointer"))->SerializeToString(&tmp);
-    state_cp.ParseFromString(tmp);
+    Rcpp::XPtr<UnivariateState>(Rcpp::as<Rcpp::XPtr<UnivariateState>>(state.slot("pointer")))
+      ->SerializeToString(&tmp); state_cp.ParseFromString(tmp);
 
     // Params copy
     SamplerParams params_cp;
-    Rcpp::XPtr<SamplerParams>(params.slot("pointer"))->SerializeToString(&tmp);
-    params_cp.ParseFromString(tmp);
+    Rcpp::XPtr<SamplerParams>(Rcpp::as<Rcpp::XPtr<SamplerParams>>(params.slot("pointer")))
+      ->SerializeToString(&tmp); params_cp.ParseFromString(tmp);
 
     utils::spmixLogLikelihood fun(data, W, params_cp, state_cp);
     Eigen::VectorXd x;

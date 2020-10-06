@@ -1,5 +1,7 @@
 ## usethis namespace: start
+#' @import Rcpp
+#' @import methods
+#' @importFrom rstan sampling
 #' @useDynLib SPMIX, .registration = TRUE
-#' @importFrom Rcpp sourceCpp
 ## usethis namespace: end
 NULL
