@@ -74,9 +74,9 @@ messageFromR <- function(params) {
     invisible(.Call(`_SPMIX_messageFromR`, params))
 }
 
-#' Test to use stan math library for automatic differentiation
+#' Test to evaluate times and correctness of newton method for optimization
 #' @export
-hessian_test <- function() {
-    invisible(.Call(`_SPMIX_hessian_test`))
+newton_opt_test <- function(state, data, W, params) {
+    invisible(.Call(`_SPMIX_newton_opt_test`, state, data, W, params))
 }
 

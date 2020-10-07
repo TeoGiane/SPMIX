@@ -123,12 +123,16 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// hessian_test
-void hessian_test();
-RcppExport SEXP _SPMIX_hessian_test() {
+// newton_opt_test
+void newton_opt_test(const Rcpp::S4& state, const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const Rcpp::S4& params);
+RcppExport SEXP _SPMIX_newton_opt_test(SEXP stateSEXP, SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    hessian_test();
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type params(paramsSEXP);
+    newton_opt_test(state, data, W, params);
     return R_NilValue;
 END_RCPP
 }
@@ -144,7 +148,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_fromProto_tostring", (DL_FUNC) &_SPMIX_fromProto_tostring, 0},
     {"_SPMIX_readingStates", (DL_FUNC) &_SPMIX_readingStates, 1},
     {"_SPMIX_messageFromR", (DL_FUNC) &_SPMIX_messageFromR, 1},
-    {"_SPMIX_hessian_test", (DL_FUNC) &_SPMIX_hessian_test, 0},
+    {"_SPMIX_newton_opt_test", (DL_FUNC) &_SPMIX_newton_opt_test, 4},
     {NULL, NULL, 0}
 };
 
