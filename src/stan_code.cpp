@@ -21,6 +21,8 @@
 #include "newton_options.pb.h"
 #include "recordio.h"
 #include "utils.h"
+#include "newton_opt.h"
+#include "mcmc_utils.h"
 
 //' Simple test with stan/math C++ library
 //'
@@ -122,7 +124,7 @@ void messageFromR(Rcpp::S4 params) {
 //' @export
 // [[Rcpp::export]]
 void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<double>> & data,
-                     const Eigen::MatrixXd & W, const Rcpp::S4 & params) {
+                     const Eigen::MatrixXd & W, const Rcpp::S4 & params, const Rcpp::S4 & options) {
 
 	// Check S4 class for state
     if (not(state.is("Message") and Rcpp::as<std::string>(state.slot("type")) == "UnivariateState")) {
@@ -134,19 +136,52 @@ void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<doubl
         throw std::runtime_error("Input 'params' is not of type Message::SamplerParams.");
     }
 
+    // Check S4 class for options
+    if (not(options.is("Message") and Rcpp::as<std::string>(options.slot("type")) == "NewtonOptions")) {
+        throw std::runtime_error("Input 'options' is not of type Message::NewtonOptions.");
+    }
+
     // Create a deep-copy of the messages with the workaround
     std::string tmp;
 
     // State copy
     UnivariateState state_cp;
     Rcpp::XPtr<UnivariateState>(Rcpp::as<Rcpp::XPtr<UnivariateState>>(state.slot("pointer")))
-      ->SerializeToString(&tmp); state_cp.ParseFromString(tmp);
+    	->SerializeToString(&tmp); state_cp.ParseFromString(tmp);
 
     // Params copy
     SamplerParams params_cp;
     Rcpp::XPtr<SamplerParams>(Rcpp::as<Rcpp::XPtr<SamplerParams>>(params.slot("pointer")))
-      ->SerializeToString(&tmp); params_cp.ParseFromString(tmp);
+    	->SerializeToString(&tmp); params_cp.ParseFromString(tmp);
 
+    // Options copy
+    NewtonOptions options_cp;
+    Rcpp::XPtr<NewtonOptions>(Rcpp::as<Rcpp::XPtr<NewtonOptions>>(options.slot("pointer")))
+    	->SerializeToString(&tmp); options_cp.ParseFromString(tmp);
+
+    utils::spmixLogLikelihood fun(data, W, params_cp, state_cp);
+    NewtonOpt solver(fun, options_cp);
+
+    Eigen::VectorXd x0(data.size() + 2);
+    //Rcpp::Rcout << "tw_vect:\n" << fun.transformed_weights_vect.transpose() << std::endl;
+    Eigen::Map<Eigen::MatrixXd> tw_mat(fun.transformed_weights_vect.data(), fun.numGroups, fun.numComponents-1);
+    //Rcpp::Rcout << "tw_mat:\n" << tw_mat << std::endl;
+    x0 << tw_mat.rowwise().mean(), fun.means.mean(), fun.std_devs.mean();
+
+    fun.transformed_weights_vect.resize(fun.transformed_weights_vect.size());
+
+    Rcpp::Rcout << "x0: " << x0.transpose() << std::endl;
+    Rcpp::Rcout << "Solving..." << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
+    solver.solve(x0);
+    auto end = std::chrono::high_resolution_clock::now();
+    double duration = std::chrono::duration<double>(end - start).count();
+    Rcpp::Rcout << "Duration: " << duration << std::endl;
+    NewtonState currstate = solver.get_state();
+    Rcpp::Rcout << "minimizer: " << currstate.current_minimizer.transpose() << std::endl;
+    Rcpp::Rcout << "residual_norm:" << currstate.current_norm_res << std::endl;
+    Rcpp::Rcout << "||grad_f(x)||: " << currstate.current_gradient.norm() << std::endl;
+    Rcpp::Rcout << "||hess_f(x)||: " << currstate.current_hessian.norm() << std::endl;
 
 	return;
 }

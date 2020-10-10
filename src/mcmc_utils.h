@@ -27,7 +27,7 @@ std::vector<double> normalGammaUpdate(std::vector<double> data, double priorMean
 double marginalLogLikeNormalGamma(double datum, double mean, double a, double b, double lambda);
 
 class spmixLogLikelihood {
-  private:
+  public:
   	std::vector<std::vector<double>> data;
 	Eigen::MatrixXd W;
 	SamplerParams params;
