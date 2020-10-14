@@ -52,10 +52,13 @@ data(_data), W(_W), params(_params), numGroups(data.size()) {
     rho = _state.rho();
 
     means.resize(numComponents);
-    std_devs.resize(numComponents);
+    //std_devs.resize(numComponents);
+    sqrt_std_devs.resize(numComponents);
     for (int i = 0; i < numComponents; ++i) {
         means(i) = _state.atoms()[i].mean();//.emplace_back(elem.mean());
-        std_devs(i) = _state.atoms()[i].stdev();
+
+        //std_devs(i) = _state.atoms()[i].stdev();
+        sqrt_std_devs(i) = std::sqrt(_state.atoms()[i].stdev());
     }
 
     Eigen::MatrixXd transformed_weights(_state.groupparams().size(), numComponents-1);

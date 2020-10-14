@@ -166,7 +166,7 @@ void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<doubl
     //Rcpp::Rcout << "tw_vect:\n" << fun.transformed_weights_vect.transpose() << std::endl;
     Eigen::Map<Eigen::MatrixXd> tw_mat(fun.transformed_weights_vect.data(), fun.numGroups, fun.numComponents-1);
     //Rcpp::Rcout << "tw_mat:\n" << tw_mat << std::endl;
-    x0 << tw_mat.rowwise().mean(), fun.means.mean(), fun.std_devs.mean();
+    x0 << tw_mat.rowwise().mean(), fun.means.mean(), fun.sqrt_std_devs.mean();
 
     fun.transformed_weights_vect.resize(fun.transformed_weights_vect.size());
 
@@ -179,7 +179,6 @@ void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<doubl
     Rcpp::Rcout << "Duration: " << duration << std::endl;
     NewtonState currstate = solver.get_state();
     Rcpp::Rcout << "minimizer: " << currstate.current_minimizer.transpose() << std::endl;
-    Rcpp::Rcout << "residual_norm:" << currstate.current_norm_res << std::endl;
     Rcpp::Rcout << "||grad_f(x)||: " << currstate.current_gradient.norm() << std::endl;
     Rcpp::Rcout << "||hess_f(x)||: " << currstate.current_hessian.norm() << std::endl;
 

@@ -11,7 +11,7 @@ public:
 	GradientType current_gradient;
 	HessianType current_hessian;
 	unsigned int current_iteration;
-	double current_norm_res;
+	double current_gradient_norm;
 };
 
 

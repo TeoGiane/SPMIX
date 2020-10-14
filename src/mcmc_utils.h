@@ -35,7 +35,8 @@ class spmixLogLikelihood {
 	int numComponents;
 	double rho;
 	Eigen::VectorXd means;
-	Eigen::VectorXd std_devs;
+	//Eigen::VectorXd std_devs;
+	Eigen::VectorXd sqrt_std_devs;
 	Eigen::VectorXd transformed_weights_vect;
 	Eigen::MatrixXd Sigma;
   public:
@@ -51,7 +52,8 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 	int numComponents_ext(numComponents);
 	Eigen::Matrix<T, Eigen::Dynamic, 1> transformed_weights_ext;
 	Eigen::Matrix<T, Eigen::Dynamic, 1> means_ext;
-	Eigen::Matrix<T, Eigen::Dynamic, 1> std_devs_ext;
+	//Eigen::Matrix<T, Eigen::Dynamic, 1> std_devs_ext;
+	Eigen::Matrix<T, Eigen::Dynamic, 1> sqrt_std_devs_ext;
 	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Sigma_ext;
 
 	if (x.size() != 0) {
@@ -71,8 +73,11 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 		transformed_weights_ext << transformed_weights_vect, weights_toadd;
 		means_ext.resize(means.size() + 1);
 		means_ext << means, means_toadd;
-		std_devs_ext.resize(std_devs.size() + 1);
-		std_devs_ext << std_devs, std_devs_toadd;
+
+		//std_devs_ext.resize(std_devs.size() + 1);
+		//std_devs_ext << std_devs, std_devs_toadd;
+		sqrt_std_devs_ext.resize(sqrt_std_devs.size() + 1);
+		sqrt_std_devs_ext << sqrt_std_devs, std_devs_toadd;
 
 		// TEMPORARY SECTION NOT CORRECT BUT TO MAKE FUNCTION RUN.
 		Sigma_ext = Eigen::MatrixXd::Zero(numComponents_ext - 1, numComponents_ext - 1);
@@ -84,8 +89,11 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 		transformed_weights_ext << transformed_weights_vect;
 		means_ext.resize(means.size());
 		means_ext << means;
-		std_devs_ext.resize(std_devs.size());
-		std_devs_ext << std_devs;
+
+		//std_devs_ext.resize(std_devs.size());
+		//std_devs_ext << std_devs;
+		sqrt_std_devs_ext.resize(sqrt_std_devs.size());
+		sqrt_std_devs_ext << sqrt_std_devs;
 		Sigma_ext.resize(Sigma.rows(), Sigma.cols()); Sigma_ext << Sigma;
 	}
 
@@ -104,7 +112,8 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 	    for (int j = 0; j < data[i].size(); ++j) {
 	        std::vector<T> contributions(numComponents_ext);
 	        for (int h = 0; h < numComponents_ext; ++h) {
-	            contributions[h] = log(weights(i,h)) + stan::math::normal_lpdf(data[i][j], means_ext[h], std_devs_ext[h]);
+	            //contributions[h] = log(weights(i,h)) + stan::math::normal_lpdf(data[i][j], means_ext[h], std_devs_ext[h]);
+	            contributions[h] = log(weights(i,h)) + stan::math::normal_lpdf(data[i][j], means_ext[h], sqrt_std_devs_ext[h] * sqrt_std_devs_ext[h]);
 	        }
 	        output += stan::math::log_sum_exp(contributions);
 	    }
@@ -112,9 +121,14 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 
     // Contributions from kernels
     for (int h = 0; h < numComponents_ext; ++h) {
-        T tau = 1.0/(std_devs_ext[h]*std_devs_ext[h]);
-        T sigmaNorm = std_devs_ext[h] / std::sqrt(params.p0_params().lam_());
-        output += stan::math::gamma_lpdf(tau, params.p0_params().a(), params.p0_params().b()) +
+
+		//T tau = 1.0/(std_devs_ext[h]*std_devs_ext[h]);
+		T std_dev = sqrt_std_devs_ext[h]*sqrt_std_devs_ext[h];
+		T tau = 1.0/(std_dev * std_dev);
+		//T sigmaNorm = std_devs_ext[h] / std::sqrt(params.p0_params().lam_());
+		T sigmaNorm = std_dev / std::sqrt(params.p0_params().lam_());
+
+		output += stan::math::gamma_lpdf(tau, params.p0_params().a(), params.p0_params().b()) +
                   stan::math::normal_lpdf(means[h], params.p0_params().mu0(), sigmaNorm);
     }
 
