@@ -15,10 +15,14 @@ message SamplerParams {
     double b = 2;
   }
 
+// Message name is now misleading but the API is safe
   message InverseWishartParams {
-    double nu = 1;
-    bool identity = 2;
-    EigenMatrix V = 3; // Used only if identity is False
+    bool is_invgamma = 1;
+    double alpha = 2;
+    double beta = 3;
+    double nu = 4;  // used in case we have a true InvWishart.
+    bool identity = 5;
+    EigenMatrix V = 6; // Used only if identity is False
   }
 
   int32 num_components = 1;
