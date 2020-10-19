@@ -82,71 +82,65 @@ data(_data), W(_W), params(_params), numGroups(data.size()) {
     }
 }
 
-/*double spmixLogLikelihood(const UnivariateState &state, const std::vector<std::vector<double>> &data,
-						  const Eigen::MatrixXd &W, const SamplerParams & params) {
+spmixLogLikelihood::spmixLogLikelihood(const std::vector<std::vector<double>> & _data,
+                                       const Eigen::MatrixXd & _W,
+                                       const SamplerParams & _params,
+                                       int _numGroups,
+                                       int _numComponents,
+                                       double _rho,
+                                       const Eigen::VectorXd & _means,
+                                       const Eigen::VectorXd & _sqrt_std_devs,
+                                       const Eigen::VectorXd & _transformed_weights_vect,
+                                       const Eigen::MatrixXd & _Sigma):
+data(_data), W(_W), params(_params), numGroups(_numGroups), numComponents(_numComponents), rho(_rho), means(_means),
+sqrt_std_devs(_sqrt_std_devs), transformed_weights_vect(_transformed_weights_vect), Sigma(_Sigma) {};
 
-    // Exporting required data from state <- Here we can add the tracking variables stan::math::var
-    int num_components{state.num_components()};
-    int numGroups(data.size());
-    double rho{state.rho()};
+double spmixLogLikelihood::operator()() const {
 
-    std::vector<double> means; std::vector<double> std_devs;
-    for (auto elem : state.atoms()) {
-        means.emplace_back(elem.mean());
-        std_devs.emplace_back(elem.stdev());
-    }
-
-    Eigen::MatrixXd weights(state.groupparams().size(), num_components);
-    Eigen::Matrix<double, -1, -1, Eigen::RowMajor> transformed_weights(state.groupparams().size(), num_components-1);
-    for (int i = 0; i < state.groupparams().size(); ++i) {
-        for (int j = 0; j < num_components; ++j) {
-            weights(i,j) = state.groupparams()[i].weights()[j];
-        }
-        transformed_weights.row(i) = utils::Alr(weights.row(i), false);
-    }
-
-    Eigen::MatrixXd Sigma(state.sigma().rows(), state.sigma().cols());
-    for (int i = 0; i < state.sigma().rows(); ++i) {
-        for (int j = 0; j < state.sigma().cols(); ++j) {
-            Sigma(i,j) = state.sigma().data()[i*state.sigma().rows()+j];
-        }
-    }
-
-    // Initialize output
+    // Computation
     double output{0.};
+
+    Eigen::MatrixXd transformed_weights = Eigen::Map<const Eigen::MatrixXd>(transformed_weights_vect.data(), numGroups, numComponents-1);
+    Eigen::MatrixXd weights(numGroups, numComponents);
+    for (int i = 0; i < weights.rows(); ++i) {
+        weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), false);
+    }
 
     // Computing contribution of data (Mettiamo un po' di openmp)
     for (int i = 0; i < data.size(); ++i) {
         for (int j = 0; j < data[i].size(); ++j) {
-            std::vector<double> contributions(num_components);
-            for (int h = 0; h < num_components; ++h) {
-                contributions[h] = log(weights(i,h)) + stan::math::normal_lpdf(data[i][j], means[h], std_devs[h]);
+            std::vector<double> contributions(numComponents);
+            for (int h = 0; h < numComponents; ++h) {
+                //contributions[h] = log(weights(i,h)) + stan::math::normal_lpdf(data[i][j], means_ext[h], std_devs_ext[h]);
+                contributions[h] = log(weights(i,h)) + stan::math::normal_lpdf(data[i][j], means[h], sqrt_std_devs[h] * sqrt_std_devs[h]);
             }
             output += stan::math::log_sum_exp(contributions);
         }
     }
 
     // Contributions from kernels
-    for (int h = 0; h < num_components; ++h) {
-        double tau = 1.0/(std_devs[h]*std_devs[h]);
-        double sigmaNorm = 1.0 / std::sqrt(tau * params.p0_params().lam_());
+    for (int h = 0; h < numComponents; ++h) {
+
+        //T tau = 1.0/(std_devs_ext[h]*std_devs_ext[h]);
+        double std_dev = sqrt_std_devs[h]*sqrt_std_devs[h];
+        double tau = 1.0/(std_dev * std_dev);
+        //T sigmaNorm = std_devs_ext[h] / std::sqrt(params.p0_params().lam_());
+        double sigmaNorm = std_dev / std::sqrt(params.p0_params().lam_());
+
         output += stan::math::gamma_lpdf(tau, params.p0_params().a(), params.p0_params().b()) +
                   stan::math::normal_lpdf(means[h], params.p0_params().mu0(), sigmaNorm);
     }
 
     // Contribution from weights
-    Eigen::VectorXd tw_vector(numGroups*(num_components-1));
-    std::copy(transformed_weights.data(), transformed_weights.data()+transformed_weights.size(), tw_vector.data());
     Eigen::MatrixXd F = Eigen::MatrixXd::Zero(numGroups, numGroups);
     for (int i = 0; i < numGroups; i++)
-      F(i, i) = rho * W.row(i).sum() + (1 - rho);
-    Eigen::VectorXd weightsMean = Eigen::VectorXd::Zero(tw_vector.size());
+        F(i, i) = rho * W.row(i).sum() + (1 - rho);
+    Eigen::VectorXd weightsMean = Eigen::VectorXd::Zero(transformed_weights.size()); //TO IMPROVE INDEED
     Eigen::MatrixXd weightsCov = Eigen::KroneckerProduct((F - rho*W), Sigma.inverse()).eval().inverse();
-    output += stan::math::multi_normal_lpdf(tw_vector, weightsMean, weightsCov);
+    output += stan::math::multi_normal_lpdf(transformed_weights_vect, weightsMean, weightsCov);
 
-    // Contribution from other stuff (rho, m_tilde, H, Sigma)
-    //Rcpp::Rcout << "Output: " << output << std::endl;
+    // Contribution from other stuff, if needed (rho, m_tilde, H, Sigma)
     return output;
-}*/
+};
 
 } // namespace utils
