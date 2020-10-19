@@ -80,3 +80,9 @@ newton_opt_test <- function(state, data, W, params, options) {
     invisible(.Call(`_SPMIX_newton_opt_test`, state, data, W, params, options))
 }
 
+#' Test fot the RJSampler
+#' @export
+RJsampler_test <- function(data, W, params) {
+    invisible(.Call(`_SPMIX_RJsampler_test`, data, W, params))
+}
+

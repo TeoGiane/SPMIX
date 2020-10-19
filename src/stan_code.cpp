@@ -23,6 +23,7 @@
 #include "utils.h"
 #include "newton_opt.h"
 #include "mcmc_utils.h"
+#include "sampler_rjmcmc.h"
 
 //' Simple test with stan/math C++ library
 //'
@@ -183,4 +184,33 @@ void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<doubl
     Rcpp::Rcout << "||hess_f(x)||: " << currstate.current_hessian.norm() << std::endl;
 
 	return;
+}
+
+
+//' Test fot the RJSampler
+//' @export
+// [[Rcpp::export]]
+void RJsampler_test(const std::vector<std::vector<double>> & data,
+                    const Eigen::MatrixXd & W, const Rcpp::S4 & params) {
+
+    // Check S4 class for params
+    if (not(params.is("Message") and Rcpp::as<std::string>(params.slot("type")) == "SamplerParams")) {
+        throw std::runtime_error("Input 'params' is not of type Message::SamplerParams.");
+    }
+
+    // Create a deep-copy of the messages with the workaround
+    std::string tmp;
+
+    // Params copy
+    SamplerParams params_cp;
+    Rcpp::XPtr<SamplerParams>(Rcpp::as<Rcpp::XPtr<SamplerParams>>(params.slot("pointer")))
+        ->SerializeToString(&tmp); params_cp.ParseFromString(tmp);
+
+    // Dovrebbe dare in output una eccezione (si spera)
+    SpatialMixtureRJSampler sampler(params_cp, data, W);
+    sampler.init();
+    sampler.sampleSigma();
+    sampler.betweenModelMove();
+
+    return;
 }

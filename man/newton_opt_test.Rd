@@ -4,7 +4,7 @@
 \alias{newton_opt_test}
 \title{Test to evaluate times and correctness of newton method for optimization}
 \usage{
-newton_opt_test(state, data, W, params)
+newton_opt_test(state, data, W, params, options)
 }
 \description{
 Test to evaluate times and correctness of newton method for optimization
