@@ -29,6 +29,7 @@ void NewtonOpt::solve(const ArgumentType & x0) {
 		//Eigen::VectorXd h = hess_fx.fullPivLu().solve(grad_fx);
 		Eigen::VectorXd h(x0.size());
 		h << hess_fx.topLeftCorner(6,6).fullPivLu().solve(grad_fx.head(6)), grad_fx(6)/hess_fx(6,6), grad_fx(7)/hess_fx(7,7);
+		//h << hess_fx.topLeftCorner(6,6).fullPivLu().solve(grad_fx.head(6)), hess_fx.bottomRightCorner(2,2).fullPivLu().solve(grad_fx.tail(2));
 		x_new = x_old - h;
 
 		// Update gradient norm
