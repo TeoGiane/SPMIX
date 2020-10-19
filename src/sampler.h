@@ -79,6 +79,7 @@ class SpatialMixtureSampler {
 
      std::vector<Eigen::VectorXd> pippo;
      Eigen::MatrixXd sigma_star_h;
+     
      // HyperParams for NormalGamma
      double priorMean, priorA, priorB, priorLambda;
 
