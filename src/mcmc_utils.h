@@ -27,7 +27,7 @@ std::vector<double> normalGammaUpdate(std::vector<double> data, double priorMean
 double marginalLogLikeNormalGamma(double datum, double mean, double a, double b, double lambda);
 
 class spmixLogLikelihood {
-  public:
+  private:
   	std::vector<std::vector<double>> data;
 	Eigen::MatrixXd W;
 	SamplerParams params;
@@ -53,8 +53,21 @@ class spmixLogLikelihood {
 					   const Eigen::VectorXd & _transformed_weights_vect,
 					   const Eigen::MatrixXd & _Sigma);
 
-	double operator()() const;// {return 0;};
+	double operator()() const;
+
 	template<typename T> T operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x) const;
+
+	Eigen::VectorXd init() const;
+
+	int get_numGroups() const {return numGroups;};
+
+	int get_numComponents() const {return numComponents;};
+
+	Eigen::VectorXd get_means() const {return means;};
+
+	Eigen::VectorXd get_sqrt_std_devs() const {return sqrt_std_devs;};
+
+	Eigen::VectorXd get_transformed_weights_vect() const {return transformed_weights_vect;};
 };
 
 #include "mcmc_utils_impl.h"
