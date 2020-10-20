@@ -51,6 +51,12 @@ void NewtonOpt::solve(const ArgumentType & x0) {
 	return;
 }
 
-NewtonState NewtonOpt::get_state() const {
-	return state;
+Eigen::VectorXd NewtonOpt::init() const {
+
+    // Generate the initial point for the newton solver.
+    Eigen::VectorXd x0(target_function.get_numGroups() + 2);
+    Eigen::Map<Eigen::MatrixXd> tw_mat(target_function.get_transformed_weights_vect().data(),
+                                       target_function.get_numGroups(), target_function.get_numComponents()-1);
+    x0 << tw_mat.rowwise().mean(), target_function.get_means().mean(), target_function.get_sqrt_std_devs().mean();
+    return x0;
 }

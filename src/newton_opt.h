@@ -5,7 +5,7 @@
 #include "newton_options.pb.h"
 
 class NewtonState: public NewtonTraits {
-public:
+  public:
 	ReturnType current_solution;
 	ArgumentType current_minimizer;
 	GradientType current_gradient;
@@ -16,14 +16,16 @@ public:
 
 
 class NewtonOpt: public NewtonTraits {
-public:
-	NewtonOpt(const TargetFunctionType & _target_function, const NewtonOptions & _options);
-	void solve(const ArgumentType & x0);
-	NewtonState get_state() const;
-protected:
+  protected:
 	TargetFunctionType target_function;
 	NewtonOptions options;
 	NewtonState state;
+  public:
+	NewtonOpt(const TargetFunctionType & _target_function, const NewtonOptions & _options);
+	void solve(const ArgumentType & x0);
+	NewtonState get_state() const {return state;};
+	Eigen::VectorXd init() const;
+
 };
 
 
