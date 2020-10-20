@@ -93,8 +93,22 @@ void SpatialMixtureRJSampler::betweenModelMove() {
 
 		// Update state to reduce dimension
 		if (accept) {
-			/* code */
+			--numComponents;
+			means.resize(numComponents);
+			stddevs.resize(numComponents);
+			transformed_weights.conservativeResize(numGroups, numComponents);
+			transformed_weights.col(numComponents-1) = Eigen::VectorXd::Zero(numGroups);
+			weights.resize(numGroups, numComponents);
+			for (int i = 0; i < numGroups; ++i)
+				weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), true);
+			mtildes.conservativeResize(num_connected_comps, numComponents);
+			Sigma.conservativeResize(numComponents-1, numComponents-1);
+			_computeInvSigmaH();
 		}
+	}
+	else { // Increase Case
+		
+		/*code*/
 	}
 
 	// if +1 --> newton_opt to simulate form pi_tilde and compute acceptance rates
