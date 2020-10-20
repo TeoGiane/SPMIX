@@ -121,6 +121,7 @@ void messageFromR(Rcpp::S4 params) {
     return;
 }
 
+
 //' Test to evaluate times and correctness of newton method for optimization
 //' @export
 // [[Rcpp::export]]
@@ -162,15 +163,9 @@ void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<doubl
 
     utils::spmixLogLikelihood fun(data, W, params_cp, state_cp);
     NewtonOpt solver(fun, options_cp);
-
-    Eigen::VectorXd x0(data.size() + 2);
-    //Rcpp::Rcout << "tw_vect:\n" << fun.transformed_weights_vect.transpose() << std::endl;
-    Eigen::Map<Eigen::MatrixXd> tw_mat(fun.transformed_weights_vect.data(), fun.numGroups, fun.numComponents-1);
-    //Rcpp::Rcout << "tw_mat:\n" << tw_mat << std::endl;
-    x0 << tw_mat.rowwise().mean(), fun.means.mean(), fun.sqrt_std_devs.mean();
-
-    fun.transformed_weights_vect.resize(fun.transformed_weights_vect.size());
-
+    
+    // Initialize and executing Newton Method
+    Eigen::VectorXd x0 = solver.init();
     Rcpp::Rcout << "x0: " << x0.transpose() << std::endl;
     Rcpp::Rcout << "Solving..." << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
