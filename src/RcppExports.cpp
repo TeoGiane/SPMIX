@@ -138,14 +138,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // RJsampler_test
-void RJsampler_test(const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const Rcpp::S4& params);
-RcppExport SEXP _SPMIX_RJsampler_test(SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP) {
+void RJsampler_test(const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const Rcpp::S4& params, const Rcpp::S4& options);
+RcppExport SEXP _SPMIX_RJsampler_test(SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP, SEXP optionsSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
     Rcpp::traits::input_parameter< const Rcpp::S4& >::type params(paramsSEXP);
-    RJsampler_test(data, W, params);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type options(optionsSEXP);
+    RJsampler_test(data, W, params, options);
     return R_NilValue;
 END_RCPP
 }
@@ -162,7 +163,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_readingStates", (DL_FUNC) &_SPMIX_readingStates, 1},
     {"_SPMIX_messageFromR", (DL_FUNC) &_SPMIX_messageFromR, 1},
     {"_SPMIX_newton_opt_test", (DL_FUNC) &_SPMIX_newton_opt_test, 5},
-    {"_SPMIX_RJsampler_test", (DL_FUNC) &_SPMIX_RJsampler_test, 3},
+    {"_SPMIX_RJsampler_test", (DL_FUNC) &_SPMIX_RJsampler_test, 4},
     {NULL, NULL, 0}
 };
 

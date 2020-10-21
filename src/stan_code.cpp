@@ -163,7 +163,7 @@ void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<doubl
 
     utils::spmixLogLikelihood fun(data, W, params_cp, state_cp);
     NewtonOpt solver(fun, options_cp);
-    
+
     // Initialize and executing Newton Method
     Eigen::VectorXd x0 = solver.init();
     Rcpp::Rcout << "x0: " << x0.transpose() << std::endl;
@@ -186,11 +186,16 @@ void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<doubl
 //' @export
 // [[Rcpp::export]]
 void RJsampler_test(const std::vector<std::vector<double>> & data,
-                    const Eigen::MatrixXd & W, const Rcpp::S4 & params) {
+                    const Eigen::MatrixXd & W, const Rcpp::S4 & params, const Rcpp::S4 & options) {
 
     // Check S4 class for params
     if (not(params.is("Message") and Rcpp::as<std::string>(params.slot("type")) == "SamplerParams")) {
         throw std::runtime_error("Input 'params' is not of type Message::SamplerParams.");
+    }
+
+    // Check S4 class for options
+    if (not(options.is("Message") and Rcpp::as<std::string>(options.slot("type")) == "NewtonOptions")) {
+        throw std::runtime_error("Input 'options' is not of type Message::NewtonOptions.");
     }
 
     // Create a deep-copy of the messages with the workaround
@@ -201,8 +206,13 @@ void RJsampler_test(const std::vector<std::vector<double>> & data,
     Rcpp::XPtr<SamplerParams>(Rcpp::as<Rcpp::XPtr<SamplerParams>>(params.slot("pointer")))
         ->SerializeToString(&tmp); params_cp.ParseFromString(tmp);
 
-    // Dovrebbe dare in output una eccezione (si spera)
-    SpatialMixtureRJSampler sampler(params_cp, data, W);
+    // Options copy
+    NewtonOptions options_cp;
+    Rcpp::XPtr<NewtonOptions>(Rcpp::as<Rcpp::XPtr<NewtonOptions>>(options.slot("pointer")))
+        ->SerializeToString(&tmp); options_cp.ParseFromString(tmp);
+
+    // Various tests
+    SpatialMixtureRJSampler sampler(params_cp, data, W, options_cp);
     sampler.init();
     sampler.sampleSigma();
     sampler.betweenModelMove();

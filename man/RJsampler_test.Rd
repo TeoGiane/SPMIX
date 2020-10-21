@@ -4,7 +4,7 @@
 \alias{RJsampler_test}
 \title{Test fot the RJSampler}
 \usage{
-RJsampler_test(data, W, params)
+RJsampler_test(data, W, params, options)
 }
 \description{
 Test fot the RJSampler
