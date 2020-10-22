@@ -24,7 +24,7 @@ PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::LdFlag
 # Setting Package sources and object files
 PROTO_DIR = ../inst/proto
 PROTO_SRC = $(wildcard $(PROTO_DIR)/*.proto)
-SOURCES = $(wildcard *.cpp polyagamma/*.cpp) $(addprefix cpp_proto/, $(notdir $(PROTO_SRC:.proto=.pb.cc)))
+SOURCES = $(sort $(wildcard *.cpp)) $(sort $(wildcard polyagamma/*.cpp)) $(sort $(addprefix cpp_proto/, $(notdir $(PROTO_SRC:.proto=.pb.cc))))
 OBJECTS = $(addsuffix .o, $(basename $(SOURCES)))
 
 # Recipes
