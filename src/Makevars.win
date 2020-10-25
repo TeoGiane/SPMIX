@@ -36,5 +36,5 @@ compile_protos:
 	@mkdir -p cpp_proto
 	@for file in $(PROTO_SRC); \
 		do \
-			protoc -I$(PROTO_DIR) --cpp_out=./cpp_proto $${file}; \
+			$(FOLDER)/bin/protoc -I$(PROTO_DIR) --cpp_out=./cpp_proto $${file}; \
 		done
