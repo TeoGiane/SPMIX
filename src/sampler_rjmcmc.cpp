@@ -5,7 +5,7 @@ SpatialMixtureRJSampler::SpatialMixtureRJSampler(const SamplerParams &_params,
 												 const Eigen::MatrixXd &W,
 												 const NewtonOptions &_options):
 SpatialMixtureSamplerBase(_params, _data, W), options(_options) {
-	if (!_params.sigma_params().is_invgamma()) {
+	if (!_params.sigma_params().has_inv_gamma()) {
 		throw std::runtime_error("Cannot build object of class 'SpatialMixtureRJSampler': expected parameters for an Inverse Gamma distribution.");
 	}
 }
@@ -16,15 +16,15 @@ SpatialMixtureRJSampler::SpatialMixtureRJSampler(const SamplerParams &_params,
 												 const NewtonOptions &_options,
 												 const std::vector<Eigen::MatrixXd> &X):
 SpatialMixtureSamplerBase(_params, _data, W, X), options(_options) {
-	if (!_params.sigma_params().is_invgamma()) {
+	if (!_params.sigma_params().has_inv_gamma()) {
 		throw std::runtime_error("Cannot build object of class 'SpatialMixtureRJSampler': expected parameters for an Inverse Gamma distribution.");
 	}
 }
 
 void SpatialMixtureRJSampler::init() {
 	SpatialMixtureSamplerBase::init();
-	alpha_Sigma = params.sigma_params().alpha();
-	beta_Sigma = params.sigma_params().beta();
+	alpha_Sigma = params.sigma_params().inv_gamma().alpha();
+	beta_Sigma = params.sigma_params().inv_gamma().beta();
 	Rcpp::Rcout << "Init done." << std::endl;
 }
 

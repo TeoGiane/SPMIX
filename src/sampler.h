@@ -6,6 +6,7 @@
 #include <vector>
 #include <numeric>
 #include <stdexcept>
+#include <exception>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/KroneckerProduct>
 #include <stan/math/prim/mat.hpp>

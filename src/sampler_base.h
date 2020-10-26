@@ -64,8 +64,6 @@ class SpatialMixtureSamplerBase {
 	Eigen::DiagonalMatrix<double, Eigen::Dynamic, Eigen::Dynamic> V;
 
 	// prior for Sigma --> depends on the derivation
-	/*double nu;
-	Eigen::MatrixXd V0;*/
 
 	// prior for Rho
 	double alpha;

@@ -60,13 +60,6 @@ void SpatialMixtureSamplerBase::init() {
     priorB = params.p0_params().b();
     priorLambda = params.p0_params().lam_();
 
-    /*nu = params.sigma_params().nu();
-    if (params.sigma_params().identity())
-        V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
-    else {
-        V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
-        std::cout << "Case not implemented yet, settig V0 to identity" << std::endl;
-    }*/
     alpha = params.rho_params().a();
     beta = params.rho_params().b();
 
