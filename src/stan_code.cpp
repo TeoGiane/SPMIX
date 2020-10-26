@@ -52,7 +52,7 @@ std::vector<Rcpp::RawVector> fromProto_tostring() {
 
 	Rcpp::Rcout << "Reading params..." << std::endl;
 	SamplerParams params;
-    params = loadTextProto<SamplerParams>("/home/m_gianella/Documents/R-Packages/SPMIX_input/sampler_params.asciipb");
+    params = loadTextProto<SamplerParams>("/home/m_gianella/Documents/R-Packages/SPMIX/inst/input_files/sampler_params.asciipb");
     Rcpp::Rcout << params.DebugString() << std::endl;
 
     Rcpp::Rcout << "Creating states..." << std::endl;
