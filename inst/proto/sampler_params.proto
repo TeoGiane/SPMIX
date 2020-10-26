@@ -3,32 +3,41 @@ syntax = "proto3";
 import "eigen.proto";
 
 message SamplerParams {
-  message NormalGammaParams {
-    double mu0 = 1;
-    double a = 2;
-    double b = 3;
-    double lam_ = 4;
-  }
+	message NormalGammaParams {
+		double mu0 = 1;
+		double a = 2;
+		double b = 3;
+		double lam_ = 4;
+	}
 
-  message BetaParams {
-    double a = 1;
-    double b = 2;
-  }
+	message BetaParams {
+		double a = 1;
+		double b = 2;
+	}
 
-// Message name is now misleading but the API is safe
-  message InverseWishartParams {
-    bool is_invgamma = 1;
-    double alpha = 2;
-    double beta = 3;
-    double nu = 4;  // used in case we have a true InvWishart.
-    bool identity = 5;
-    EigenMatrix V = 6; // Used only if identity is False
-  }
+	message InverseWishartParams {
+		double nu = 1;
+		bool identity = 2;
+		EigenMatrix V = 3;
+	}
+	
+	message InverseGammaParams {
+		double alpha = 1;
+		double beta = 2;
+	}
+	
+	message VarianceParams {
+		oneof varianceparams_type {
+			InverseWishartParams inv_wishart = 1;
+			InverseGammaParams inv_gamma = 2;
+		};
+	}	
+	
+	int32 num_components = 1;
+	NormalGammaParams p0_params = 2;
+	BetaParams rho_params = 3;
+	VarianceParams sigma_params = 4;
+	//InverseWishartParams sigma_params = 4;
 
-  int32 num_components = 1;
-  NormalGammaParams p0_params = 2;
-  BetaParams rho_params = 3;
-  InverseWishartParams sigma_params = 4;
-
-  double mtilde_sigmasq = 5;
+	double mtilde_sigmasq = 5;
 }

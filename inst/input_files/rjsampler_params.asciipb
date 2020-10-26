@@ -13,9 +13,10 @@ rho_params {
 }
 
 sigma_params {
-  is_invgamma: True
-  alpha: 1
-  beta: 5
+	inv_gamma {
+		alpha: 1
+		beta: 5
+	}
 }
 
 mtilde_sigmasq: 5

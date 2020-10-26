@@ -13,8 +13,10 @@ rho_params {
 }
 
 sigma_params {
-  nu: 100
-  identity: True
+	inv_wishart {
+		nu: 100
+		identity: True
+	}
 }
 
 mtilde_sigmasq: 5
