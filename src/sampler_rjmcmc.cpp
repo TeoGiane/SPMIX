@@ -82,7 +82,7 @@ void SpatialMixtureRJSampler::betweenModelMove() {
 		for (auto elem : stddevs)
 			sqrt_stddevs.emplace_back(std::sqrt(elem));
 
-		utils::spmixLogLikelihood
+		function::spmixLogLikelihood
 		loglik_reduced(data, W_init, params, numGroups, numComponents-1, rho,
 					   Eigen::Map<Eigen::VectorXd>(means.data(), means.size()).head(numComponents-1),
 					   Eigen::Map<Eigen::VectorXd>(sqrt_stddevs.data(), sqrt_stddevs.size()).head(numComponents-1),
@@ -113,9 +113,10 @@ void SpatialMixtureRJSampler::betweenModelMove() {
 	else { // Increase Case
 
 		// Eliciting the approximated optimal proposal parameters
-		utils::spmixLogLikelihood loglik_extended(data, W_init, params, getStateAsProto());
-		NewtonOpt solver(loglik_extended, options);
-		Eigen::VectorXd x0 = solver.init();
+		function::spmixLogLikelihood loglik_extended(data, W_init, params, getStateAsProto());
+		//function::test_function loglik_extended;
+		optimization::NewtonMethod solver(loglik_extended, options);
+		Eigen::VectorXd x0 = loglik_extended.init();
 		solver.solve(x0);
 		Eigen::VectorXd optMean = solver.get_state().current_minimizer;
 		Eigen::MatrixXd optCov = solver.get_state().current_hessian.inverse();

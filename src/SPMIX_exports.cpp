@@ -30,7 +30,7 @@
 #include <exception>
 
 #include "utils.h"
-#include "mcmc_utils.h"
+#include "functors.h"
 #include "sampler.h"
 #include "univariate_mixture_state.pb.h"
 
@@ -157,9 +157,8 @@ double spmixLogLikelihood(const Rcpp::S4 & state, const std::vector<std::vector<
     Rcpp::XPtr<SamplerParams>(Rcpp::as<Rcpp::XPtr<SamplerParams>>(params.slot("pointer")))
       ->SerializeToString(&tmp); params_cp.ParseFromString(tmp);
 
-    utils::spmixLogLikelihood fun(data, W, params_cp, state_cp);
-    Eigen::VectorXd x;
-    return fun(x);
+    function::spmixLogLikelihood fun(data, W, params_cp, state_cp);
+    return fun();
 }
 
 #endif // SPMIX_EXPORTS

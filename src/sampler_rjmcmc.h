@@ -18,8 +18,8 @@
 #include "sampler_params.pb.h"
 #include "newton_options.pb.h"
 #include "utils.h"
-#include "mcmc_utils.h"
-#include "newton_opt.h"
+#include "functors.h"
+#include "newton_method.h"
 #include "sampler_base.h"
 
 class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {

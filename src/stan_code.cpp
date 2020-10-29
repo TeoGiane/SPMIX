@@ -21,8 +21,8 @@
 #include "newton_options.pb.h"
 #include "recordio.h"
 #include "utils.h"
-#include "newton_opt.h"
-#include "mcmc_utils.h"
+#include "newton_method.h"
+#include "functors.h"
 #include "sampler_rjmcmc.h"
 
 //' Simple test with stan/math C++ library
@@ -161,11 +161,12 @@ void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<doubl
     Rcpp::XPtr<NewtonOptions>(Rcpp::as<Rcpp::XPtr<NewtonOptions>>(options.slot("pointer")))
     	->SerializeToString(&tmp); options_cp.ParseFromString(tmp);
 
-    utils::spmixLogLikelihood fun(data, W, params_cp, state_cp);
-    NewtonOpt solver(fun, options_cp);
+    function::spmixLogLikelihood fun(data, W, params_cp, state_cp);
+    //function::test_function fun;
+    optimization::NewtonMethod solver(fun, options_cp);
 
     // Initialize and executing Newton Method
-    Eigen::VectorXd x0 = solver.init();
+    Eigen::VectorXd x0 = fun.init();
     Rcpp::Rcout << "x0: " << x0.transpose() << std::endl;
     Rcpp::Rcout << "Solving..." << std::endl;
     auto start = std::chrono::high_resolution_clock::now();
@@ -173,7 +174,7 @@ void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<doubl
     auto end = std::chrono::high_resolution_clock::now();
     double duration = std::chrono::duration<double>(end - start).count();
     Rcpp::Rcout << "Duration: " << duration << std::endl;
-    NewtonState currstate = solver.get_state();
+    optimization::NewtonState currstate = solver.get_state();
     Rcpp::Rcout << "minimizer: " << currstate.current_minimizer.transpose() << std::endl;
     Rcpp::Rcout << "||grad_f(x)||: " << currstate.current_gradient.norm() << std::endl;
     Rcpp::Rcout << "||hess_f(x)||: " << currstate.current_hessian.norm() << std::endl;
