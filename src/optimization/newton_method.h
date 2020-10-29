@@ -1,10 +1,12 @@
 #ifndef NEWTON_OPT_H
 #define NEWTON_OPT_H
 
-#include "newton_traits.h"
+#include "optimization_traits.h"
 #include "newton_options.pb.h"
 
-class NewtonState: public NewtonTraits {
+namespace optimization {
+
+class NewtonState: public OptimizationTraits {
   public:
 	ReturnType current_solution;
 	ArgumentType current_minimizer;
@@ -12,21 +14,21 @@ class NewtonState: public NewtonTraits {
 	HessianType current_hessian;
 	unsigned int current_iteration;
 	double current_gradient_norm;
+	void print() const;
 };
 
 
-class NewtonOpt: public NewtonTraits {
+class NewtonMethod: public OptimizationTraits {
   protected:
 	TargetFunctionType target_function;
 	NewtonOptions options;
 	NewtonState state;
   public:
-	NewtonOpt(const TargetFunctionType & _target_function, const NewtonOptions & _options);
+	NewtonMethod(const TargetFunctionType & _target_function, const NewtonOptions & _options);
 	void solve(const ArgumentType & x0);
 	NewtonState get_state() const {return state;};
-	Eigen::VectorXd init() const;
-
 };
 
+} // namespace optimization
 
 #endif // NEWTON_OPT_H

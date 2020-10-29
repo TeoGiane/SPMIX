@@ -15,9 +15,22 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 
 	// Splitting input vector
 	Eigen::Matrix<T, Eigen::Dynamic, 1> weights_toadd(numGroups);
+	weights_toadd << x.head(numGroups);
 	std::copy(x.data(), x.data()+numGroups, weights_toadd.data());
 	T means_toadd(x(numGroups));
 	T std_devs_toadd(x(numGroups+1));
+
+	// DEBUG
+	/*Rcpp::Rcout << "x: " << x.transpose() << "\n"
+	<< "weights_toadd: " << weights_toadd.transpose() << "\n"
+	<< "means_toadd: " << means_toadd << "\n"
+	<< "std_devs_toadd: " << std_devs_toadd << std::endl << std::endl;
+
+	Rcpp::Rcout << "BEFORE EXPANSION: " << std::endl;
+	Rcpp::Rcout << "transformed_weights_vect: " << transformed_weights_vect.transpose() << "\n"
+	<< "means: " << means.transpose() << "\n"
+	<< "sqrt_std_devs: " << sqrt_std_devs.transpose() << "\n"
+	<< "Sigma:\n" << Sigma << std::endl << std::endl;*/
 
 	// Promoting and extending variables
 	numComponents_ext++;
@@ -31,6 +44,13 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 	Sigma_ext.block(0, 0, numComponents - 1, numComponents - 1) = Sigma;
 	Sigma_ext(numComponents_ext - 2, numComponents_ext - 2) = Sigma(0,0);
 
+	// DEBUG
+	/*Rcpp::Rcout << "AFTER EXPANSION: " << std::endl;
+	Rcpp::Rcout << "transformed_weights_vect: " << transformed_weights_ext.transpose() << "\n"
+	<< "means: " << means_ext.transpose() << "\n"
+	<< "sqrt_std_devs: " << sqrt_std_devs_ext.transpose() << "\n"
+	<< "Sigma:\n" << Sigma_ext << std::endl << std::endl;*/
+
 	// Computation
 	T output{0.};
 
@@ -41,12 +61,18 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 		weights.row(i) = utils::InvAlr(static_cast<Eigen::Matrix<T,-1,1>>(transformed_weights.row(i)), false);
 	}
 
-	// Computing contribution of data (Mettiamo un po' di openmp)
+	//DEBUG
+	/*Rcpp::Rcout << "transformed_weights:\n" << transformed_weights << "\n"
+	<< "weights:\n" << weights << std::endl;*/
+
+	// Computing contribution of data (PARE CORRETTO)
 	for (int i = 0; i < data.size(); ++i) {
 	    for (int j = 0; j < data[i].size(); ++j) {
 	        std::vector<T> contributions(numComponents_ext);
 	        for (int h = 0; h < numComponents_ext; ++h) {
-				contributions[h] = log(weights(i,h)) + stan::math::normal_lpdf(data[i][j], means_ext[h], sqrt_std_devs_ext[h] * sqrt_std_devs_ext[h]);
+				contributions[h] = log(weights(i,h)) + stan::math::normal_lpdf(data[i][j],
+																			   means_ext(h),
+																			   sqrt_std_devs_ext(h) * sqrt_std_devs_ext(h));
 	        }
 	        output += stan::math::log_sum_exp(contributions);
 	    }
@@ -54,12 +80,16 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 
     // Contributions from kernels
     for (int h = 0; h < numComponents_ext; ++h) {
-
-		T std_dev = sqrt_std_devs_ext[h]*sqrt_std_devs_ext[h];
-		T tau = 1.0/(std_dev * std_dev);
-		T sigmaNorm = std_dev / std::sqrt(params.p0_params().lam_());
-		output += stan::math::gamma_lpdf(tau, params.p0_params().a(), params.p0_params().b()) +
-                  stan::math::normal_lpdf(means_ext[h], params.p0_params().mu0(), sigmaNorm);
+		T sigma = sqrt_std_devs_ext(h)*sqrt_std_devs_ext(h);
+		T sigmasq = sigma*sigma;
+		T means_stdev = sigma / std::sqrt(params.p0_params().lam_());
+		output += stan::math::inv_gamma_lpdf(sigmasq, params.p0_params().a(), params.p0_params().b()) +
+                  stan::math::normal_lpdf(means_ext(h), params.p0_params().mu0(), means_stdev);
+		//T std_dev = sqrt_std_devs_ext(h)*sqrt_std_devs_ext(h)*sqrt_std_devs_ext(h)*sqrt_std_devs_ext(h);
+		//T tau = 1.0/(std_dev * std_dev);
+		//T sigmaNorm = std_dev / std::sqrt(params.p0_params().lam_());
+		//output += stan::math::gamma_lpdf(tau, params.p0_params().a(), params.p0_params().b()) +
+        //          stan::math::normal_lpdf(means_ext[h], params.p0_params().mu0(), sigmaNorm);
     }
 
     // Contribution from weights
@@ -71,6 +101,6 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
     	Sigma_ext.inverse()).eval().inverse();
     output += stan::math::multi_normal_lpdf(transformed_weights_ext, weightsMean, weightsCov);
 
-    // Contribution from other stuff if needed (rho, m_tilde, H, Sigma)
+    // Contribution from other stuff if needed (rho, m_tilde, H, Sigma)*/
 	return output;
 }

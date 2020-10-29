@@ -15,15 +15,20 @@
 #include <Eigen/Dense>
 #include <functional>
 
-#include "mcmc_utils.h"
+#include "functors.h"
 
-class NewtonTraits {
-public:
+namespace optimization {
+
+class OptimizationTraits {
+  public:
 	using ArgumentType = Eigen::VectorXd;
 	using ReturnType = double;
 	using GradientType = Eigen::VectorXd;
 	using HessianType = Eigen::MatrixXd;
-	using TargetFunctionType = utils::spmixLogLikelihood;
+	using TargetFunctionType = function::spmixLogLikelihood;
+	//using TargetFunctionType = function::test_function;
 };
+
+} // namespace optimization
 
 #endif /* NEWTONTRAITS_HPP */
