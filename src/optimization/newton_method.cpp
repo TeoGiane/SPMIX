@@ -1,0 +1,72 @@
+#include "newton_method.h"
+
+namespace optimization
+{
+
+void NewtonState::print() const {
+	Rcpp::Rcout << "Printing State:\n"
+	<< "Iteration: " 	<< current_iteration << "\n"
+	<< "Solution: "		<< current_solution << "\n"
+	<< "Minimizer: " 	<< current_minimizer.transpose() << "\n"
+	<< "Gradient: "  	<< current_gradient.transpose() << "\n"
+	<< "Hessian:\n"		<< current_hessian << "\n"
+	<< "||Gradient||: " << current_gradient_norm << std::endl;
+}
+
+NewtonMethod::NewtonMethod(const TargetFunctionType & _target_function, const NewtonOptions & _options):
+target_function(_target_function), options(_options) {};
+
+void NewtonMethod::solve(const ArgumentType & x0) {
+
+	ArgumentType x_old = x0;
+	auto loss_function = [this](const auto & x){return -target_function(x);};
+
+	// Defining aliases
+	/*ReturnType & fx = state.current_solution;
+	ArgumentType & x_new = state.current_minimizer;
+	GradientType & grad_fx = state.current_gradient;
+	HessianType & hess_fx = state.current_hessian;*/
+	state.current_iteration = 0;
+
+	for (int i = 0; i < options.max_iter(); ++i) {
+
+		// Step Iteration
+		state.current_iteration++;
+
+		// Initializing buffers
+		ReturnType fx;
+		ArgumentType x_new;
+		GradientType grad_fx;
+		HessianType hess_fx;
+
+		// Computing h direction
+		stan::math::hessian(loss_function, x_old, fx, grad_fx, hess_fx);
+		Eigen::VectorXd h = hess_fx.ldlt().solve(grad_fx);
+
+		// Update state
+		state.current_solution = fx;
+		state.current_minimizer = x_old;
+		state.current_gradient = grad_fx;
+		state.current_hessian = hess_fx;
+		state.current_gradient_norm = grad_fx.norm();
+
+		// Next step evaluation point
+		x_new = x_old - h;
+		x_old = x_new;
+
+		// Printing state (FOR DEBUG)
+		state.print();
+		Rcpp::Rcout << "h: " << h.transpose() << std::endl;
+		//Rcpp::Rcout << "H^-1*g with inverse():\n" << (hess_fx.inverse()*grad_fx).transpose() << std::endl;
+		//Rcpp::Rcout << "H^-1*g with solve():\n" << (hess_fx.ldlt().solve(grad_fx)).transpose() << std::endl;
+		Rcpp::Rcout << "Next step evaluation point: " << x_old.transpose() << std::endl << std::endl;
+
+		// Convergence check
+		if (state.current_gradient.norm() < options.tol())
+			break;
+	}
+
+	return;
+}
+
+} // namespace optimization
