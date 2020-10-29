@@ -10,13 +10,16 @@ PROTOBUF_CFLAGS = -I'/usr/local/include'
 PROTOBUF_LIBS = -L'/usr/local/lib' -lprotobuf
 
 # Setting Package Flags
-PKG_CXXFLAGS += -D_REENTRANT -DSTAN_THREADS $(GSL_CFLAGS) $(PROTOBUF_CFLAGS) -I'./polyagamma' -I'./cpp_proto'
+PKG_CXXFLAGS += -D_REENTRANT -DSTAN_THREADS $(GSL_CFLAGS) $(PROTOBUF_CFLAGS) -I'.' -I'./optimization' -I'./polyagamma' -I'./cpp_proto'
 PKG_LIBS = $(shell "$(R_HOME)/bin/Rscript" -e "StanHeaders:::LdFlags()") $(GSL_LIBS) $(PROTOBUF_LIBS)
 
 # Setting Package sources and object files
 PROTO_DIR = ../inst/proto
 PROTO_SRC = $(wildcard $(PROTO_DIR)/*.proto)
-SOURCES = $(sort $(wildcard *.cpp)) $(sort $(wildcard polyagamma/*.cpp)) $(sort $(addprefix cpp_proto/, $(notdir $(PROTO_SRC:.proto=.pb.cc))))
+SOURCES = $(sort $(wildcard *.cpp)) \
+		  $(sort $(wildcard optimization/*.cpp)) \
+		  $(sort $(wildcard polyagamma/*.cpp)) \
+		  $(sort $(addprefix cpp_proto/, $(notdir $(PROTO_SRC:.proto=.pb.cc))))
 OBJECTS = $(addsuffix .o, $(basename $(SOURCES)))
 
 # Recipes

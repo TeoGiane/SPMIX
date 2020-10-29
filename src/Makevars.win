@@ -17,14 +17,17 @@ PROTOBUF_LIBS = -L$(FOLDER)/lib -lprotobuf
 
 # Setting Package Flags
 PKG_CXXFLAGS += $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::CxxFlags()") \
-                -D_REENTRANT -DSTAN_THREADS $(GSL_INC) $(PROTOBUF_INC) -I'./polyagamma' -I'./cpp_proto'
+                -D_REENTRANT -DSTAN_THREADS $(GSL_INC) $(PROTOBUF_INC) -I'.' -I'./optimization' -I'./polyagamma' -I'./cpp_proto'
 PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::LdFlags()") \
            $(GSL_LIBS) $(PROTOBUF_LIBS) -lstdc++fs
 
 # Setting Package sources and object files
 PROTO_DIR = ../inst/proto
 PROTO_SRC = $(wildcard $(PROTO_DIR)/*.proto)
-SOURCES = $(sort $(wildcard *.cpp)) $(sort $(wildcard polyagamma/*.cpp)) $(sort $(addprefix cpp_proto/, $(notdir $(PROTO_SRC:.proto=.pb.cc))))
+SOURCES = $(sort $(wildcard *.cpp)) \
+		  $(sort $(wildcard optimization/*.cpp)) \
+		  $(sort $(wildcard polyagamma/*.cpp)) \
+		  $(sort $(addprefix cpp_proto/, $(notdir $(PROTO_SRC:.proto=.pb.cc))))
 OBJECTS = $(addsuffix .o, $(basename $(SOURCES)))
 
 # Recipes
