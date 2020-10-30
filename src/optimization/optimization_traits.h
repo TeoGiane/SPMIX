@@ -25,8 +25,6 @@ class OptimizationTraits {
 	using ReturnType = double;
 	using GradientType = Eigen::VectorXd;
 	using HessianType = Eigen::MatrixXd;
-	using TargetFunctionType = function::spmixLogLikelihood;
-	//using TargetFunctionType = function::test_function;
 };
 
 } // namespace optimization

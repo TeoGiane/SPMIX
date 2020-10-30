@@ -18,7 +18,7 @@
 #include "PolyaGamma.h"
 #include "sampler_params.pb.h"
 #include "univariate_mixture_state.pb.h"
-#include "newton_options.pb.h"
+#include "optimization_options.pb.h"
 #include "recordio.h"
 #include "utils.h"
 #include "newton_method.h"
@@ -139,8 +139,8 @@ void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<doubl
     }
 
     // Check S4 class for options
-    if (not(options.is("Message") and Rcpp::as<std::string>(options.slot("type")) == "NewtonOptions")) {
-        throw std::runtime_error("Input 'options' is not of type Message::NewtonOptions.");
+    if (not(options.is("Message") and Rcpp::as<std::string>(options.slot("type")) == "OptimOptions")) {
+        throw std::runtime_error("Input 'options' is not of type Message::OptimOptions.");
     }
 
     // Create a deep-copy of the messages with the workaround
@@ -157,13 +157,13 @@ void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<doubl
     	->SerializeToString(&tmp); params_cp.ParseFromString(tmp);
 
     // Options copy
-    NewtonOptions options_cp;
-    Rcpp::XPtr<NewtonOptions>(Rcpp::as<Rcpp::XPtr<NewtonOptions>>(options.slot("pointer")))
+    OptimOptions options_cp;
+    Rcpp::XPtr<OptimOptions>(Rcpp::as<Rcpp::XPtr<OptimOptions>>(options.slot("pointer")))
     	->SerializeToString(&tmp); options_cp.ParseFromString(tmp);
 
-    function::spmixLogLikelihood fun(data, W, params_cp, state_cp);
-    //function::test_function fun;
-    optimization::NewtonMethod solver(fun, options_cp);
+    //function::spmixLogLikelihood fun(data, W, params_cp, state_cp);
+    function::test_function fun;
+    optimization::NewtonMethod<decltype(fun)> solver(fun, options_cp);
 
     // Initialize and executing Newton Method
     Eigen::VectorXd x0 = fun.init();
@@ -195,8 +195,8 @@ void RJsampler_test(const std::vector<std::vector<double>> & data,
     }
 
     // Check S4 class for options
-    if (not(options.is("Message") and Rcpp::as<std::string>(options.slot("type")) == "NewtonOptions")) {
-        throw std::runtime_error("Input 'options' is not of type Message::NewtonOptions.");
+    if (not(options.is("Message") and Rcpp::as<std::string>(options.slot("type")) == "OptimOptions")) {
+        throw std::runtime_error("Input 'options' is not of type Message::OptimOptions.");
     }
 
     // Create a deep-copy of the messages with the workaround
@@ -208,15 +208,15 @@ void RJsampler_test(const std::vector<std::vector<double>> & data,
         ->SerializeToString(&tmp); params_cp.ParseFromString(tmp);
 
     // Options copy
-    NewtonOptions options_cp;
-    Rcpp::XPtr<NewtonOptions>(Rcpp::as<Rcpp::XPtr<NewtonOptions>>(options.slot("pointer")))
+    OptimOptions options_cp;
+    Rcpp::XPtr<OptimOptions>(Rcpp::as<Rcpp::XPtr<OptimOptions>>(options.slot("pointer")))
         ->SerializeToString(&tmp); options_cp.ParseFromString(tmp);
 
     // Various tests
     SpatialMixtureRJSampler sampler(params_cp, data, W, options_cp);
     sampler.init();
     sampler.sampleSigma();
-    sampler.betweenModelMove();
+    //sampler.betweenModelMove();
 
     return;
 }
