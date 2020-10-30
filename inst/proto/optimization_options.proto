@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-message NewtonOptions {
+message OptimOptions {
 	double max_iter = 1;
 	double tol = 2;
 }
