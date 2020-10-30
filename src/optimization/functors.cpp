@@ -2,6 +2,7 @@
 
 namespace function {
 
+/* Definitions for spmixLogLikelihood */
 spmixLogLikelihood::spmixLogLikelihood(const std::vector<std::vector<double>> & _data, const Eigen::MatrixXd & _W,
                                        const SamplerParams & _params, const UnivariateState & _state):
 data(_data), W(_W), params(_params), numGroups(data.size()) {
@@ -104,6 +105,12 @@ Eigen::VectorXd spmixLogLikelihood::init() const {
 	Eigen::Map<const Eigen::MatrixXd> tw_mat(transformed_weights_vect.data(), numGroups, numComponents-1);
 	x0 << tw_mat.rowwise().mean(), means.mean(), sqrt_std_devs.mean();
 	return x0;
+}
+
+
+/* Definitions for test_function */
+Eigen::VectorXd test_function::init() const {
+    return (Eigen::VectorXd(2) << -3.,-3.).finished();
 }
 
 }; // namespace function

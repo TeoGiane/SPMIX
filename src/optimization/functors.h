@@ -9,13 +9,23 @@
 
 #include <exception>
 
-#include <univariate_mixture_state.pb.h>
-#include <sampler_params.pb.h>
-#include <utils.h>
+#include "univariate_mixture_state.pb.h"
+#include "sampler_params.pb.h"
+#include "utils.h"
 
 namespace function {
 
-class spmixLogLikelihood {
+template<typename D>
+class functorBase {
+  private:
+  	D & derived(){return static_cast<D &>(*this);}
+  	D const & derived() const {return static_cast<D const &>(*this);}
+  public:
+	template<typename T> T operator()(const Eigen::Matrix<T,Eigen::Dynamic,1> & x) const {return derived().operator()(x);};
+	Eigen::VectorXd init() const {return derived().init();};
+};
+
+class spmixLogLikelihood : public functorBase<spmixLogLikelihood> {
   private:
   	std::vector<std::vector<double>> data;
 	Eigen::MatrixXd W;
@@ -43,20 +53,15 @@ class spmixLogLikelihood {
 					   const Eigen::MatrixXd & _Sigma);
 
 	double operator()() const;
-
 	template<typename T> T operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x) const;
-
 	Eigen::VectorXd init() const;
 };
 
-
-class test_function {
+class test_function : public functorBase<test_function> {
   public:
   	double operator()() const {return 0.;};
-	template<typename T> T operator() (const Eigen::Matrix<T,Eigen::Dynamic,1> & x) const {
-		return -(x(0)-4)*(x(0)-4)*(x(0)+5)*(x(0)+5) - (x(1)-4)*(x(1)-4)*(x(1)+5)*(x(1)+5);
-	}
-	Eigen::VectorXd init() const {return (Eigen::VectorXd(2) << -3.,-3.).finished();}
+	template<typename T> T operator() (const Eigen::Matrix<T,Eigen::Dynamic,1> & x) const;
+	Eigen::VectorXd init() const;
 };
 
 #include "functors_impl.h"

@@ -104,3 +104,9 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
     // Contribution from other stuff if needed (rho, m_tilde, H, Sigma)*/
 	return output;
 }
+
+template<typename T>
+T test_function::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x) const {
+	
+	return -(x(0)-4)*(x(0)-4)*(x(0)+5)*(x(0)+5) - (x(1)-4)*(x(1)-4)*(x(1)+5)*(x(1)+5);
+}
