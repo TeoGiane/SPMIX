@@ -37,6 +37,7 @@ Eigen::Matrix<T, Eigen::Dynamic, 1> InvAlr(Eigen::Matrix<T, Eigen::Dynamic, 1> x
     out = (out.array() - norm).exp();
     return out;
 }
+
 //Eigen::VectorXd InvAlr(Eigen::VectorXd x, bool padded_zero = false);
 
 std::vector<std::vector<double>> readDataFromCSV(std::string filename);
