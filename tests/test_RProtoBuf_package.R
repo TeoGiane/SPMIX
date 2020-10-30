@@ -16,14 +16,12 @@ names(params)
 params$num_components <- 5
 params$p0_params <- new(SamplerParams.NormalGammaParams, mu0 = 0, a = 2, b = 2, lam_ = 0.1)
 params$rho_params <- new(SamplerParams.BetaParams, a = 1, b = 5)
-params$sigma_params <- new(SamplerParams.InverseWishartParams, nu = 100, identity = TRUE)
+params$sigma_params$inv_wishart$nu <- 100; params$sigma_params$inv_wishart$identity <- TRUE
 params$mtilde_sigmasq <- 5
 
-# Save a human-readable copy of the just set message
-write(as.character(params), file='test.asciipb')
-
 # Directly define a SamplerParams message instanciated from an ASCII file (AUTOMATICALLY)
-params_fromfile <- readASCII(SamplerParams, file("/home/m_gianella/Documents/R-Packages/SPMIX_stuff/InputFiles/sampler_params.asciipb"))
+params_fromfile <- readASCII(SamplerParams,
+                             file(system.file("input_files/sampler_params.asciipb", package = "SPMIX")))
 all.equal(params, params_fromfile) # TRUE, clearly!
 
 # Reset descriptor (you need to reload proto files after this call)

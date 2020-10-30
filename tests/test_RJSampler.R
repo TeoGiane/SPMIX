@@ -3,7 +3,7 @@ library("SPMIX")
 
 # Getting useful descriptors
 readProtoFiles(file = system.file("proto/sampler_params.proto", package = "SPMIX"))
-readProtoFiles(files = system.file("proto/newton_options.proto", package = "SPMIX"))
+readProtoFiles(files = system.file("proto/optimization_options.proto", package = "SPMIX"))
 
 # Setting MCMC parameters
 burnin = 10000
@@ -14,13 +14,13 @@ thin = 5
 data_filename = system.file("input_files/datasets/scenario0/rep0.csv", package = "SPMIX")
 w_filename = system.file("input_files/prox_matrix.csv", package = "SPMIX")
 params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
-options_filename = system.file("input_files/newton_options.asciipb", package = "SPMIX")
+options_filename = system.file("input_files/optimization_options.asciipb", package = "SPMIX")
 
 # building input objects
 data_obj <- readDataFromCSV(data_filename)
 w_obj <- readMatrixFromCSV(w_filename)
 params_obj <- readASCII(SamplerParams, file(params_filename))
-options_obj <- readASCII(NewtonOptions, file(options_filename))
+options_obj <- readASCII(OptimOptions, file(options_filename))
 
 # Run test utility
 RJsampler_test(data_obj, w_obj, params_obj, options_obj)
