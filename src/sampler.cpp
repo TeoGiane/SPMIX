@@ -68,7 +68,7 @@ void SpatialMixtureSampler::init() {
       V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
     else {
       V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
-      std::cout << "Case not implemented yet, settig V0 to identity" << std::endl;
+      Rcpp::Rcout << "Case not implemented yet, settig V0 to identity" << std::endl;
     }
   }
   else {
@@ -194,67 +194,67 @@ void SpatialMixtureSampler::sampleAtoms() {
 }
 
 void SpatialMixtureSampler::sampleAllocations() {
-  for (int i = 0; i < numGroups; i++) {
-#pragma omp parallel for
-    for (int j = 0; j < samplesPerGroup[i]; j++) {
-      double datum = data[i][j];
-      Eigen::VectorXd logProbas(numComponents);
-      for (int h = 0; h < numComponents; h++) {
-        logProbas(h) = std::log(weights(i, h) + 1e-6) +
-                       normal_lpdf(datum, means[h], stddevs[h]);
-      }
-      Eigen::VectorXd probas = logProbas.array().exp();
-      probas /= probas.sum();
-      cluster_allocs[i][j] = categorical_rng(probas, rng) - 1;
-    }
-  }
+	for (int i = 0; i < numGroups; i++) {
+
+		#pragma omp parallel for
+		for (int j = 0; j < samplesPerGroup[i]; j++) {
+	  		double datum = data[i][j];
+	  		Eigen::VectorXd logProbas(numComponents);
+	  		for (int h = 0; h < numComponents; h++) {
+	    		logProbas(h) = std::log(weights(i, h) + 1e-6) + normal_lpdf(datum, means[h], stddevs[h]);
+	  		}
+
+	  		Eigen::VectorXd probas = logProbas.array().exp();
+	  		probas /= probas.sum();
+	  		cluster_allocs[i][j] = categorical_rng(probas, rng) - 1;
+		}
+	}
 }
 
 void SpatialMixtureSampler::sampleWeights() {
   for (int i = 0; i < numGroups; i++) {
     std::vector<int> cluster_sizes(numComponents, 0);
 
-#pragma omp parallel for
+    #pragma omp parallel for
     for (int j = 0; j < samplesPerGroup[i]; j++)
       cluster_sizes[cluster_allocs[i][j]] += 1;
 
     for (int h = 0; h < numComponents - 1; h++) {
-      /*
-       * we draw omega from a Polya-Gamma distribution
-       */
-      Eigen::VectorXd weightsForCih =
-          utils::removeElem(transformed_weights.row(i), h);
-      double C_ih = stan::math::log_sum_exp(weightsForCih);
+  		/*
+   		* we draw omega from a Polya-Gamma distribution
+   		*/
+		Eigen::VectorXd weightsForCih =
+		  utils::removeElem(transformed_weights.row(i), h);
+		double C_ih = stan::math::log_sum_exp(weightsForCih);
 
-      double omega_ih =
-          pg_rng->draw(samplesPerGroup[i], transformed_weights(i, h) - C_ih);
+		double omega_ih =
+		  pg_rng->draw(samplesPerGroup[i], transformed_weights(i, h) - C_ih);
 
-      Eigen::VectorXd mu_i =
-          (W_init.row(i) * transformed_weights).array() * rho +
-          mtildes.row(node2comp[i]).array() * (1 - rho);
-      mu_i = mu_i.array() / (W_init.row(i).sum() * rho + 1 - rho);
-      mu_i = mu_i.head(numComponents - 1);
-      Eigen::VectorXd wtilde =
-          transformed_weights.row(i).head(numComponents - 1);
+		Eigen::VectorXd mu_i =
+		  (W_init.row(i) * transformed_weights).array() * rho +
+		  mtildes.row(node2comp[i]).array() * (1 - rho);
+		mu_i = mu_i.array() / (W_init.row(i).sum() * rho + 1 - rho);
+		mu_i = mu_i.head(numComponents - 1);
+		Eigen::VectorXd wtilde =
+		  transformed_weights.row(i).head(numComponents - 1);
 
-      double mu_star_ih = mu_i[h] + pippo[h].dot(utils::removeElem(wtilde, h) -
-                                                 utils::removeElem(mu_i, h));
+		double mu_star_ih = mu_i[h] + pippo[h].dot(utils::removeElem(wtilde, h) -
+		                                         utils::removeElem(mu_i, h));
 
-      double sigma_hat_ih = 1.0 / (1.0 / sigma_star_h(i, h) + omega_ih);
-      int N_ih = cluster_sizes[h];
-      double mu_hat_ih = (mu_star_ih / sigma_star_h(i, h) + N_ih -
-                          0.5 * samplesPerGroup[i] + omega_ih * C_ih) *
-                         (sigma_hat_ih);
-
-      transformed_weights(i, h) =
-          normal_rng(mu_hat_ih, std::sqrt(sigma_hat_ih), rng);
+		double sigma_hat_ih = 1.0 / (1.0 / sigma_star_h(i, h) + omega_ih);
+		int N_ih = cluster_sizes[h];
+		double mu_hat_ih = (mu_star_ih / sigma_star_h(i, h) + N_ih -
+		                    0.5 * samplesPerGroup[i] + omega_ih * C_ih) *
+							(sigma_hat_ih);
+		transformed_weights(i, h) = normal_rng(mu_hat_ih, std::sqrt(sigma_hat_ih), rng);
     }
+
     weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), true);
   }
 
-#pragma omp parallel for
+  /*#pragma omp parallel for
   for (int i = 0; i < numGroups; i++)
-    transformed_weights.row(i) = utils::Alr(weights.row(i), true);
+    transformed_weights.row(i) = utils::Alr(weights.row(i), true);*/
 }
 
 // We use a MH step with a truncated normal proposal
@@ -331,66 +331,60 @@ void SpatialMixtureSampler::sampleRho() {
 }
 
 void SpatialMixtureSampler::sampleSigma() {
-  Eigen::MatrixXd Vn = V0;
-  double nu_n = nu + numGroups;
-  Eigen::MatrixXd F_m_rhoG = F - W_init * rho;
+	Eigen::MatrixXd Vn = V0;
+	double nu_n = nu + numGroups;
+	Eigen::MatrixXd F_m_rhoG = F - W_init * rho;
 
-#pragma omp parallel for collapse(1)
-  for (int i = 0; i < numGroups; i++) {
-    Eigen::VectorXd wtilde_i =
-        transformed_weights.row(i).head(numComponents - 1);
-    Eigen::VectorXd mtilde_i =
-        mtildes.row(node2comp[i]).head(numComponents - 1);
-    for (int j = 0; j < numGroups; j++) {
-      Eigen::VectorXd wtilde_j =
-          transformed_weights.row(j).head(numComponents - 1);
-      Eigen::VectorXd mtilde_j =
-          mtildes.row(node2comp[j]).head(numComponents - 1);
-      Vn += ((wtilde_i - mtilde_i) * (wtilde_j - mtilde_j).transpose()) *
-            F_m_rhoG(i, j);
-    }
-  }
-  Sigma = inv_wishart_rng(nu_n, Vn, rng);
-  _computeInvSigmaH();
+	// #pragma omp parallel for collapse(2)
+  	for (int i = 0; i < numGroups; i++) {
+    	Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents - 1);
+    	Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents - 1);
+	    for (int j = 0; j < numGroups; j++) {
+			Eigen::VectorXd wtilde_j = transformed_weights.row(j).head(numComponents - 1);
+			Eigen::VectorXd mtilde_j = mtildes.row(node2comp[j]).head(numComponents - 1);
+			Vn += ((wtilde_i - mtilde_i) * (wtilde_j - mtilde_j).transpose()) * F_m_rhoG(i, j);
+	    }
+	}
+	Sigma = inv_wishart_rng(nu_n, Vn, rng);
+	_computeInvSigmaH();
 }
 
 void SpatialMixtureSampler::regress() {
-  // Compute mu and v
-  int start = 0;
-  int s = 0;
+	// Compute mu and v
+	int start = 0;
+	int s = 0;
 
-  for (int i = 0; i < numGroups; i++) {
-#pragma omp parallel for
-    for (int j = 0; j < samplesPerGroup[i]; j++) {
-      s = cluster_allocs[i][j];
-      mu(start + j) = means[s];
-      V.diagonal()[start + j] = 1.0 / (stddevs[s] * stddevs[s]);
-    }
-    start += samplesPerGroup[i];
-  }
+	for (int i = 0; i < numGroups; i++) {
+		#pragma omp parallel for
+    	for (int j = 0; j < samplesPerGroup[i]; j++) {
+      		s = cluster_allocs[i][j];
+			mu(start + j) = means[s];
+			V.diagonal()[start + j] = 1.0 / (stddevs[s] * stddevs[s]);
+    	}
+		start += samplesPerGroup[i];
+	}
 
-  // compute posterior parameters for beta
-  Eigen::VectorXd postMean(p_size);
-  Eigen::MatrixXd postPrec(p_size, p_size);
-
-  postPrec = predictors.transpose() * V * predictors + reg_coeff_prec;
-  postMean =
-      postPrec.ldlt().solve(predictors.transpose() * V * (reg_data - mu));
-
-  reg_coeff = stan::math::multi_normal_prec_rng(postMean, postPrec, rng);
+	// compute posterior parameters for beta
+	Eigen::VectorXd postMean(p_size);
+	Eigen::MatrixXd postPrec(p_size, p_size);
+	postPrec = predictors.transpose() * V * predictors + reg_coeff_prec;
+	postMean = postPrec.ldlt().solve(predictors.transpose() * V * (reg_data - mu));
+	reg_coeff = stan::math::multi_normal_prec_rng(postMean, postPrec, rng);
 }
 
 void SpatialMixtureSampler::computeRegressionResiduals() {
-  Eigen::VectorXd residuals = reg_data - predictors * reg_coeff;
-  int start = 0;
+	Eigen::VectorXd residuals = reg_data - predictors * reg_coeff;
+	int start = 0;
 
-  for (int i = 0; i < numGroups; i++) {
-#pragma omp parallel for
-    for (int j = 0; j < samplesPerGroup[i]; j++) {
-      data[i][j] = residuals[start + j];
-    }
-    start += samplesPerGroup[i];
-  }
+	for (int i = 0; i < numGroups; i++) {
+	
+		#pragma omp parallel for
+		for (int j = 0; j < samplesPerGroup[i]; j++) {
+			data[i][j] = residuals[start + j];
+    	}
+    	
+    	start += samplesPerGroup[i];
+	}
 }
 
 void SpatialMixtureSampler::_computeInvSigmaH() {
@@ -485,10 +479,10 @@ UnivariateState SpatialMixtureSampler::getStateAsProto() {
 }
 
 void SpatialMixtureSampler::printDebugString() {
-  std::cout << "***** Debug String ****" << std::endl;
-  std::cout << "numGroups: " << numGroups << ", samplesPerGroup: ";
-  for (int n : samplesPerGroup) std::cout << n << ", ";
-  std::cout << std::endl;
+  Rcpp::Rcout << "***** Debug String ****" << std::endl;
+  Rcpp::Rcout << "numGroups: " << numGroups << ", samplesPerGroup: ";
+  for (int n : samplesPerGroup) Rcpp::Rcout << n << ", ";
+  Rcpp::Rcout << std::endl;
 
   // one vector per component
   std::vector<std::vector<std::vector<double>>> datavecs(numGroups);
@@ -501,18 +495,18 @@ void SpatialMixtureSampler::printDebugString() {
     }
   }
 
-  std::cout << "Sigma: \n" << Sigma << std::endl << std::endl;
+  Rcpp::Rcout << "Sigma: \n" << Sigma << std::endl << std::endl;
 
   for (int h = 0; h < numComponents; h++) {
-    std::cout << "### Component #" << h << std::endl;
-    std::cout << "##### Atom: mean=" << means[h] << ", sd=" << stddevs[h]
+    Rcpp::Rcout << "### Component #" << h << std::endl;
+    Rcpp::Rcout << "##### Atom: mean=" << means[h] << ", sd=" << stddevs[h]
               << " weights per group: " << weights.col(h).transpose()
               << std::endl;
-    std::cout << std::endl;
+    Rcpp::Rcout << std::endl;
   }
 
   if (regression) {
-    std::cout << "Regression Coefficients: " << std::endl;
-    std::cout << "    " << reg_coeff.transpose() << std::endl;
+    Rcpp::Rcout << "Regression Coefficients: " << std::endl;
+    Rcpp::Rcout << "    " << reg_coeff.transpose() << std::endl;
   }
 }
