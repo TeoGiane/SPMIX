@@ -2,7 +2,7 @@
 #define NEWTON_OPT_H
 
 #include "optimization_traits.h"
-#include "newton_options.pb.h"
+#include "optimization_options.pb.h"
 
 namespace optimization {
 
@@ -17,17 +17,19 @@ class NewtonState: public OptimizationTraits {
 	void print() const;
 };
 
-
+template<typename D>
 class NewtonMethod: public OptimizationTraits {
   protected:
-	TargetFunctionType target_function;
-	NewtonOptions options;
+	function::functorBase<D> target_function;
+	OptimOptions options;
 	NewtonState state;
   public:
-	NewtonMethod(const TargetFunctionType & _target_function, const NewtonOptions & _options);
+	NewtonMethod(const function::functorBase<D> & _target_function, const OptimOptions & _options);
 	void solve(const ArgumentType & x0);
 	NewtonState get_state() const {return state;};
 };
+
+#include "newton_method_impl.h"
 
 } // namespace optimization
 
