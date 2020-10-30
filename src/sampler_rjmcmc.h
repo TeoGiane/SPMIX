@@ -16,7 +16,7 @@
 #include <Eigen/Dense>
 
 #include "sampler_params.pb.h"
-#include "newton_options.pb.h"
+#include "optimization_options.pb.h"
 #include "utils.h"
 #include "functors.h"
 #include "newton_method.h"
@@ -29,19 +29,19 @@ protected:
 	double beta_Sigma;
 
 	// Options for Newton Method for Optimization
-	NewtonOptions options;
+	OptimOptions options;
 public:
 	SpatialMixtureRJSampler() = default;
 	
 	SpatialMixtureRJSampler(const SamplerParams &_params,
 							const std::vector<std::vector<double>> &_data,
 							const Eigen::MatrixXd &W,
-							const NewtonOptions &_options);
+							const OptimOptions &_options);
 
 	SpatialMixtureRJSampler(const SamplerParams &_params,
 							const std::vector<std::vector<double>> &_data,
 							const Eigen::MatrixXd &W,
-							const NewtonOptions &_options,
+							const OptimOptions &_options,
 							const std::vector<Eigen::MatrixXd> &X);
 
 	~SpatialMixtureRJSampler() = default;

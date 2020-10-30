@@ -3,7 +3,7 @@
 SpatialMixtureRJSampler::SpatialMixtureRJSampler(const SamplerParams &_params,
 												 const std::vector<std::vector<double>> &_data,
 												 const Eigen::MatrixXd &W,
-												 const NewtonOptions &_options):
+												 const OptimOptions &_options):
 SpatialMixtureSamplerBase(_params, _data, W), options(_options) {
 	if (!_params.sigma_params().has_inv_gamma()) {
 		throw std::runtime_error("Cannot build object of class 'SpatialMixtureRJSampler': expected parameters for an Inverse Gamma distribution.");
@@ -13,7 +13,7 @@ SpatialMixtureSamplerBase(_params, _data, W), options(_options) {
 SpatialMixtureRJSampler::SpatialMixtureRJSampler(const SamplerParams &_params,
 												 const std::vector<std::vector<double>> &_data,
 												 const Eigen::MatrixXd &W,
-												 const NewtonOptions &_options,
+												 const OptimOptions &_options,
 												 const std::vector<Eigen::MatrixXd> &X):
 SpatialMixtureSamplerBase(_params, _data, W, X), options(_options) {
 	if (!_params.sigma_params().has_inv_gamma()) {
@@ -114,8 +114,7 @@ void SpatialMixtureRJSampler::betweenModelMove() {
 
 		// Eliciting the approximated optimal proposal parameters
 		function::spmixLogLikelihood loglik_extended(data, W_init, params, getStateAsProto());
-		//function::test_function loglik_extended;
-		optimization::NewtonMethod solver(loglik_extended, options);
+		optimization::NewtonMethod<decltype(loglik_extended)> solver(loglik_extended, options);
 		Eigen::VectorXd x0 = loglik_extended.init();
 		solver.solve(x0);
 		Eigen::VectorXd optMean = solver.get_state().current_minimizer;
