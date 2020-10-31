@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 # deep clean
 rm -r src/cpp_proto
 find src -name '*.o' -exec rm '{}' \;
