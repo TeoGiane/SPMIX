@@ -1,4 +1,5 @@
 # deep clean
+rm -f cleanup
 rm -r src/cpp_proto
 find src -name '*.o' -exec rm '{}' \;
 rm -f src/*.{so,dll}

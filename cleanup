@@ -1,7 +1,7 @@
 #!/bin/sh
 
-
 # deep clean
+rm -f cleanup.win
 rm -r src/cpp_proto
 find src -name '*.o' -exec rm '{}' \;
 rm -f src/*.{so,dll}
