@@ -1,5 +1,6 @@
-# deep clean
+# Deep clean for Windows OS
 rm -f cleanup
 rm -r src/cpp_proto
+rm -f src/Makevars
 find src -name '*.o' -exec rm '{}' \;
 rm -f src/*.{so,dll}
