@@ -17,10 +17,10 @@ void NewtonMethod<D>::solve(const ArgumentType & x0) {
 	HessianType & hess_fx = state.current_hessian;*/
 	state.current_iteration = 0;
 
-	for (int i = 0; i < options.max_iter(); ++i) {
+	for (int i = 0; i < options.max_iter(); ++i) {++
 
 		// Step Iteration
-		state.current_iteration++;
+		++state.current_iteration;
 
 		// Initializing buffers
 		ReturnType fx;

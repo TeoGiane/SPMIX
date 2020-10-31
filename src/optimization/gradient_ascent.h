@@ -24,7 +24,7 @@ class GradientAscent : public OptimizationTraits {
 	GradientState state;
 public:
 	GradientAscent(const function::functorBase<D> & _target_function, const OptimOptions & _options);
-	void solve(const ArgumentType & x0) {return;};
+	void solve(const ArgumentType & x0); // {return;};
 	GradientState get_state() const {return state;};
 };
 
