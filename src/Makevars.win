@@ -1,5 +1,6 @@
 # Setting compiler standard
 CXX_STD = CXX17
+NOCRANFLAGS = -Wno-attributes -Wno-ignored-attributes -Wno-deprecated-declarations
 
 ifeq ($(R_ARCH), /x64)
 FOLDER = C:/rtools40/mingw64
@@ -17,7 +18,9 @@ PROTOBUF_LIBS = -L$(FOLDER)/lib -lprotobuf
 
 # Setting Package Flags
 PKG_CXXFLAGS += $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::CxxFlags()") \
-                -D_REENTRANT -DSTAN_THREADS $(GSL_INC) $(PROTOBUF_INC) -I'.' -I'./optimization' -I'./polyagamma' -I'./cpp_proto'
+                -D_REENTRANT -DSTAN_THREADS $(GSL_INC) $(PROTOBUF_INC) \
+                -I'.' -I'./optimization' -I'./polyagamma' -I'./cpp_proto' \
+                $(NOCRANFLAGS)
 PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::LdFlags()") \
            $(GSL_LIBS) $(PROTOBUF_LIBS) -lstdc++fs
 
