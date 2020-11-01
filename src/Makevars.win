@@ -20,9 +20,9 @@ PROTOBUF_LIBS = -L$(FOLDER)/lib -lprotobuf
 PKG_CXXFLAGS += $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::CxxFlags()") \
                 -D_REENTRANT -DSTAN_THREADS $(GSL_INC) $(PROTOBUF_INC) \
                 -I'.' -I'./optimization' -I'./polyagamma' -I'./cpp_proto' \
-                $(NOCRANFLAGS)
+                -fopenmp $(NOCRANFLAGS)
 PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::LdFlags()") \
-           $(GSL_LIBS) $(PROTOBUF_LIBS) -lstdc++fs
+           $(GSL_LIBS) $(PROTOBUF_LIBS) -lstdc++fs -fopenmp
 
 # Setting Package sources and object files
 PROTO_DIR = ../inst/proto
