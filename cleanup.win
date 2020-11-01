@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Deep clean for Windows OS
 rm -f cleanup
 rm -r src/cpp_proto
