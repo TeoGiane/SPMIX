@@ -110,7 +110,7 @@ Eigen::VectorXd spmixLogLikelihood::init() const {
 
 /* Definitions for test_function */
 Eigen::VectorXd test_function::init() const {
-    return (Eigen::VectorXd(2) << -3.,-3.).finished();
+    return (Eigen::VectorXd(2) << -10., -10.).finished();
 }
 
 }; // namespace function
