@@ -80,6 +80,12 @@ newton_opt_test <- function(state, data, W, params, options) {
     invisible(.Call(`_SPMIX_newton_opt_test`, state, data, W, params, options))
 }
 
+#' Test to evaluate times and correctness of gradient ascent method for optimization on a test function
+#' @export
+grad_ascent_test <- function(options) {
+    invisible(.Call(`_SPMIX_grad_ascent_test`, options))
+}
+
 #' Test fot the RJSampler
 #' @export
 RJsampler_test <- function(data, W, params, options) {
