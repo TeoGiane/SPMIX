@@ -205,18 +205,23 @@ void grad_ascent_test(const Rcpp::S4 & options) {
     function::test_function fun;
     optimization::GradientAscent<decltype(fun)> solver(fun, options_cp);
 
-    // Initialize and executing Gradient Ascent Method
-    Eigen::VectorXd x0 = fun.init();
-    Rcpp::Rcout << "x0: " << x0.transpose() << std::endl;
-    Rcpp::Rcout << "Solving..." << std::endl;
-    auto start = std::chrono::high_resolution_clock::now();
-    solver.solve(x0);
-    auto end = std::chrono::high_resolution_clock::now();
-    double duration = std::chrono::duration<double>(end - start).count();
-    Rcpp::Rcout << "Duration: " << duration << std::endl;
-    optimization::GradientState currstate = solver.get_state();
-    Rcpp::Rcout << "Minimizer: " << currstate.current_minimizer.transpose() << std::endl;
-    Rcpp::Rcout << "||grad_f(x)||: " << currstate.current_gradient_norm << std::endl;
+    // Initialize and executing Gradient Ascent Method with different starting points
+    std::vector<Eigen::VectorXd> initial_points(4);
+    initial_points[0] = fun.init();
+    initial_points[1] = (Eigen::VectorXd(2) << 10, 10).finished();
+    initial_points[2] = (Eigen::VectorXd(2) << -10, 10).finished();
+    initial_points[3] = (Eigen::VectorXd(2) << 10, -10).finished();
+    for (auto elem : initial_points) {
+	    Rcpp::Rcout << "Solving with x0 = " << elem.transpose() << std::endl;
+	    auto start = std::chrono::high_resolution_clock::now();
+	    solver.solve(elem);
+	    auto end = std::chrono::high_resolution_clock::now();
+	    double duration = std::chrono::duration<double>(end - start).count();
+	    Rcpp::Rcout << "Duration: " << duration << std::endl;
+	    optimization::GradientState currstate = solver.get_state();
+	    Rcpp::Rcout << "Minimizer: " << currstate.current_minimizer.transpose() << std::endl;
+	    Rcpp::Rcout << "||grad_f(x)||: " << currstate.current_gradient_norm << std::endl << std::endl;
+    }
 
 	return;
 }
