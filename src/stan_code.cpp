@@ -162,8 +162,8 @@ void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<doubl
     Rcpp::XPtr<OptimOptions>(Rcpp::as<Rcpp::XPtr<OptimOptions>>(options.slot("pointer")))
     	->SerializeToString(&tmp); options_cp.ParseFromString(tmp);
 
-    //function::spmixLogLikelihood fun(data, W, params_cp, state_cp);
-    function::test_function fun;
+    function::spmixLogLikelihood fun(data, W, params_cp, state_cp);
+    //function::test_function fun;
     optimization::NewtonMethod<decltype(fun)> solver(fun, options_cp);
 
     // Initialize and executing Newton Method
@@ -186,42 +186,59 @@ void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<doubl
 //' Test to evaluate times and correctness of gradient ascent method for optimization on a test function
 //' @export
 // [[Rcpp::export]]
-void grad_ascent_test(const Rcpp::S4 & options) {
+void grad_ascent_test(const Rcpp::S4 & state, const std::vector<std::vector<double>> & data,
+                      const Eigen::MatrixXd & W, const Rcpp::S4 & params, const Rcpp::S4 & options) {
 
-	// Check S4 class for options
+    // Check S4 class for state
+    if (not(state.is("Message") and Rcpp::as<std::string>(state.slot("type")) == "UnivariateState")) {
+        throw std::runtime_error("Input 'state' is not of type Message::UnivariateState.");
+    }
+
+    // Check S4 class for params
+    if (not(params.is("Message") and Rcpp::as<std::string>(params.slot("type")) == "SamplerParams")) {
+        throw std::runtime_error("Input 'params' is not of type Message::SamplerParams.");
+    }
+
+    // Check S4 class for options
     if (not(options.is("Message") and Rcpp::as<std::string>(options.slot("type")) == "OptimOptions")) {
         throw std::runtime_error("Input 'options' is not of type Message::OptimOptions.");
     }
 
-	// Create a deep-copy of the messages with the workaround
+    // Create a deep-copy of the messages with the workaround
     std::string tmp;
 
-	// Options copy
+    // State copy
+    UnivariateState state_cp;
+    Rcpp::XPtr<UnivariateState>(Rcpp::as<Rcpp::XPtr<UnivariateState>>(state.slot("pointer")))
+        ->SerializeToString(&tmp); state_cp.ParseFromString(tmp);
+
+    // Params copy
+    SamplerParams params_cp;
+    Rcpp::XPtr<SamplerParams>(Rcpp::as<Rcpp::XPtr<SamplerParams>>(params.slot("pointer")))
+        ->SerializeToString(&tmp); params_cp.ParseFromString(tmp);
+
+    // Options copy
     OptimOptions options_cp;
     Rcpp::XPtr<OptimOptions>(Rcpp::as<Rcpp::XPtr<OptimOptions>>(options.slot("pointer")))
-    	->SerializeToString(&tmp); options_cp.ParseFromString(tmp);
+        ->SerializeToString(&tmp); options_cp.ParseFromString(tmp);
 
     // Instanciating functor and solver
-    function::test_function fun;
+    //function::test_function fun;
+    function::spmixLogLikelihood fun(data, W, params_cp, state_cp);
     optimization::GradientAscent<decltype(fun)> solver(fun, options_cp);
 
-    // Initialize and executing Gradient Ascent Method with different starting points
-    std::vector<Eigen::VectorXd> initial_points(4);
-    initial_points[0] = fun.init();
-    initial_points[1] = (Eigen::VectorXd(2) << 10, 10).finished();
-    initial_points[2] = (Eigen::VectorXd(2) << -10, 10).finished();
-    initial_points[3] = (Eigen::VectorXd(2) << 10, -10).finished();
-    for (auto elem : initial_points) {
-	    Rcpp::Rcout << "Solving with x0 = " << elem.transpose() << std::endl;
-	    auto start = std::chrono::high_resolution_clock::now();
-	    solver.solve(elem);
-	    auto end = std::chrono::high_resolution_clock::now();
-	    double duration = std::chrono::duration<double>(end - start).count();
-	    Rcpp::Rcout << "Duration: " << duration << std::endl;
-	    optimization::GradientState currstate = solver.get_state();
-	    Rcpp::Rcout << "Minimizer: " << currstate.current_minimizer.transpose() << std::endl;
-	    Rcpp::Rcout << "||grad_f(x)||: " << currstate.current_gradient_norm << std::endl << std::endl;
-    }
+    // Initialize and executing Gradient Ascent Method
+    Eigen::VectorXd x0 = fun.init();
+    Rcpp::Rcout << "x0: " << x0.transpose() << std::endl;
+    Rcpp::Rcout << "Solving..." << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
+    solver.solve(x0);
+    auto end = std::chrono::high_resolution_clock::now();
+    double duration = std::chrono::duration<double>(end - start).count();
+    Rcpp::Rcout << "Duration: " << duration << std::endl;
+    optimization::GradientState currstate = solver.get_state();
+    Rcpp::Rcout << "minimizer: " << currstate.current_minimizer.transpose() << std::endl;
+    Rcpp::Rcout << "||grad_f(x)||: " << currstate.current_gradient_norm << std::endl;
 
 	return;
 }
