@@ -138,12 +138,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // grad_ascent_test
-void grad_ascent_test(const Rcpp::S4& options);
-RcppExport SEXP _SPMIX_grad_ascent_test(SEXP optionsSEXP) {
+void grad_ascent_test(const Rcpp::S4& state, const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const Rcpp::S4& params, const Rcpp::S4& options);
+RcppExport SEXP _SPMIX_grad_ascent_test(SEXP stateSEXP, SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP, SEXP optionsSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type params(paramsSEXP);
     Rcpp::traits::input_parameter< const Rcpp::S4& >::type options(optionsSEXP);
-    grad_ascent_test(options);
+    grad_ascent_test(state, data, W, params, options);
     return R_NilValue;
 END_RCPP
 }
@@ -173,7 +177,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_readingStates", (DL_FUNC) &_SPMIX_readingStates, 1},
     {"_SPMIX_messageFromR", (DL_FUNC) &_SPMIX_messageFromR, 1},
     {"_SPMIX_newton_opt_test", (DL_FUNC) &_SPMIX_newton_opt_test, 5},
-    {"_SPMIX_grad_ascent_test", (DL_FUNC) &_SPMIX_grad_ascent_test, 1},
+    {"_SPMIX_grad_ascent_test", (DL_FUNC) &_SPMIX_grad_ascent_test, 5},
     {"_SPMIX_RJsampler_test", (DL_FUNC) &_SPMIX_RJsampler_test, 4},
     {NULL, NULL, 0}
 };

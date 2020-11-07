@@ -4,7 +4,7 @@
 \alias{grad_ascent_test}
 \title{Test to evaluate times and correctness of gradient ascent method for optimization on a test function}
 \usage{
-grad_ascent_test(options)
+grad_ascent_test(state, data, W, params, options)
 }
 \description{
 Test to evaluate times and correctness of gradient ascent method for optimization on a test function
