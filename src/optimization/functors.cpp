@@ -60,7 +60,8 @@ double spmixLogLikelihood::operator()() const {
     // Computation
     double output{0.};
 
-    Eigen::MatrixXd transformed_weights = Eigen::Map<const Eigen::MatrixXd>(transformed_weights_vect.data(), numGroups, numComponents-1);
+    Eigen::MatrixXd transformed_weights = Eigen::Map<const Eigen::MatrixXd>(transformed_weights_vect.data(),
+                                                                            numGroups, numComponents-1);
     Eigen::MatrixXd weights(numGroups, numComponents);
     for (int i = 0; i < weights.rows(); ++i) {
         weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), false);
