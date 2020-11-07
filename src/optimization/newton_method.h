@@ -20,11 +20,11 @@ class NewtonState: public OptimizationTraits {
 template<typename D>
 class NewtonMethod: public OptimizationTraits {
   protected:
-	function::functorBase<D> target_function;
+	D target_function;
 	OptimOptions options;
 	NewtonState state;
   public:
-	NewtonMethod(const function::functorBase<D> & _target_function, const OptimOptions & _options);
+	NewtonMethod(const D & _target_function, const OptimOptions & _options);
 	void solve(const ArgumentType & x0);
 	NewtonState get_state() const {return state;};
 };

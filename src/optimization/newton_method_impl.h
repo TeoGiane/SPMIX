@@ -1,7 +1,7 @@
 /* Template class definitions for NewtonMethod */
 
 template<typename D>
-NewtonMethod<D>::NewtonMethod(const typename function::functorBase<D> & _target_function, const OptimOptions & _options):
+NewtonMethod<D>::NewtonMethod(const D & _target_function, const OptimOptions & _options):
 target_function(_target_function), options(_options) {};
 
 template<typename D>
@@ -11,13 +11,9 @@ void NewtonMethod<D>::solve(const ArgumentType & x0) {
 	auto loss_function = [this](const auto & x){return -target_function(x);};
 
 	// Defining aliases
-	/*ReturnType & fx = state.current_solution;
-	ArgumentType & x_new = state.current_minimizer;
-	GradientType & grad_fx = state.current_gradient;
-	HessianType & hess_fx = state.current_hessian;*/
 	state.current_iteration = 0;
 
-	for (int i = 0; i < options.max_iter(); ++i) {++
+	for (int i = 0; i < options.max_iter(); ++i) {
 
 		// Step Iteration
 		++state.current_iteration;
@@ -46,8 +42,6 @@ void NewtonMethod<D>::solve(const ArgumentType & x0) {
 		// Printing state (FOR DEBUG)
 		state.print();
 		Rcpp::Rcout << "h: " << h.transpose() << std::endl;
-		//Rcpp::Rcout << "H^-1*g with inverse():\n" << (hess_fx.inverse()*grad_fx).transpose() << std::endl;
-		//Rcpp::Rcout << "H^-1*g with solve():\n" << (hess_fx.ldlt().solve(grad_fx)).transpose() << std::endl;
 		Rcpp::Rcout << "Next step evaluation point: " << x_old.transpose() << std::endl << std::endl;
 
 		// Convergence check

@@ -19,12 +19,12 @@ class GradientState : public OptimizationTraits {
 template<typename D>
 class GradientAscent : public OptimizationTraits {
   private:
-  	function::functorBase<D> target_function;
+  	D target_function;
 	OptimOptions options;
 	GradientState state;
 public:
-	GradientAscent(const function::functorBase<D> & _target_function, const OptimOptions & _options);
-	void solve(const ArgumentType & x0); // {return;};
+	GradientAscent(const D & _target_function, const OptimOptions & _options);
+	void solve(const ArgumentType & x0);
 	GradientState get_state() const {return state;};
 };
 
