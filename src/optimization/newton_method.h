@@ -6,27 +6,16 @@
 
 namespace optimization {
 
-class NewtonState: public OptimizationTraits {
-  public:
-	ReturnType current_solution;
-	ArgumentType current_minimizer;
-	GradientType current_gradient;
-	HessianType current_hessian;
-	unsigned int current_iteration;
-	double current_gradient_norm;
-	void print() const;
-};
-
 template<typename D>
 class NewtonMethod: public OptimizationTraits {
   protected:
 	D target_function;
 	OptimOptions options;
-	NewtonState state;
+	OptimState state;
   public:
 	NewtonMethod(const D & _target_function, const OptimOptions & _options);
 	void solve(const ArgumentType & x0);
-	NewtonState get_state() const {return state;};
+	OptimState get_state() const {return state;};
 };
 
 #include "newton_method_impl.h"

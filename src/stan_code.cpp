@@ -175,7 +175,7 @@ void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<doubl
     auto end = std::chrono::high_resolution_clock::now();
     double duration = std::chrono::duration<double>(end - start).count();
     Rcpp::Rcout << "Duration: " << duration << std::endl;
-    optimization::NewtonState currstate = solver.get_state();
+    optimization::OptimState currstate = solver.get_state();
     Rcpp::Rcout << "minimizer: " << currstate.current_minimizer.transpose() << std::endl;
     Rcpp::Rcout << "||grad_f(x)||: " << currstate.current_gradient.norm() << std::endl;
     Rcpp::Rcout << "||hess_f(x)||: " << currstate.current_hessian.norm() << std::endl;
@@ -236,7 +236,7 @@ void grad_ascent_test(const Rcpp::S4 & state, const std::vector<std::vector<doub
     auto end = std::chrono::high_resolution_clock::now();
     double duration = std::chrono::duration<double>(end - start).count();
     Rcpp::Rcout << "Duration: " << duration << std::endl;
-    optimization::GradientState currstate = solver.get_state();
+    optimization::OptimState currstate = solver.get_state();
     Rcpp::Rcout << "minimizer: " << currstate.current_minimizer.transpose() << std::endl;
     Rcpp::Rcout << "||grad_f(x)||: " << currstate.current_gradient_norm << std::endl;
 

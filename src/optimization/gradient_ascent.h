@@ -6,7 +6,7 @@
 
 namespace optimization {
 
-class GradientState : public OptimizationTraits {
+/*class GradientState : public OptimizationTraits {
   public:
   	ReturnType current_solution;
 	ArgumentType current_minimizer;
@@ -14,18 +14,18 @@ class GradientState : public OptimizationTraits {
 	unsigned int current_iteration;
 	double current_gradient_norm;
 	void print() const;
-};
+};*/
 
 template<typename D>
-class GradientAscent : public OptimizationTraits {
+class GradientAscent: public OptimizationTraits {
   private:
   	D target_function;
 	OptimOptions options;
-	GradientState state;
-public:
+	OptimState state;
+  public:
 	GradientAscent(const D & _target_function, const OptimOptions & _options);
 	void solve(const ArgumentType & x0);
-	GradientState get_state() const {return state;};
+	OptimState get_state() const {return state;};
 };
 
 #include "gradient_ascent_impl.h"

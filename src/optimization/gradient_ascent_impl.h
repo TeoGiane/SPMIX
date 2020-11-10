@@ -52,7 +52,11 @@ void GradientAscent<D>::solve(const ArgumentType & x0) {
 					<< "x_curr: " << x_curr.transpose() << std::endl << std::endl;
 
 		// Convergence check
-		if (state.current_gradient_norm < options.tol())
+		if (state.current_gradient_norm < options.tol()){
+			stan::math::hessian(target_function, state.current_minimizer,
+								state.current_solution, state.current_gradient, state.current_hessian);
+			state.print();
 			break;
+		}
 	}
 };
