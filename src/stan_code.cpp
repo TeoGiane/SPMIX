@@ -243,6 +243,94 @@ void grad_ascent_test(const Rcpp::S4 & state, const std::vector<std::vector<doub
 	return;
 }
 
+//' Test to evaluate the acceptance rate in case of extension move
+//' @export
+// [[Rcpp::export]]
+void IncreaseMove_test(const std::vector<std::vector<double>> & data,
+                       const Eigen::MatrixXd & W, const Rcpp::S4 & params,
+                       const Rcpp::S4 & state, const Rcpp::S4 & options) {
+
+    // Check S4 class for params
+    if (not(params.is("Message") and Rcpp::as<std::string>(params.slot("type")) == "SamplerParams")) {
+        throw std::runtime_error("Input 'params' is not of type Message::SamplerParams.");
+    }
+
+    // Check S4 class for state
+    if (not(state.is("Message") and Rcpp::as<std::string>(state.slot("type")) == "UnivariateState")) {
+        throw std::runtime_error("Input 'state' is not of type Message::UnivariateState.");
+    }
+
+    // Check S4 class for options
+    if (not(options.is("Message") and Rcpp::as<std::string>(options.slot("type")) == "OptimOptions")) {
+        throw std::runtime_error("Input 'options' is not of type Message::OptimOptions.");
+    }
+
+    // Create a deep-copy of the messages with the workaround
+    std::string tmp;
+
+    // Params copydata
+    SamplerParams params_cp;
+    Rcpp::XPtr<SamplerParams>(Rcpp::as<Rcpp::XPtr<SamplerParams>>(params.slot("pointer")))
+        ->SerializeToString(&tmp); params_cp.ParseFromString(tmp);
+
+    // State copy
+    UnivariateState state_cp;
+    Rcpp::XPtr<UnivariateState>(Rcpp::as<Rcpp::XPtr<UnivariateState>>(state.slot("pointer")))
+        ->SerializeToString(&tmp); state_cp.ParseFromString(tmp);
+
+    // Options copy
+    OptimOptions options_cp;
+    Rcpp::XPtr<OptimOptions>(Rcpp::as<Rcpp::XPtr<OptimOptions>>(options.slot("pointer")))
+        ->SerializeToString(&tmp); options_cp.ParseFromString(tmp);
+
+    // Help quantities
+    int numGroups = data.size();
+    int numComponents = state_cp.num_components();
+    std::mt19937_64 rng{213513435};
+    double alpha;
+
+    // Eliciting the approximated optimal proposal parameters
+    function::spmixLogLikelihood loglik_extended(data, W, params_cp, state_cp);
+    optimization::GradientAscent<decltype(loglik_extended)> solver(loglik_extended, options_cp);
+    Eigen::VectorXd x0 = loglik_extended.init();
+    solver.solve(x0);
+    Eigen::VectorXd optMean = solver.get_state().current_minimizer;
+    Eigen::MatrixXd optCov = -solver.get_state().current_hessian.inverse();
+
+    Eigen::VectorXd x = stan::math::multi_normal_rng(optMean, optCov, rng);
+    // Simulating from the approximated optimal posterior
+    /*Eigen::VectorXd weightsMean = optMean.head(numGroups);
+    Eigen::MatrixXd weightsCov = optCov.topLeftCorner(numGroups, numGroups);
+    Eigen::VectorXd weights_new = stan::math::multi_normal_rng(weightsMean, weightsCov, rng);
+    double means_new = stan::math::normal_rng(optMean(numGroups), optCov(numGroups, numGroups), rng);
+    double var = optMean(numGroups+1);//*optMean(numGroups+1)*optMean(numGroups+1)*optMean(numGroups+1);
+    double varvar = optCov(numGroups+1,numGroups+1);//*optCov(numGroups+1,numGroups+1)*optCov(numGroups+1,numGroups+1)*optCov(numGroups+1,numGroups+1);
+    double stddevs_new = std::sqrt(1./stan::math::gamma_rng((var*var)/(varvar), var/varvar, rng));*/
+
+    //Computing Acceptance Rate
+    //Eigen::VectorXd x(numGroups+2); x << weights_new, means_new, stddevs_new;
+    Rcpp::Rcout << "optMean: " << optMean.transpose() << "\n"
+    			<< "optCov:\n " << optCov << "\n"
+    			<< "x: " << x.transpose() << "\n"
+    			<< "loglik_extended(x): " << loglik_extended(x) << "\n"
+    			<< "poisson_num: " << stan::math::poisson_lpmf(numComponents+1, 1) << "\n"
+    			<< "loglik_extended(): " << loglik_extended() << "\n"
+    			<< "poisson_den: " << stan::math::poisson_lpmf(numComponents, 1) << "\n"
+    			<< "approx_post: " << stan::math::multi_normal_lpdf(x, optMean, optCov) << std::endl;
+
+    alpha = std::exp( loglik_extended(x)+stan::math::poisson_lpmf(numComponents+1, 1)
+            -loglik_extended()-stan::math::poisson_lpmf(numComponents, 1)
+            -stan::math::multi_normal_lpdf(x, optMean, optCov) );
+    alpha = std::min(1., alpha);
+    		/*-stan::math::multi_normal_lpdf(weights_new, weightsMean, weightsCov)
+            -stan::math::normal_lpdf(means_new,optMean(numGroups), optCov(numGroups, numGroups))
+            -stan::math::gamma_lpdf(1./(stddevs_new*stddevs_new), (var*var)/(varvar), var/varvar) );*/
+
+    // Print acceptance rate
+    Rcpp::Rcout << "alpha: " << alpha << std::endl;
+    return;
+}
+
 
 //' Test fot the RJSampler
 //' @export

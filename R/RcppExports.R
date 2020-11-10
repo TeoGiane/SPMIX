@@ -86,6 +86,12 @@ grad_ascent_test <- function(state, data, W, params, options) {
     invisible(.Call(`_SPMIX_grad_ascent_test`, state, data, W, params, options))
 }
 
+#' Test to evaluate the acceptance rate in case of extension move
+#' @export
+IncreaseMove_test <- function(data, W, params, state, options) {
+    invisible(.Call(`_SPMIX_IncreaseMove_test`, data, W, params, state, options))
+}
+
 #' Test fot the RJSampler
 #' @export
 RJsampler_test <- function(data, W, params, options) {
