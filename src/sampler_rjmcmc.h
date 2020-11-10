@@ -1,26 +1,10 @@
 #ifndef RJMCMC_SAMPLER_HH
 #define RJMCMC_SAMPLER_HH
 
-// [[Rcpp::depends(BH)]]
-// [[Rcpp::depends(RcppEigen)]]
-// [[Rcpp::depends(RcppParallel)]]
-// [[Rcpp::depends(StanHeaders)]]
-#define STRICT_R_HEADERS
-#include <stan/math/fwd/mat.hpp>
-#include <stan/math/mix/mat.hpp>
-#include <stan/math.hpp>
-#include <Rcpp.h>
-#include <RcppEigen.h>
-
-#include <algorithm>
-#include <Eigen/Dense>
-
-#include "sampler_params.pb.h"
-#include "optimization_options.pb.h"
-#include "utils.h"
+#include "sampler_base.h"
 #include "functors.h"
 #include "newton_method.h"
-#include "sampler_base.h"
+#include "optimization_options.pb.h"
 
 class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 protected:
@@ -43,8 +27,6 @@ public:
 							const Eigen::MatrixXd &W,
 							const OptimOptions &_options,
 							const std::vector<Eigen::MatrixXd> &X);
-
-	~SpatialMixtureRJSampler() = default;
 
 	void init();
 
