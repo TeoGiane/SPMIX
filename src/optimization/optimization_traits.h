@@ -13,7 +13,7 @@
 #include <RcppEigen.h>
 
 #include <Eigen/Dense>
-#include <functional>
+// #include <functional>
 
 #include "functors.h"
 
@@ -25,6 +25,17 @@ class OptimizationTraits {
 	using ReturnType = double;
 	using GradientType = Eigen::VectorXd;
 	using HessianType = Eigen::MatrixXd;
+};
+
+class OptimState: public OptimizationTraits {
+  public:
+	ReturnType current_solution;
+	ArgumentType current_minimizer;
+	GradientType current_gradient;
+	HessianType current_hessian;
+	unsigned int current_iteration;
+	double current_gradient_norm;
+	void print() const;
 };
 
 } // namespace optimization
