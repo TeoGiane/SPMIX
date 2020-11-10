@@ -3,7 +3,7 @@
 
 #include "sampler_base.h"
 #include "functors.h"
-#include "newton_method.h"
+#include "gradient_ascent.h"
 #include "optimization_options.pb.h"
 
 class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {

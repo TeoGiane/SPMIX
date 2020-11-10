@@ -114,11 +114,11 @@ void SpatialMixtureRJSampler::betweenModelMove() {
 
 		// Eliciting the approximated optimal proposal parameters
 		function::spmixLogLikelihood loglik_extended(data, W_init, params, getStateAsProto());
-		optimization::NewtonMethod<decltype(loglik_extended)> solver(loglik_extended, options);
+		optimization::GradientAscent<decltype(loglik_extended)> solver(loglik_extended, options);
 		Eigen::VectorXd x0 = loglik_extended.init();
 		solver.solve(x0);
 		Eigen::VectorXd optMean = solver.get_state().current_minimizer;
-		Eigen::MatrixXd optCov = solver.get_state().current_hessian.inverse();
+		Eigen::MatrixXd optCov = -solver.get_state().current_hessian.inverse();
 
 		// Simulating from the approximated optimal posterior
 		Eigen::VectorXd weightsMean = optMean.head(numGroups);
