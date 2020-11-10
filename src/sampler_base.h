@@ -1,6 +1,17 @@
 #ifndef SPMIX_SAMPLER_BASE_HH
 #define SPMIX_SAMPLER_BASE_HH
 
+// [[Rcpp::depends(BH)]]
+// [[Rcpp::depends(RcppEigen)]]
+// [[Rcpp::depends(RcppParallel)]]
+// [[Rcpp::depends(StanHeaders)]]
+#define STRICT_R_HEADERS
+#include <stan/math/fwd/mat.hpp>
+#include <stan/math/mix/mat.hpp>
+#include <stan/math.hpp>
+#include <Rcpp.h>
+#include <RcppEigen.h>
+
 #include <algorithm>
 #include <random>
 #include <vector>
@@ -8,7 +19,6 @@
 #include <stdexcept>
 #include <Eigen/Dense>
 #include <unsupported/Eigen/KroneckerProduct>
-#include <stan/math/prim/mat.hpp>
 
 #include "collector.h"
 #include "univariate_mixture_state.pb.h"
@@ -101,7 +111,8 @@ class SpatialMixtureSamplerBase {
 		const std::vector<std::vector<double>> &_data,
 		const Eigen::MatrixXd &W, const std::vector<Eigen::MatrixXd> &X);
 
-	~SpatialMixtureSamplerBase() {
+	virtual ~SpatialMixtureSamplerBase() {
+		//Rcpp::Rcout << "SamplerBase destructor!" << std::endl;
 		delete(pg_rng);
 	}
 
