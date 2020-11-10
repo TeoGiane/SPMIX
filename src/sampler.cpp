@@ -1,11 +1,40 @@
 #include "sampler.h"
 
-#define STRICT_R_HEADERS
-#include <Rcpp.h>
-
 using namespace stan::math;
 
-SpatialMixtureSampler::SpatialMixtureSampler(
+SpatialMixtureSampler::SpatialMixtureSampler(const SamplerParams &_params,
+                                             const std::vector<std::vector<double>> &_data,
+                                             const Eigen::MatrixXd &W):
+SpatialMixtureSamplerBase(_params, _data, W) {
+    if (!_params.sigma_params().has_inv_wishart()) {
+        throw std::runtime_error("Cannot build object of class 'SpatialMixtureSampler': expected parameters for an Inverse Wishart distribution.");
+    }
+};
+
+SpatialMixtureSampler::SpatialMixtureSampler(const SamplerParams &_params,
+                                             const std::vector<std::vector<double>> &_data,
+                                             const Eigen::MatrixXd &W,
+                                             const std::vector<Eigen::MatrixXd> &X):
+SpatialMixtureSamplerBase(_params, _data, W, X) {
+    if (!_params.sigma_params().has_inv_wishart()) {
+        throw std::runtime_error("Cannot build object of class 'SpatialMixtureSampler': expected parameters for an Inverse Wishart distribution.");
+    }
+};
+
+void SpatialMixtureSampler::init() {
+    SpatialMixtureSamplerBase::init();
+    nu = params.sigma_params().inv_wishart().nu();
+    if (params.sigma_params().inv_wishart().identity()){
+        V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
+    }
+    else {
+        V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
+        Rcpp::Rcout << "Case not implemented yet, settig V0 to identity" << std::endl;
+    }
+    Rcpp::Rcout << "Init done." << std::endl;
+}
+
+/*SpatialMixtureSampler::SpatialMixtureSampler(
     const SamplerParams &_params, const std::vector<std::vector<double>> &_data,
     const Eigen::MatrixXd &W)
     : params(_params), data(_data), W_init(W) {
@@ -49,9 +78,9 @@ SpatialMixtureSampler::SpatialMixtureSampler(
     }
     computeRegressionResiduals();
   }
-}
+}*/
 
-void SpatialMixtureSampler::init() {
+/*void SpatialMixtureSampler::init() {
   pg_rng = new PolyaGammaHybridDouble(seed);
 
   numComponents = params.num_components();
@@ -155,7 +184,7 @@ void SpatialMixtureSampler::init() {
   _computeInvSigmaH();
 
   Rcpp::Rcout << "Init done" << std::endl;
-}
+}*/
 
 void SpatialMixtureSampler::sample() {
   if (regression) {
@@ -170,7 +199,7 @@ void SpatialMixtureSampler::sample() {
   sample_mtilde();
 }
 
-void SpatialMixtureSampler::sampleAtoms() {
+/*void SpatialMixtureSampler::sampleAtoms() {
   std::vector<std::vector<double>> datavec(numComponents);
   for (int h = 0; h < numComponents; h++) datavec[h].reserve(numdata);
 
@@ -209,9 +238,9 @@ void SpatialMixtureSampler::sampleAllocations() {
 	  		cluster_allocs[i][j] = categorical_rng(probas, rng) - 1;
 		}
 	}
-}
+}*/
 
-void SpatialMixtureSampler::sampleWeights() {
+/*void SpatialMixtureSampler::sampleWeights() {
   for (int i = 0; i < numGroups; i++) {
     std::vector<int> cluster_sizes(numComponents, 0);
 
@@ -220,9 +249,8 @@ void SpatialMixtureSampler::sampleWeights() {
       cluster_sizes[cluster_allocs[i][j]] += 1;
 
     for (int h = 0; h < numComponents - 1; h++) {
-  		/*
-   		* we draw omega from a Polya-Gamma distribution
-   		*/
+  		
+   		// we draw omega from a Polya-Gamma distribution
 		Eigen::VectorXd weightsForCih =
 		  utils::removeElem(transformed_weights.row(i), h);
 		double C_ih = stan::math::log_sum_exp(weightsForCih);
@@ -254,11 +282,11 @@ void SpatialMixtureSampler::sampleWeights() {
 
   /*#pragma omp parallel for
   for (int i = 0; i < numGroups; i++)
-    transformed_weights.row(i) = utils::Alr(weights.row(i), true);*/
-}
+    transformed_weights.row(i) = utils::Alr(weights.row(i), true);
+}*/
 
 // We use a MH step with a truncated normal proposal
-void SpatialMixtureSampler::sampleRho() {
+/*void SpatialMixtureSampler::sampleRho() {
   iter += 1;
   double curr = rho;
   double sigma;
@@ -328,7 +356,7 @@ void SpatialMixtureSampler::sampleRho() {
   rho_sum_sq += rho * rho;
   double rho_mean = rho_sum / iter;
   sigma_n_rho = rho_sum_sq / iter - rho_mean * rho_mean;
-}
+}*/
 
 void SpatialMixtureSampler::sampleSigma() {
 	Eigen::MatrixXd Vn = V0;
@@ -349,7 +377,7 @@ void SpatialMixtureSampler::sampleSigma() {
 	_computeInvSigmaH();
 }
 
-void SpatialMixtureSampler::regress() {
+/*void SpatialMixtureSampler::regress() {
 	// Compute mu and v
 	int start = 0;
 	int s = 0;
@@ -407,7 +435,7 @@ void SpatialMixtureSampler::_computeInvSigmaH() {
       sigma_star_h(i, h) = (Sigma(h, h) - aux) / F(i, i);
     }
   }
-}
+}*/
 
 void SpatialMixtureSampler::sample_mtilde() {
   int H = numComponents;
@@ -444,7 +472,7 @@ void SpatialMixtureSampler::sample_mtilde() {
   }
 }
 
-void SpatialMixtureSampler::saveState(Collector<UnivariateState> *collector) {
+/*void SpatialMixtureSampler::saveState(Collector<UnivariateState> *collector) {
   collector->collect(getStateAsProto());
 }
 
@@ -509,4 +537,4 @@ void SpatialMixtureSampler::printDebugString() {
     Rcpp::Rcout << "Regression Coefficients: " << std::endl;
     Rcpp::Rcout << "    " << reg_coeff.transpose() << std::endl;
   }
-}
+}*/
