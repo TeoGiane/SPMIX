@@ -224,9 +224,9 @@ void SpatialMixtureSamplerBase::sampleWeights() {
     weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), true);
   }
 
-#pragma omp parallel for
-  for (int i = 0; i < numGroups; i++)
-    transformed_weights.row(i) = utils::Alr(weights.row(i), true);
+  /*#pragma omp parallel for
+    for (int i = 0; i < numGroups; i++)
+      transformed_weights.row(i) = utils::Alr(weights.row(i), true);*/
 }
 
 // We use a MH step with a truncated normal proposal
