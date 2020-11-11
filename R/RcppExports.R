@@ -92,6 +92,12 @@ IncreaseMove_test <- function(data, W, params, state, options) {
     invisible(.Call(`_SPMIX_IncreaseMove_test`, data, W, params, state, options))
 }
 
+#' Test to evaluate the acceptance rate in case of reduction move
+#' @export
+ReduceMove_test <- function(data, W, params, state, options) {
+    invisible(.Call(`_SPMIX_ReduceMove_test`, data, W, params, state, options))
+}
+
 #' Test fot the RJSampler
 #' @export
 RJsampler_test <- function(data, W, params, options) {

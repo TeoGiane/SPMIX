@@ -165,6 +165,20 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// ReduceMove_test
+void ReduceMove_test(const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const Rcpp::S4& params, const Rcpp::S4& state, const Rcpp::S4& options);
+RcppExport SEXP _SPMIX_ReduceMove_test(SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP, SEXP stateSEXP, SEXP optionsSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type params(paramsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type options(optionsSEXP);
+    ReduceMove_test(data, W, params, state, options);
+    return R_NilValue;
+END_RCPP
+}
 // RJsampler_test
 void RJsampler_test(const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const Rcpp::S4& params, const Rcpp::S4& options);
 RcppExport SEXP _SPMIX_RJsampler_test(SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP, SEXP optionsSEXP) {
@@ -193,6 +207,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_newton_opt_test", (DL_FUNC) &_SPMIX_newton_opt_test, 5},
     {"_SPMIX_grad_ascent_test", (DL_FUNC) &_SPMIX_grad_ascent_test, 5},
     {"_SPMIX_IncreaseMove_test", (DL_FUNC) &_SPMIX_IncreaseMove_test, 5},
+    {"_SPMIX_ReduceMove_test", (DL_FUNC) &_SPMIX_ReduceMove_test, 5},
     {"_SPMIX_RJsampler_test", (DL_FUNC) &_SPMIX_RJsampler_test, 4},
     {NULL, NULL, 0}
 };

@@ -2,6 +2,7 @@
 
 export(IncreaseMove_test)
 export(RJsampler_test)
+export(ReduceMove_test)
 export(SPMIX_sampler)
 export(alr)
 export(fromProto_tostring)
