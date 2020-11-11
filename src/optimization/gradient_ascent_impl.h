@@ -44,18 +44,18 @@ void GradientAscent<D>::solve(const ArgumentType & x0) {
 		x_curr = x_new;
 
 		// DEBUG
-		state.print();
+		/*state.print();
 		Rcpp::Rcout << "gamma_i_num:" << std::abs((x_curr - x_old).dot(grad_fx_curr - grad_fx_old)) << "\n"
 					<< "gamma_i_den: " << (grad_fx_curr - grad_fx_old).squaredNorm() << "\n"
 					<< "gamma_i: " << gamma_i << "\n"
 					<< "x_old: " << x_old.transpose() << "\n"
-					<< "x_curr: " << x_curr.transpose() << std::endl << std::endl;
+					<< "x_curr: " << x_curr.transpose() << std::endl << std::endl;*/
 
 		// Convergence check
 		if (state.current_gradient_norm < options.tol()){
 			stan::math::hessian(target_function, state.current_minimizer,
 								state.current_solution, state.current_gradient, state.current_hessian);
-			state.print();
+			//state.print();
 			break;
 		}
 	}
