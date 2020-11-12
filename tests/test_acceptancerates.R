@@ -6,9 +6,9 @@ readProtoFiles(system.file("proto/univariate_mixture_state.proto", package = "SP
 
 # Generate data (1 location, mixture of 3 normals)
 set.seed(230196)
-means <- c(-5,1,4)
+means <- c(1,2,4)
 std_devs <- c(1,1,1)
-weights <- c(0.2,0.5,0.3)
+weights <- c(1/3,1/3,1/3)
 transformed_weights <- alr(weights)
 data <- list(); data[[1]] <- rep(0,1000)
 for (i in 1:length(means)) {
@@ -38,7 +38,6 @@ state$rho <- 0.9
 state$Sigma <- new(EigenMatrix, rows=1, cols=1, data=1.2)
 
 # Run test
-cat("IncreaseMove_test ...\n\n")
 IncreaseMove_test(data, W, params, state, options)
 
 ###########################################################################
@@ -55,8 +54,6 @@ state$groupParams <- new(UnivariateState.GroupParams, weights = weights)
 state$rho <- 0.9
 state$Sigma <- new(EigenMatrix, rows=2, cols=2, data=c(1.2,0,0,1.2))
 
-# Run test
-cat("IncreaseMove_test ...\n\n")
+# Run tests
 IncreaseMove_test(data, W, params, state, options)
-cat("ReduceMove_test ...\n\n")
 ReduceMove_test(data, W, params, state, options)
