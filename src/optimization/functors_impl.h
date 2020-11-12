@@ -101,7 +101,7 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
     	Sigma_ext.inverse()).eval().inverse();
     output += stan::math::multi_normal_lpdf(transformed_weights_ext, weightsMean, weightsCov);
 
-    // Contribution from other stuff if needed (rho, m_tilde, H, Sigma)*/
+    // Contribution from other stuff if needed (rho, m_tilde, H, Sigma)
 	return output;
 }
 
