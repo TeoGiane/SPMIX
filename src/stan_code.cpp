@@ -286,6 +286,28 @@ void IncreaseMove_test(const std::vector<std::vector<double>> & data,
     // Help quantities
     int numGroups = data.size();
     int numComponents = state_cp.num_components();
+    std::vector<double> means;
+    std::vector<double> stddevs;
+    for (int i = 0; i < numComponents; ++i) {
+        means.emplace_back(state_cp.atoms()[i].mean());
+		stddevs.emplace_back(state_cp.atoms()[i].stdev());
+    }
+    Eigen::MatrixXd transformed_weights = Eigen::MatrixXd::Zero(numGroups, numComponents);
+    Eigen::MatrixXd weights = Eigen::MatrixXd::Zero(numGroups, numComponents);
+    for (int i = 0; i < numGroups; ++i) {
+        Eigen::VectorXd tmp(numComponents);
+        for (int j = 0; j < numComponents; ++j) {
+            tmp(j) = state_cp.groupparams()[i].weights()[j];
+            weights(i,j) = state_cp.groupparams()[i].weights()[j];
+        }
+        transformed_weights.row(i) = utils::Alr(tmp, true);
+    }
+    Eigen::MatrixXd Sigma(state_cp.sigma().rows(), state_cp.sigma().cols());
+    for (int i = 0; i < state_cp.sigma().rows(); ++i) {
+        for (int j = 0; j < state_cp.sigma().cols(); ++j) {
+            Sigma(i,j) = state_cp.sigma().data()[i*state_cp.sigma().rows()+j];
+        }
+    }
     std::mt19937_64 rng{213513435};
     double alpha;
 
@@ -299,35 +321,49 @@ void IncreaseMove_test(const std::vector<std::vector<double>> & data,
 
     // Simulating from the approximated optimal posterior
     Eigen::VectorXd x = stan::math::multi_normal_rng(optMean, optCov, rng);
-    /*Eigen::VectorXd weightsMean = optMean.head(numGroups);
-    Eigen::MatrixXd weightsCov = optCov.topLeftCorner(numGroups, numGroups);
-    Eigen::VectorXd weights_new = stan::math::multi_normal_rng(weightsMean, weightsCov, rng);
-    double means_new = stan::math::normal_rng(optMean(numGroups), optCov(numGroups, numGroups), rng);
-    double var = optMean(numGroups+1);//*optMean(numGroups+1)*optMean(numGroups+1)*optMean(numGroups+1);
-    double varvar = optCov(numGroups+1,numGroups+1);//*optCov(numGroups+1,numGroups+1)*optCov(numGroups+1,numGroups+1)*optCov(numGroups+1,numGroups+1);
-    double stddevs_new = std::sqrt(1./stan::math::gamma_rng((var*var)/(varvar), var/varvar, rng));*/
 
     //Computing Acceptance Rate
-    //Eigen::VectorXd x(numGroups+2); x << weights_new, means_new, stddevs_new;
-    Rcpp::Rcout << "optMean: " << optMean.transpose() << "\n"
-    			<< "optCov:\n " << optCov << "\n"
-    			<< "x: " << x.transpose() << "\n"
-    			<< "loglik_extended(x): " << loglik_extended(x) << "\n"
-    			<< "poisson_num: " << stan::math::poisson_lpmf(numComponents+1, 1) << "\n"
-    			<< "loglik_extended(): " << loglik_extended() << "\n"
-    			<< "poisson_den: " << stan::math::poisson_lpmf(numComponents, 1) << "\n"
-    			<< "approx_post: " << stan::math::multi_normal_lpdf(x, optMean, optCov) << std::endl;
-
     alpha = std::exp( loglik_extended(x)+stan::math::poisson_lpmf(numComponents+1, 1)
                      -loglik_extended()-stan::math::poisson_lpmf(numComponents, 1)
                      -stan::math::multi_normal_lpdf(x, optMean, optCov) );
     alpha = std::min(1., alpha);
-    		/*-stan::math::multi_normal_lpdf(weights_new, weightsMean, weightsCov)
-            -stan::math::normal_lpdf(means_new,optMean(numGroups), optCov(numGroups, numGroups))
-            -stan::math::gamma_lpdf(1./(stddevs_new*stddevs_new), (var*var)/(varvar), var/varvar) );*/
 
     // Print acceptance rate
-    Rcpp::Rcout << "alpha: " << alpha << std::endl << std::endl;
+	Rcpp::Rcout << "alpha: " << alpha << std::endl << std::endl;
+
+	// DEBUG
+    Rcpp::Rcout << "State BEFORE expansion:\n"
+    << "numComponents: " << numComponents << "\n"
+    << "means: " << Eigen::Map<Eigen::VectorXd>(means.data(), means.size()).transpose() << "\n"
+    << "stddevs: " << Eigen::Map<Eigen::VectorXd>(stddevs.data(), stddevs.size()).transpose() << "\n"
+    << "weights:\n" << weights << "\n"
+    << "transformed_weights:\n" << transformed_weights << "\n"
+    << "Sigma:\n" << Sigma << std::endl << std::endl;
+
+    // Increase state
+	++numComponents;
+	means.emplace_back(x(numGroups));
+	stddevs.emplace_back(x(numGroups+1)*x(numGroups+1));
+	transformed_weights.conservativeResize(numGroups, numComponents);
+	transformed_weights.col(numComponents-2) = x.head(numGroups);
+	transformed_weights.col(numComponents-1) = Eigen::VectorXd::Zero(numGroups);
+	weights.resize(numGroups, numComponents);
+	for (int i = 0; i < numGroups; ++i)
+		weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), true);
+	Sigma.conservativeResize(numComponents-1, numComponents-1);
+	Sigma.col(numComponents-2).head(numComponents-2) = Eigen::VectorXd::Zero(numComponents-1);
+	Sigma.row(numComponents-2).head(numComponents-2) = Eigen::VectorXd::Zero(numComponents-1);
+	Sigma(numComponents-2,numComponents-2) = Sigma(0,0);
+
+	// DEBUG
+    Rcpp::Rcout << "State AFTER expansion:\n"
+    << "numComponents: " << numComponents << "\n"
+    << "means: " << Eigen::Map<Eigen::VectorXd>(means.data(), means.size()).transpose() << "\n"
+    << "stddevs: " << Eigen::Map<Eigen::VectorXd>(stddevs.data(), stddevs.size()).transpose() << "\n"
+    << "weights:\n" << weights << "\n"
+    << "transformed_weights:\n" << transformed_weights << "\n"
+    << "Sigma:\n" << Sigma << std::endl << std::endl;
+
     return;
 }
 
@@ -376,22 +412,22 @@ void ReduceMove_test(const std::vector<std::vector<double>> & data,
     int numComponents = state_cp.num_components();
     std::mt19937_64 rng{213513435};
     double alpha;
-    Eigen::MatrixXd transformed_weights(state_cp.groupparams().size(), numComponents-1);
-    Eigen::MatrixXd weights(state_cp.groupparams().size(), numComponents);
-    for (int i = 0; i < state_cp.groupparams().size(); ++i) {
+    Eigen::MatrixXd transformed_weights = Eigen::MatrixXd::Zero(numGroups, numComponents);
+    Eigen::MatrixXd weights = Eigen::MatrixXd::Zero(numGroups, numComponents);
+    for (int i = 0; i < numGroups; ++i) {
         Eigen::VectorXd tmp(numComponents);
         for (int j = 0; j < numComponents; ++j) {
             tmp(j) = state_cp.groupparams()[i].weights()[j];
             weights(i,j) = state_cp.groupparams()[i].weights()[j];
         }
-        transformed_weights.row(i) = utils::Alr(tmp, false);
+        transformed_weights.row(i) = utils::Alr(tmp, true);
     }
     double rho = state_cp.rho();
-    Eigen::VectorXd means(numComponents);
-    Eigen::VectorXd sqrt_stddevs(numComponents);
+    std::vector<double> means;
+    std::vector<double> stddevs;
     for (int i = 0; i < numComponents; ++i) {
-        means(i) = state_cp.atoms()[i].mean();
-        sqrt_stddevs(i) = std::sqrt(state_cp.atoms()[i].stdev());
+        means.emplace_back(state_cp.atoms()[i].mean());
+        stddevs.emplace_back(state_cp.atoms()[i].stdev());
     }
     Eigen::MatrixXd Sigma(state_cp.sigma().rows(), state_cp.sigma().cols());
     for (int i = 0; i < state_cp.sigma().rows(); ++i) {
@@ -400,39 +436,28 @@ void ReduceMove_test(const std::vector<std::vector<double>> & data,
         }
     }
 
-    // DEBUG
-    Rcpp::Rcout << "transformed_weights:\n" << transformed_weights << "\n"
-                << "means: " << means.transpose() << "\n"
-                << "sqrt_stddev: " << sqrt_stddevs.transpose() << std::endl;
-
     // Building the reduced loglikelihood
-    Eigen::Map<Eigen::VectorXd> transformed_weights_vect_reduced(transformed_weights.block(0,0, numGroups, numComponents - 2).data(),
-                                                                 transformed_weights.block(0,0, numGroups, numComponents - 2).size());
-    Rcpp::Rcout << "transformed_weights_vect_reduced: " << transformed_weights_vect_reduced.transpose() << std::endl;
-    function::spmixLogLikelihood
-        loglik_reduced(data, W, params_cp, numGroups, numComponents-1, rho,
-                       means.head(numComponents-1), sqrt_stddevs.head(numComponents-1),
-                       transformed_weights_vect_reduced, Sigma.block(0,0, numComponents-2, numComponents-2));
+    Eigen::Map<Eigen::VectorXd> trans_weights_vect_reduced(transformed_weights.block(0,0,numGroups,numComponents-2).data(),
+                                                           transformed_weights.block(0,0,numGroups,numComponents-2).size());
+    Eigen::Map<Eigen::VectorXd> means_map(means.data(), means.size());
+    Eigen::VectorXd sqrt_stddevs(numComponents);
+    for (int i = 0; i < numComponents; ++i)
+        sqrt_stddevs(i) = std::sqrt(stddevs[i]);
+
+    function::spmixLogLikelihood loglik_reduced(data, W, params_cp, numGroups, numComponents-1, rho,
+                                                means_map.head(numComponents-1), sqrt_stddevs.head(numComponents-1),
+                                                trans_weights_vect_reduced, Sigma.block(0,0,numComponents-2,numComponents-2));
 
     // Eliciting the approximated optimal proposal parameters
     optimization::GradientAscent<decltype(loglik_reduced)> solver(loglik_reduced, options_cp);
     Eigen::VectorXd x0(numGroups+2);
-    x0 << transformed_weights.col(numComponents-2), means.tail(1), sqrt_stddevs.tail(1);
+    x0 << transformed_weights.col(numComponents-2), means_map.tail(1), sqrt_stddevs.tail(1);
     Rcpp::Rcout << "x0: " << x0.transpose() << std::endl;
     solver.solve(x0);
     Eigen::VectorXd optMean = solver.get_state().current_minimizer;
     Eigen::MatrixXd optCov = -solver.get_state().current_hessian.inverse();
 
     // Compute Acceptance rate
-    Rcpp::Rcout << "optMean: " << optMean.transpose() << "\n"
-                << "optCov:\n " << optCov << "\n"
-                << "x: " << x0.transpose() << "\n"
-                << "loglik_reduced(x0): " << loglik_reduced(x0) << "\n"
-                << "poisson_num: " << stan::math::poisson_lpmf(numComponents-1, 1) << "\n"
-                << "loglik_reduced(): " << loglik_reduced() << "\n"
-                << "poisson_den: " << stan::math::poisson_lpmf(numComponents, 1) << "\n"
-                << "approx_post: " << stan::math::multi_normal_lpdf(x0, optMean, optCov) << std::endl;
-
     alpha = std::exp( loglik_reduced()+stan::math::poisson_lpmf(numComponents-1, 1)
                      -loglik_reduced(x0)-stan::math::poisson_lpmf(numComponents, 1)
                      +stan::math::multi_normal_lpdf(x0, optMean, optCov) );
@@ -440,6 +465,36 @@ void ReduceMove_test(const std::vector<std::vector<double>> & data,
 
     // Print acceptance rate
     Rcpp::Rcout << "alpha: " << alpha << std::endl << std::endl;
+
+    // DEBUG
+    Rcpp::Rcout << "State BEFORE reduction:\n"
+    << "numComponents: " << numComponents << "\n"
+    << "means: " << means_map.transpose() << "\n"
+    << "sqrt_stddevs: " << sqrt_stddevs.transpose() << "\n"
+    << "weights:\n" << weights << "\n"
+    << "transformed_weights:\n" << transformed_weights << "\n"
+    << "Sigma:\n" << Sigma << std::endl << std::endl;
+	
+	// Reduce state
+	--numComponents;
+	means.resize(numComponents);
+	stddevs.resize(numComponents);
+	transformed_weights.conservativeResize(numGroups, numComponents);
+	transformed_weights.col(numComponents-1) = Eigen::VectorXd::Zero(numGroups);
+	weights.resize(numGroups, numComponents);
+	for (int i = 0; i < numGroups; ++i)
+		weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), true);
+	Sigma.conservativeResize(numComponents-1, numComponents-1);
+	
+	// DEBUG
+    Rcpp::Rcout << "State AFTER reduction:\n"
+    << "numComponents: " << numComponents << "\n"
+    << "means: " << Eigen::Map<Eigen::VectorXd>(means.data(), means.size()).transpose() << "\n"
+    << "sqrt_stddevs: " << Eigen::Map<Eigen::VectorXd>(stddevs.data(), stddevs.size()).transpose() << "\n"
+    << "weights:\n" << weights << "\n"
+    << "transformed_weights:\n" << transformed_weights << "\n"
+    << "Sigma:\n" << Sigma << std::endl << std::endl;
+
     return;
 }
 
