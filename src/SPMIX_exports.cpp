@@ -97,7 +97,7 @@ std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, 
     Progress p_run(niter, display_progress);
     for (int i=0; i < niter; i++) {
         spSampler.sample();
-        if ((i +1) % thin == 0) {
+        if ((i+1) % thin == 0) {
             std::string s;
             spSampler.getStateAsProto().SerializeToString(&s);
             out.push_back(utils::str2raw(s));
