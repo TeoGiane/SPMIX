@@ -37,12 +37,12 @@ void SpatialMixtureRJSampler::sample() {
     	regress();
     	computeRegressionResiduals();
 	}*/
-  sampleAtoms();
-  sampleAllocations();
-  sampleWeights();
-  sampleSigma();
-  sampleRho();
-  //betweenModelMove();
+	sampleAtoms();
+	sampleAllocations();
+	sampleWeights();
+	sampleSigma();
+	sampleRho();
+	betweenModelMove();
 }
 
 void SpatialMixtureRJSampler::sampleSigma() {
@@ -117,7 +117,7 @@ void SpatialMixtureRJSampler::betweenModelMove() {
 				weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), true);
 			mtildes.conservativeResize(num_connected_comps, numComponents);
 			Sigma.conservativeResize(numComponents-1, numComponents-1);
-			pippo.resize(numComponents - 1);
+			pippo.resize(numComponents-1);
 			sigma_star_h.resize(numGroups, numComponents-1);
 			_computeInvSigmaH();
 		}
@@ -158,7 +158,7 @@ void SpatialMixtureRJSampler::betweenModelMove() {
 			Sigma.col(numComponents-2).head(numComponents-2) = Eigen::VectorXd::Zero(numComponents-1);
 			Sigma.row(numComponents-2).head(numComponents-2) = Eigen::VectorXd::Zero(numComponents-1);
 			Sigma(numComponents-2,numComponents-2) = Sigma(0,0);
-			pippo.resize(numComponents - 1);
+			pippo.resize(numComponents-1);
 			sigma_star_h.resize(numGroups, numComponents-1);
 			_computeInvSigmaH();
 		}
