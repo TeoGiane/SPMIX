@@ -7,7 +7,7 @@ readProtoFiles(system.file("proto/univariate_mixture_state.proto", package = "SP
 # Generate data (1 location, mixture of 3 normals)
 set.seed(230196)
 ngroups <- 1; ncomponents <- 3; N <- 1000
-means <- c(1,4,2); std_devs <- c(1,1,1); weights <- c(1/3,1/3,1/3)
+means <- c(1,4,2); std_devs <- c(1,1,1); weights <- c(0.5,0.2,0.3)
 cluster_alloc <- sample(1:ncomponents, prob = weights, size = N, replace = T)
 data <- list(); data[[1]] <- rnorm(N, mean = means[cluster_alloc], sd = std_devs[cluster_alloc])
 
