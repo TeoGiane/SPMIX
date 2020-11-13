@@ -401,15 +401,14 @@ void ReduceMove_test(const std::vector<std::vector<double>> & data,
     }
 
     // DEBUG
-    /*Rcpp::Rcout << "transformed_weights:\n" << transformed_weights << "\n"
+    Rcpp::Rcout << "transformed_weights:\n" << transformed_weights << "\n"
                 << "means: " << means.transpose() << "\n"
-                << "sqrt_stddev: " << sqrt_stddevs.transpose() << std::endl;*/
+                << "sqrt_stddev: " << sqrt_stddevs.transpose() << std::endl;
 
     // Building the reduced loglikelihood
-    Eigen::VectorXd transformed_weights_vect_reduced =
-        Eigen::Map<Eigen::VectorXd>(transformed_weights.block(0,0, numGroups, numComponents - 2).data(),
-                                    transformed_weights.block(0,0, numGroups, numComponents - 2).size());
-    // Rcpp::Rcout << "transformed_weights_vect_reduced: " << transformed_weights_vect_reduced.transpose() << std::endl;
+    Eigen::Map<Eigen::VectorXd> transformed_weights_vect_reduced(transformed_weights.block(0,0, numGroups, numComponents - 2).data(),
+                                                                 transformed_weights.block(0,0, numGroups, numComponents - 2).size());
+    Rcpp::Rcout << "transformed_weights_vect_reduced: " << transformed_weights_vect_reduced.transpose() << std::endl;
     function::spmixLogLikelihood
         loglik_reduced(data, W, params_cp, numGroups, numComponents-1, rho,
                        means.head(numComponents-1), sqrt_stddevs.head(numComponents-1),
@@ -419,7 +418,7 @@ void ReduceMove_test(const std::vector<std::vector<double>> & data,
     optimization::GradientAscent<decltype(loglik_reduced)> solver(loglik_reduced, options_cp);
     Eigen::VectorXd x0(numGroups+2);
     x0 << transformed_weights.col(numComponents-2), means.tail(1), sqrt_stddevs.tail(1);
-    // Rcpp::Rcout << "x0: " << x0.transpose() << std::endl;
+    Rcpp::Rcout << "x0: " << x0.transpose() << std::endl;
     solver.solve(x0);
     Eigen::VectorXd optMean = solver.get_state().current_minimizer;
     Eigen::MatrixXd optCov = -solver.get_state().current_hessian.inverse();
