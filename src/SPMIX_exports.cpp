@@ -16,9 +16,6 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 
-/*#define STRICT_R_HEADERS
-#include <Rcpp.h>*/
-
 #include <deque>
 #include <string>
 #include <vector>
@@ -26,12 +23,13 @@
 #include <progress.hpp>
 #include <progress_bar.hpp>
 #include <utility>
-#include <google/protobuf/text_format.h>
+//#include <google/protobuf/text_format.h>
 #include <exception>
 
 #include "utils.h"
 #include "functors.h"
 #include "sampler.h"
+#include "sampler_rjmcmc.h"
 #include "univariate_mixture_state.pb.h"
 
 /*TODO: finire documentazione*/
@@ -65,23 +63,28 @@ Eigen::VectorXd inv_alr(Eigen::VectorXd x, bool padded_zero = false) {
   return utils::InvAlr(x, padded_zero);
 }
 
-/* Maybe the definitive edition of the sampler (w/ or w/o covariates, data, W and params as strings or proper data types from R)*/
+/* Spatial Sampler execution routine (no RJMCMC,w/ or w/o covariates,data,W and params as strings or proper data types from R)*/
 // [[Rcpp::export]]
 std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>> & data,
-    const Eigen::MatrixXd & W, Rcpp::S4 params, const std::vector<Eigen::MatrixXd> & covariates, bool display_progress) {
+    										   const Eigen::MatrixXd & W, Rcpp::S4 params,
+    										   const std::vector<Eigen::MatrixXd> & covariates, bool display_progress) {
 
-    // Getting the pointer to a SamplerParams class from the R Message in Input (NOT ELEGANT)
-    Rcpp::XPtr<SamplerParams> params_pt = params.slot("pointer");
-    std::string param_text(params_pt->DebugString());
-    SamplerParams input; google::protobuf::TextFormat::ParseFromString(param_text, &input);
+	// Deep copy of messages
+	std::string tmp;
+
+	// Params copy
+    SamplerParams params_cp;
+    Rcpp::XPtr<SamplerParams>(Rcpp::as<Rcpp::XPtr<SamplerParams>>(params.slot("pointer")))
+    	->SerializeToString(&tmp); params_cp.ParseFromString(tmp);
 
     // Initializarion
-    SpatialMixtureSampler spSampler(input, data, W, covariates);
+    SpatialMixtureSampler spSampler(params_cp, data, W, covariates);
     spSampler.init();
 
+    // Initialize output container
     std::vector<Rcpp::RawVector> out;
-    //int log_every = 200;
 
+    // Sampling
     auto start = std::chrono::high_resolution_clock::now();
     REprintf("SPMIX Sampler: Burn-in\n");
     Progress p_burn(burnin, display_progress);
@@ -109,7 +112,64 @@ std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, 
 
     double duration = std::chrono::duration<double>(end - start).count();
     Rcpp::Rcout << "Duration: " << duration << std::endl;
+    return out;
+}
 
+/* Spatial Sampler execution routine (RJMCMC,w/ or w/o covariates,data,W and params as strings or proper data types from R)*/
+// [[Rcpp::export]]
+std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>> & data,
+    											 const Eigen::MatrixXd & W, Rcpp::S4 params,
+    											 const std::vector<Eigen::MatrixXd> & covariates,
+    											 const Rcpp::S4 & options, bool display_progress) {
+
+	// Deep copy of messages
+	std::string tmp;
+
+	// Params copy
+    SamplerParams params_cp;
+    Rcpp::XPtr<SamplerParams>(Rcpp::as<Rcpp::XPtr<SamplerParams>>(params.slot("pointer")))
+    	->SerializeToString(&tmp); params_cp.ParseFromString(tmp);
+
+    // Options copy
+    OptimOptions options_cp;
+    Rcpp::XPtr<OptimOptions>(Rcpp::as<Rcpp::XPtr<OptimOptions>>(options.slot("pointer")))
+    	->SerializeToString(&tmp); options_cp.ParseFromString(tmp);
+
+    // Initializarion
+	SpatialMixtureRJSampler spSampler(params_cp, data, W, options_cp, covariates);
+	spSampler.init();
+
+    // Initialize output container
+    std::vector<Rcpp::RawVector> out;
+
+    // Sampling
+    auto start = std::chrono::high_resolution_clock::now();
+    REprintf("SPMIX RJ Sampler: Burn-in\n");
+    Progress p_burn(burnin, display_progress);
+    for (int i=0; i < burnin; i++) {
+        spSampler.sample();
+        p_burn.increment();
+    }
+    p_burn.cleanup();
+    Rcpp::Rcout << std::endl;
+
+
+    REprintf("SPMIX RJ Sampler: Running\n");
+    Progress p_run(niter, display_progress);
+    for (int i=0; i < niter; i++) {
+        spSampler.sample();
+        if ((i+1) % thin == 0) {
+            std::string s;
+            spSampler.getStateAsProto().SerializeToString(&s);
+            out.push_back(utils::str2raw(s));
+        }
+        p_run.increment();
+    }
+    Rcpp::Rcout << std::endl;
+    auto end = std::chrono::high_resolution_clock::now();
+
+    double duration = std::chrono::duration<double>(end - start).count();
+    Rcpp::Rcout << "Duration: " << duration << std::endl;
     return out;
 }
 

@@ -30,6 +30,10 @@ runSpatialSampler <- function(burnin, niter, thin, data, W, params, covariates, 
     .Call(`_SPMIX_runSpatialSampler`, burnin, niter, thin, data, W, params, covariates, display_progress)
 }
 
+runSpatialRJSampler <- function(burnin, niter, thin, data, W, params, covariates, options, display_progress) {
+    .Call(`_SPMIX_runSpatialRJSampler`, burnin, niter, thin, data, W, params, covariates, options, display_progress)
+}
+
 #' Just a check for output format in R when reading a matrix
 #' @export
 readMatrixFromCSV <- function(filename) {

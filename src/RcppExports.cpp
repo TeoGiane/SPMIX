@@ -48,6 +48,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// runSpatialRJSampler
+std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, Rcpp::S4 params, const std::vector<Eigen::MatrixXd>& covariates, const Rcpp::S4& options, bool display_progress);
+RcppExport SEXP _SPMIX_runSpatialRJSampler(SEXP burninSEXP, SEXP niterSEXP, SEXP thinSEXP, SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP, SEXP covariatesSEXP, SEXP optionsSEXP, SEXP display_progressSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type burnin(burninSEXP);
+    Rcpp::traits::input_parameter< int >::type niter(niterSEXP);
+    Rcpp::traits::input_parameter< int >::type thin(thinSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type params(paramsSEXP);
+    Rcpp::traits::input_parameter< const std::vector<Eigen::MatrixXd>& >::type covariates(covariatesSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type options(optionsSEXP);
+    Rcpp::traits::input_parameter< bool >::type display_progress(display_progressSEXP);
+    rcpp_result_gen = Rcpp::wrap(runSpatialRJSampler(burnin, niter, thin, data, W, params, covariates, options, display_progress));
+    return rcpp_result_gen;
+END_RCPP
+}
 // readMatrixFromCSV
 Eigen::MatrixXd readMatrixFromCSV(std::string filename);
 RcppExport SEXP _SPMIX_readMatrixFromCSV(SEXP filenameSEXP) {
@@ -197,6 +216,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_alr", (DL_FUNC) &_SPMIX_alr, 2},
     {"_SPMIX_inv_alr", (DL_FUNC) &_SPMIX_inv_alr, 2},
     {"_SPMIX_runSpatialSampler", (DL_FUNC) &_SPMIX_runSpatialSampler, 8},
+    {"_SPMIX_runSpatialRJSampler", (DL_FUNC) &_SPMIX_runSpatialRJSampler, 9},
     {"_SPMIX_readMatrixFromCSV", (DL_FUNC) &_SPMIX_readMatrixFromCSV, 1},
     {"_SPMIX_readDataFromCSV", (DL_FUNC) &_SPMIX_readDataFromCSV, 1},
     {"_SPMIX_spmixLogLikelihood", (DL_FUNC) &_SPMIX_spmixLogLikelihood, 4},
