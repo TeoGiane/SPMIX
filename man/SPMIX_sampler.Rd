@@ -5,7 +5,8 @@
 \title{Spatial Mixture Model Sampler}
 \usage{
 SPMIX_sampler(burnin, niter, thin, data, W, params,
-    cov = list(), type = "no_rjmcmc", options = NULL, display_progress = TRUE)
+     cov = list(), type = "no_rjmcmc",
+     options = NULL, display_progress = TRUE)
 }
 \arguments{
 \item{burnin}{Integer, the number of steps of the burnin phase.}

@@ -4,7 +4,8 @@
 #' discarding the first 'burnin' ones and keeping in memory only one every 'thin' iterations.
 #'
 #' @usage SPMIX_sampler(burnin, niter, thin, data, W, params,
-#'     cov = list(), type = "no_rjmcmc", options = NULL, display_progress = TRUE)
+#'      cov = list(), type = "no_rjmcmc",
+#'      options = NULL, display_progress = TRUE)
 #'
 #' @param burnin Integer, the number of steps of the burnin phase.
 #' @param niter Integer, the number of steps to run *after* the burnin,
