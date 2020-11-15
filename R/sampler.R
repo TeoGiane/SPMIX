@@ -4,7 +4,7 @@
 #' discarding the first 'burnin' ones and keeping in memory only one every 'thin' iterations.
 #'
 #' @usage SPMIX_sampler(burnin, niter, thin, data, W, params,
-#'     cov = list(), display_progress = TRUE)
+#'     cov = list(), type = "no_rjmcmc", options = NULL, display_progress = TRUE)
 #'
 #' @param burnin Integer, the number of steps of the burnin phase.
 #' @param niter Integer, the number of steps to run *after* the burnin,
@@ -18,8 +18,16 @@
 #' @param params The sampler parameters that needs to be provided as input. params can be passed as a string
 #' containing the path to an \code{.asciipb} file or as an \code{S4::Message} class of type SamplerParams, i.e. a
 #' Google Protocol Buffer Message available in the package and interfaced to R through \code{\link{RProtoBuf}}.
-#' @param cov a list of vectors that represents covariates. As default value, is an empty list.
+#' @param cov A list of vectors that represents covariates. As default value, is an empty list.
 #' In case this input parameter is not empty, the sampler performs a regression on these covariates.
+#' @param type A string identifying the type of sampler to run. If type is "rjmcmc", the algorithm will run
+#' the spatial mixture sampler putting a prior on the number of components H. Default value is "no_rjmcmc", which
+#' samples from the spatial mixture model with fixed number of components.
+#' @param options The sampler optimization options used in the execution of the reversible jump sampler.
+#' Default value is set to \code{NULL} and in case type is "rjmcmc", a \code{S4::Message} object of type
+#' OptimOptions is istanciated with default values. In order to overwrite default values, options can be either
+#' a string, representing the path to an \code{.asciipb} file or a \code{S4::Message} object of type OptimOptions
+#' generated via \code{\link{RProtoBuf}}.
 #' @param display_progress Boolean, it allows you display on the console the progress bar during burn-in
 #' and sampling phase. As default value, is set to TRUE.
 #'
@@ -28,7 +36,8 @@
 #' Each state can be easily deserialized in R using the \code{\link{unserialize_proto}} function in this package.
 #'
 #' @export
-SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(), display_progress = TRUE) {
+SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(),
+                          type = "no_rjmcmc", options = NULL, display_progress = TRUE) {
 
   # Checking if data is given or needs to be read from file
   if(typeof(data) == "character") {
@@ -81,7 +90,54 @@ SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(), di
     return()
   }
 
- # Calling the Sampler
- output <- SPMIX:::runSpatialSampler(burnin, niter, thin, data_in, W_in, params_in, cov, display_progress)
+  # Check the type of sampler needs to be executed
+  if (type == "no_rjmcmc") {
+
+    # Calling the Sampler
+    output <- SPMIX:::runSpatialSampler(burnin, niter, thin, data_in, W_in, params_in, cov,
+                                        display_progress)
+
+  } else if (type == "rjmcmc") {
+
+    # Checking if options is NULL, given or needs to be read from file
+    if (is.null(options)) {
+
+      cat("Optimization Options required but not given: setting default values ... ")
+      RProtoBuf::readProtoFiles("proto/optimization_options.proto", package = "SPMIX")
+      options_in <- new(OptimOptions, max_iter = 1000, tol = 1e-8)
+      cat("done!\n")
+
+    } else if(typeof(options) == "character") {
+
+      cat("Optimization Options are provided as a path to an asciipb file\n")
+      # Check if file exists
+      if(!file.exists(options))
+        stop("Input file does not exist.")
+      # Read ASCII file
+      cat("readOptimOptionsfromASCII ... ")
+      RProtoBuf::readProtoFiles(file = system.file("proto/optimization_options.proto", package = "SPMIX"))
+      options_in <- RProtoBuf::readASCII(OptimOptions, file(options))
+      cat("done!\n")
+
+    } else if ( is(options)=="Message" && options@type=="OptimOptions" ) {
+
+      cat("Optimization Options are provided as an RProtoBuf::Message\n")
+      options_in <- options
+
+    } else {
+
+      cat("ERROR: input parameter 'options' is of unknown type\n")
+      return()
+
+    }
+
+    # Calling the Sampler
+    output <- SPMIX:::runSpatialRJSampler(burnin, niter, thin, data_in, W_in, params_in, cov,
+                                          options_in, display_progress)
+  } else {
+    cat("ERROR: input parameter 'type' is of unknown type\n")
+    return()
+  }
+
  return(output)
 }
