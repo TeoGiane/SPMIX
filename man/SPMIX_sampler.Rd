@@ -5,7 +5,7 @@
 \title{Spatial Mixture Model Sampler}
 \usage{
 SPMIX_sampler(burnin, niter, thin, data, W, params,
-    cov = list(), display_progress = TRUE)
+    cov = list(), type = "no_rjmcmc", options = NULL, display_progress = TRUE)
 }
 \arguments{
 \item{burnin}{Integer, the number of steps of the burnin phase.}
@@ -26,8 +26,18 @@ the path to a \code{.csv} file storing the proximity matrix, or as a simple R ma
 containing the path to an \code{.asciipb} file or as an \code{S4::Message} class of type SamplerParams, i.e. a
 Google Protocol Buffer Message available in the package and interfaced to R through \code{\link{RProtoBuf}}.}
 
-\item{cov}{a list of vectors that represents covariates. As default value, is an empty list.
+\item{cov}{A list of vectors that represents covariates. As default value, is an empty list.
 In case this input parameter is not empty, the sampler performs a regression on these covariates.}
+
+\item{type}{A string identifying the type of sampler to run. If type is "rjmcmc", the algorithm will run
+the spatial mixture sampler putting a prior on the number of components H. Default value is "no_rjmcmc", which
+samples from the spatial mixture model with fixed number of components.}
+
+\item{options}{The sampler optimization options used in the execution of the reversible jump sampler.
+Default value is set to \code{NULL} and in case type is "rjmcmc", a \code{S4::Message} object of type
+OptimOptions is istanciated with default values. In order to overwrite default values, options can be either
+a string, representing the path to an \code{.asciipb} file or a \code{S4::Message} object of type OptimOptions
+generated via \code{\link{RProtoBuf}}.}
 
 \item{display_progress}{Boolean, it allows you display on the console the progress bar during burn-in
 and sampling phase. As default value, is set to TRUE.}
