@@ -23,7 +23,7 @@ options_filename <- system.file("input_files/optimization_options.asciipb", pack
 options <- readASCII(OptimOptions, file(options_filename))
 
 ###########################################################################
-# Case 1 - A reduced state, Increase move ---------------------------------
+# Case 1 - A reduced state, Increase and reduce move ----------------------
 # Generate the state
 state <- new(UnivariateState)
 state$num_components <- ncomponents-1
@@ -35,6 +35,7 @@ state$Sigma <- new(EigenMatrix, rows=1, cols=1, data=1.2)
 
 # Run test
 IncreaseMove_test(data, W, params, state, options)
+ReduceMove_test(data, W, params, state, options)
 
 ###########################################################################
 
