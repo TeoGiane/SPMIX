@@ -72,8 +72,9 @@ double spmixLogLikelihood::operator()() const {
         for (int j = 0; j < data[i].size(); ++j) {
             std::vector<double> contributions(numComponents);
             for (int h = 0; h < numComponents; ++h) {
-                //contributions[h] = log(weights(i,h)) + stan::math::normal_lpdf(data[i][j], means_ext[h], std_devs_ext[h]);
-                contributions[h] = log(weights(i,h)) + stan::math::normal_lpdf(data[i][j], means[h], sqrt_std_devs[h] * sqrt_std_devs[h]);
+                contributions[h] = log(weights(i,h)) + stan::math::normal_lpdf(data[i][j],
+                															   means[h],
+                															   sqrt_std_devs[h] * sqrt_std_devs[h]);
             }
             output += stan::math::log_sum_exp(contributions);
         }
@@ -88,12 +89,14 @@ double spmixLogLikelihood::operator()() const {
     }
 
     // Contribution from weights
-    Eigen::MatrixXd F = Eigen::MatrixXd::Zero(numGroups, numGroups);
-    for (int i = 0; i < numGroups; i++)
-        F(i, i) = rho * W.row(i).sum() + (1 - rho);
-    Eigen::VectorXd weightsMean = Eigen::VectorXd::Zero(transformed_weights.size()); //TO IMPROVE INDEED
-    Eigen::MatrixXd weightsCov = Eigen::KroneckerProduct((F - rho*W), Sigma.inverse()).eval().inverse();
-    output += stan::math::multi_normal_lpdf(transformed_weights_vect, weightsMean, weightsCov);
+    if (numComponents > 1) {
+		Eigen::MatrixXd F = Eigen::MatrixXd::Zero(numGroups, numGroups);
+		for (int i = 0; i < numGroups; i++)
+			F(i, i) = rho * W.row(i).sum() + (1 - rho);
+		Eigen::VectorXd weightsMean = Eigen::VectorXd::Zero(transformed_weights.size()); //TO IMPROVE INDEED
+		Eigen::MatrixXd weightsCov = Eigen::KroneckerProduct((F - rho*W), Sigma.inverse()).eval().inverse();
+		output += stan::math::multi_normal_lpdf(transformed_weights_vect, weightsMean, weightsCov);
+	}
 
     // Contribution from other stuff, if needed (rho, m_tilde, H, Sigma)
     return output;

@@ -16,7 +16,6 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 	// Splitting input vector
 	Eigen::Matrix<T, Eigen::Dynamic, 1> weights_toadd(numGroups);
 	weights_toadd << x.head(numGroups);
-	std::copy(x.data(), x.data()+numGroups, weights_toadd.data());
 	T means_toadd(x(numGroups));
 	T std_devs_toadd(x(numGroups+1));
 
@@ -40,9 +39,11 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 	means_ext << means, means_toadd;
 	sqrt_std_devs_ext.resize(sqrt_std_devs.size() + 1);
 	sqrt_std_devs_ext << sqrt_std_devs, std_devs_toadd;
-	Sigma_ext = Eigen::MatrixXd::Zero(numComponents_ext - 1, numComponents_ext - 1);
-	Sigma_ext.block(0, 0, numComponents - 1, numComponents - 1) = Sigma;
-	Sigma_ext(numComponents_ext - 2, numComponents_ext - 2) = Sigma(0,0);
+	if (numComponents > 1) {
+		Sigma_ext = Eigen::MatrixXd::Zero(numComponents_ext - 1, numComponents_ext - 1);
+		Sigma_ext.block(0, 0, numComponents - 1, numComponents - 1) = Sigma;
+		Sigma_ext(numComponents_ext - 2, numComponents_ext - 2) = Sigma(0,0);
+	}
 
 	// DEBUG
 	/*Rcpp::Rcout << "AFTER EXPANSION: " << std::endl;
@@ -54,18 +55,19 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 	// Computation
 	T output{0.};
 
-	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> transformed_weights(numGroups, numComponents_ext - 1);
+	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> transformed_weights(numGroups, numComponents_ext);
 	transformed_weights << transformed_weights_ext;
+	transformed_weights.col(numComponents_ext-1) = Eigen::Matrix<T, Eigen::Dynamic, 1>::Zero(numGroups);
 	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> weights(numGroups, numComponents_ext);
 	for (int i = 0; i < weights.rows(); ++i) {
-		weights.row(i) = utils::InvAlr(static_cast<Eigen::Matrix<T,-1,1>>(transformed_weights.row(i)), false);
+		weights.row(i) = utils::InvAlr(static_cast<Eigen::Matrix<T,-1,1>>(transformed_weights.row(i)), true);
 	}
 
 	//DEBUG
 	/*Rcpp::Rcout << "transformed_weights:\n" << transformed_weights << "\n"
 	<< "weights:\n" << weights << std::endl;*/
 
-	// Computing contribution of data (PARE CORRETTO)
+	// Computing contribution of data
 	for (int i = 0; i < data.size(); ++i) {
 	    for (int j = 0; j < data[i].size(); ++j) {
 	        std::vector<T> contributions(numComponents_ext);
@@ -93,13 +95,15 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
     }
 
     // Contribution from weights
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> F = Eigen::MatrixXd::Zero(numGroups, numGroups);
-    for (int i = 0; i < numGroups; i++)
-    	F(i, i) = rho * W.row(i).sum() + (1 - rho);
-    Eigen::Matrix<T, Eigen::Dynamic, 1> weightsMean = Eigen::VectorXd::Zero(transformed_weights_ext.size());
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> weightsCov = Eigen::KroneckerProduct((F - rho*W),
-    	Sigma_ext.inverse()).eval().inverse();
-    output += stan::math::multi_normal_lpdf(transformed_weights_ext, weightsMean, weightsCov);
+    if (numComponents > 1) {
+		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> F = Eigen::MatrixXd::Zero(numGroups, numGroups);
+		for (int i = 0; i < numGroups; i++)
+			F(i, i) = rho * W.row(i).sum() + (1 - rho);
+		Eigen::Matrix<T, Eigen::Dynamic, 1> weightsMean = Eigen::VectorXd::Zero(transformed_weights_ext.size());
+		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> weightsCov = Eigen::KroneckerProduct((F - rho*W),
+			Sigma_ext.inverse()).eval().inverse();
+		output += stan::math::multi_normal_lpdf(transformed_weights_ext, weightsMean, weightsCov);
+	}
 
     // Contribution from other stuff if needed (rho, m_tilde, H, Sigma)
 	return output;
