@@ -452,7 +452,7 @@ void ReduceMove_test(const std::vector<std::vector<double>> & data,
     optimization::GradientAscent<decltype(loglik_reduced)> solver(loglik_reduced, options_cp);
     Eigen::VectorXd x0(numGroups+2);
     x0 << transformed_weights.col(numComponents-2), means_map.tail(1), sqrt_stddevs.tail(1);
-    Rcpp::Rcout << "x0: " << x0.transpose() << std::endl;
+    //Rcpp::Rcout << "x0: " << x0.transpose() << std::endl;
     solver.solve(x0);
     Eigen::VectorXd optMean = solver.get_state().current_minimizer;
     Eigen::MatrixXd optCov = -solver.get_state().current_hessian.inverse();
