@@ -35,6 +35,7 @@ class OptimState: public OptimizationTraits {
 	HessianType current_hessian;
 	unsigned int current_iteration;
 	double current_gradient_norm;
+	bool stagnated = false;
 	void print() const;
 };
 
