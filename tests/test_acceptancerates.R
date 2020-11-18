@@ -35,7 +35,7 @@ state$Sigma <- new(EigenMatrix, rows=1, cols=1, data=1.2)
 
 # Run test
 IncreaseMove_test(data, W, params, state, options)
-ReduceMove_test(data, W, params, state, options)
+# ReduceMove_test(data, W, params, state, options)
 
 ###########################################################################
 
