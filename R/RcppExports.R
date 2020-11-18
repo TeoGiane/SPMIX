@@ -108,3 +108,9 @@ RJsampler_test <- function(data, W, params, options) {
     invisible(.Call(`_SPMIX_RJsampler_test`, data, W, params, options))
 }
 
+#' Test for poisson_lpmf output in stan
+#' @export
+poisson_lpmf <- function(seed) {
+    invisible(.Call(`_SPMIX_poisson_lpmf`, seed))
+}
+

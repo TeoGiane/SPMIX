@@ -211,6 +211,16 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// poisson_lpmf
+void poisson_lpmf(size_t seed);
+RcppExport SEXP _SPMIX_poisson_lpmf(SEXP seedSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< size_t >::type seed(seedSEXP);
+    poisson_lpmf(seed);
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_alr", (DL_FUNC) &_SPMIX_alr, 2},
@@ -229,6 +239,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_IncreaseMove_test", (DL_FUNC) &_SPMIX_IncreaseMove_test, 5},
     {"_SPMIX_ReduceMove_test", (DL_FUNC) &_SPMIX_ReduceMove_test, 5},
     {"_SPMIX_RJsampler_test", (DL_FUNC) &_SPMIX_RJsampler_test, 4},
+    {"_SPMIX_poisson_lpmf", (DL_FUNC) &_SPMIX_poisson_lpmf, 1},
     {NULL, NULL, 0}
 };
 

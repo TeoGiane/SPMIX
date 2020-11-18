@@ -411,7 +411,6 @@ void ReduceMove_test(const std::vector<std::vector<double>> & data,
     int numGroups = data.size();
     int numComponents = state_cp.num_components();
     std::mt19937_64 rng{213513435};
-    double alpha;
     Eigen::MatrixXd transformed_weights = Eigen::MatrixXd::Zero(numGroups, numComponents);
     Eigen::MatrixXd weights = Eigen::MatrixXd::Zero(numGroups, numComponents);
     for (int i = 0; i < numGroups; ++i) {
@@ -436,31 +435,49 @@ void ReduceMove_test(const std::vector<std::vector<double>> & data,
         }
     }
 
-    // Building the reduced loglikelihood
-    Eigen::Map<Eigen::VectorXd> trans_weights_vect_reduced(transformed_weights.block(0,0,numGroups,numComponents-2).data(),
-                                                           transformed_weights.block(0,0,numGroups,numComponents-2).size());
+    // Randomly select the component to drop
+    int to_drop = stan::math::categorical_rng(Eigen::VectorXd::Constant(numComponents-1, 1./(numComponents-1)), rng)-1;
+
+    // Build the reduced loglikelihood
+    // Eigen::MatrixXd trans_weights = transformed_weights.block(0,0,numGroups,numComponents-1);
+    Eigen::MatrixXd trans_weights_reduced = utils::removeColumn(transformed_weights.block(0,0,numGroups,numComponents-1),
+                                                                to_drop);
+    Eigen::Map<Eigen::VectorXd> trans_weights_vect_reduced(trans_weights_reduced.data(),trans_weights_reduced.size());
     Eigen::Map<Eigen::VectorXd> means_map(means.data(), means.size());
     Eigen::VectorXd sqrt_stddevs(numComponents);
     for (int i = 0; i < numComponents; ++i)
         sqrt_stddevs(i) = std::sqrt(stddevs[i]);
 
+
+    /*Rcpp::Rcout << "to_drop: " << to_drop << "\n"
+    << "trans_weights_reduced:\n" << trans_weights_reduced << "\n"
+    << "means_reduced: " << utils::removeElem(means_map, to_drop).transpose() << "\n"
+    << "sqrt_stddevs_reduced: " << utils::removeElem(sqrt_stddevs, to_drop).transpose() << "\n"
+    << "Sigma_reduced:\n" << utils::removeRowColumn(Sigma,to_drop) << std::endl;*/
+
     function::spmixLogLikelihood loglik_reduced(data, W, params_cp, numGroups, numComponents-1, rho,
-                                                means_map.head(numComponents-1), sqrt_stddevs.head(numComponents-1),
-                                                trans_weights_vect_reduced, Sigma.block(0,0,numComponents-2,numComponents-2));
+                                                utils::removeElem(means_map,to_drop), utils::removeElem(sqrt_stddevs,to_drop),
+                                                trans_weights_vect_reduced, utils::removeRowColumn(Sigma,to_drop));
 
     // Eliciting the approximated optimal proposal parameters
     optimization::GradientAscent<decltype(loglik_reduced)> solver(loglik_reduced, options_cp);
     Eigen::VectorXd x0(numGroups+2);
-    x0 << transformed_weights.col(numComponents-2), means_map.tail(1), sqrt_stddevs.tail(1);
-    //Rcpp::Rcout << "x0: " << x0.transpose() << std::endl;
+    x0 << transformed_weights.col(to_drop), means_map(to_drop), sqrt_stddevs(to_drop);
+    // Rcpp::Rcout << "x0: " << x0.transpose() << std::endl;
     solver.solve(x0);
     Eigen::VectorXd optMean = solver.get_state().current_minimizer;
     Eigen::MatrixXd optCov = -solver.get_state().current_hessian.inverse();
 
-    // Compute Acceptance rate
-    alpha = std::exp( loglik_reduced()+stan::math::poisson_lpmf(numComponents-1, 1)
-                     -loglik_reduced(x0)-stan::math::poisson_lpmf(numComponents, 1)
-                     +stan::math::multi_normal_lpdf(x0, optMean, optCov) );
+    double alpha{0.};
+    if (solver.get_state().current_iteration < options_cp.max_iter() and !solver.get_state().stagnated) {
+
+        // Compute Acceptance rate
+        alpha = std::exp( loglik_reduced()+stan::math::poisson_lpmf(numComponents-1, 1)
+                         -loglik_reduced(x0)-stan::math::poisson_lpmf(numComponents, 1)
+                         +stan::math::multi_normal_lpdf(x0, optMean, optCov) );
+    }
+
+    // Accept of Reject the move
     alpha = std::min(1., alpha);
 
     // Print acceptance rate
@@ -474,18 +491,17 @@ void ReduceMove_test(const std::vector<std::vector<double>> & data,
     << "weights:\n" << weights << "\n"
     << "transformed_weights:\n" << transformed_weights << "\n"
     << "Sigma:\n" << Sigma << std::endl << std::endl;
-	
+
 	// Reduce state
-	--numComponents;
-	means.resize(numComponents);
-	stddevs.resize(numComponents);
-	transformed_weights.conservativeResize(numGroups, numComponents);
-	transformed_weights.col(numComponents-1) = Eigen::VectorXd::Zero(numGroups);
-	weights.resize(numGroups, numComponents);
-	for (int i = 0; i < numGroups; ++i)
-		weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), true);
-	Sigma.conservativeResize(numComponents-1, numComponents-1);
-	
+    --numComponents;
+    means.erase(means.begin()+to_drop);
+    stddevs.erase(stddevs.begin()+to_drop);
+    transformed_weights = utils::removeColumn(transformed_weights, to_drop);
+    weights.resize(numGroups, numComponents);
+    for (int i = 0; i < numGroups; ++i)
+        weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), true);
+    Sigma = utils::removeRowColumn(Sigma, to_drop);
+
 	// DEBUG
     Rcpp::Rcout << "State AFTER reduction:\n"
     << "numComponents: " << numComponents << "\n"
@@ -532,6 +548,35 @@ void RJsampler_test(const std::vector<std::vector<double>> & data,
     sampler.init();
     sampler.sampleSigma();
     //sampler.betweenModelMove();
+
+    return;
+}
+
+//' Test for poisson_lpmf output in stan
+//' @export
+// [[Rcpp::export]]
+void poisson_lpmf(size_t seed) {
+    std::mt19937_64 rng{seed};
+    int N = 100;
+    for (int i = 1; i < N; ++i)
+        Rcpp::Rcout << "pmf(" << i-1 << ")/pmf(" << i << "): "
+        << std::exp(stan::math::poisson_lpmf(i-1,1)-stan::math::poisson_lpmf(i,1)) << std::endl;
+    Rcpp::Rcout << std::endl;
+
+    for (int i = 1; i < N; ++i)
+        Rcpp::Rcout << "pmf(" << i-1 << ")/pmf(" << i << "): "
+        << std::exp(stan::math::poisson_lpmf(i-1,1))/std::exp(stan::math::poisson_lpmf(i,1)) << std::endl;
+    Rcpp::Rcout << std::endl;
+
+    for (int i = 1; i < N; ++i)
+        Rcpp::Rcout << "pmf(" << i+1 << ")/pmf(" << i << "): "
+        << std::exp(stan::math::poisson_lpmf(i+1,1)-stan::math::poisson_lpmf(i,1)) << std::endl;
+    Rcpp::Rcout << std::endl;
+
+    for (int i = 1; i < N; ++i)
+        Rcpp::Rcout << "pmf(" << i+1 << ")/pmf(" << i << "): "
+        << std::exp(stan::math::poisson_lpmf(i+1,1))/std::exp(stan::math::poisson_lpmf(i,1)) << std::endl;
+    Rcpp::Rcout << std::endl;    
 
     return;
 }
