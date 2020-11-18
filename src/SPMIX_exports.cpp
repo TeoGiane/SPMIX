@@ -147,6 +147,7 @@ std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin
     REprintf("SPMIX RJ Sampler: Burn-in\n");
     Progress p_burn(burnin, display_progress);
     for (int i=0; i < burnin; i++) {
+        Rcpp::Rcout << "Burn-in iter: " << i+1 << std::endl;
         spSampler.sample();
         p_burn.increment();
     }
@@ -157,6 +158,7 @@ std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin
     REprintf("SPMIX RJ Sampler: Running\n");
     Progress p_run(niter, display_progress);
     for (int i=0; i < niter; i++) {
+        Rcpp::Rcout << "Running iter: " << i+1 << std::endl;
         spSampler.sample();
         if ((i+1) % thin == 0) {
             std::string s;
