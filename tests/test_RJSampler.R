@@ -6,14 +6,11 @@ library("SPMIX")
 library("ggplot2")
 library("sp") # also rgdal, rgeos, maptools have been installed
 
-# Getting useful descriptors
-readProtoFiles(file = system.file("proto/sampler_params.proto", package = "SPMIX"))
-readProtoFiles(files = system.file("proto/optimization_options.proto", package = "SPMIX"))
-
 ###########################################################################
 # Data Generation ---------------------------------------------------------
 
 # Generate spatial grid from coordinates
+set.seed(230196)
 numGroups <- 9; numComponents <- 3
 coords <- expand.grid(x = seq(0,1,length.out = sqrt(numGroups)),
                       y = seq(0,1,length.out = sqrt(numGroups)))
@@ -47,30 +44,40 @@ for (i in 1:numGroups) {
 names(data) <- labels
 rm(list=c('cluster_alloc','i'))
 
+# Build adjacency matrix (FIND A BETTER WAY)
+W <- matrix(0, numGroups, numGroups); colnames(W) <- rownames(W) <- labels
+check_prox <- function(x,y) {
+  dist <- 1/(sqrt(numGroups)-1)
+  return(ifelse((x[1]==y[1] & abs(x[2]-y[2])<=dist) | (x[2]==y[2] & abs(x[1]-y[1])<=dist), 1, 0))
+}
+for (i in 1:numGroups) {
+  for (j in 1:numGroups) {
+    x_coor <- coordinates(spatial_grid)[labels[i],]
+    y_coor <- coordinates(spatial_grid)[labels[j],]
+    W[i,j] <- check_prox(x_coor, y_coor)
+  }
+  W[i,i] <- 0
+}
+rm(list=c('i','j','x_coor','y_coor','check_prox'))
+
 ###########################################################################
 
 ###########################################################################
 # Sampler Execution -------------------------------------------------------
 
 # Setting MCMC parameters
-burnin = 10000
-niter = 10000
+burnin = 400
+niter = 600
 thin = 5
 
 # Grab input filenames
-data_filename = system.file("input_files/datasets/scenario0/rep0.csv", package = "SPMIX")
-w_filename = system.file("input_files/prox_matrix.csv", package = "SPMIX")
 params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
-options_filename = system.file("input_files/optimization_options.asciipb", package = "SPMIX")
-
-# building input objects
-data_obj <- readDataFromCSV(data_filename)
-w_obj <- readMatrixFromCSV(w_filename)
-params_obj <- readASCII(SamplerParams, file(params_filename))
-options_obj <- readASCII(OptimOptions, file(options_filename))
+# options_filename = system.file("input_files/optimization_options.asciipb", package = "SPMIX")
 
 # Run test utility
-RJsampler_test(data_obj, w_obj, params_obj, options_obj)
+out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc", display_progress = FALSE)
+save('out', file = "output.txt")
+#RJsampler_test(data_obj, w_obj, params_obj, options_obj)
 
 ###########################################################################
 
@@ -78,15 +85,15 @@ RJsampler_test(data_obj, w_obj, params_obj, options_obj)
 # Visualization -----------------------------------------------------------
 
 # Generate dataframe for plotting
-df <- fortify(spatial_grid)
-for (i in 1:length(labels)) {
-  df[which(df$id==labels[i]),'w_i1'] <- weights[i,1]
-  df[which(df$id==labels[i]),'w_i2'] <- weights[i,2]
-}
-plot1 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i1)) +
-  geom_polygon() + scale_fill_continuous(type = "gradient")
-plot2 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i2)) +
-  geom_polygon() + scale_fill_continuous(type = "gradient")
-x11(height = 4, width = 8.27); gridExtra::grid.arrange(plot1, plot2, ncol=2)
+# df <- fortify(spatial_grid)
+# for (i in 1:length(labels)) {
+#   df[which(df$id==labels[i]),'w_i1'] <- weights[i,1]
+#   df[which(df$id==labels[i]),'w_i2'] <- weights[i,2]
+# }
+# plot1 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i1)) +
+#   geom_polygon() + scale_fill_continuous(type = "gradient")
+# plot2 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i2)) +
+#   geom_polygon() + scale_fill_continuous(type = "gradient")
+# x11(height = 4, width = 8.27); gridExtra::grid.arrange(plot1, plot2, ncol=2)
 
 ###########################################################################
