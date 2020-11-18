@@ -1,6 +1,7 @@
 #ifndef GRADIENT_ASCENT_HH
 #define GRADIENT_ASCENT_HH
 
+#include <cmath>
 #include "optimization_traits.h"
 #include "optimization_options.pb.h"
 

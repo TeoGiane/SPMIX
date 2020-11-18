@@ -22,15 +22,20 @@ void GradientAscent<D>::solve(const ArgumentType & x0) {
 		++state.current_iteration;
 
 		// Initializing buffers
-		double gamma_i;
+		double gamma_i; //double gamma_i_old = 1;
 		ArgumentType x_new;
 		ReturnType fx_curr, fx_old;
 		GradientType grad_fx_curr, grad_fx_old;
-
+		
 		// Computing gradients and step size gamma
 		stan::math::gradient(target_function, x_curr, fx_curr, grad_fx_curr);
 		stan::math::gradient(target_function, x_old, fx_old, grad_fx_old);
 		gamma_i = std::abs((x_curr - x_old).dot(grad_fx_curr - grad_fx_old)) / (grad_fx_curr - grad_fx_old).squaredNorm();
+
+		if (isnan(gamma_i)) {
+			state.stagnated = true;
+			break;
+		}
 
 		// Update state
 		state.current_solution = fx_curr;
@@ -45,18 +50,26 @@ void GradientAscent<D>::solve(const ArgumentType & x0) {
 
 		// DEBUG
 		/*state.print();
-		Rcpp::Rcout << "gamma_i_num:" << std::abs((x_curr - x_old).dot(grad_fx_curr - grad_fx_old)) << "\n"
-					<< "gamma_i_den: " << (grad_fx_curr - grad_fx_old).squaredNorm() << "\n"
-					<< "gamma_i: " << gamma_i << "\n"
+		Rcpp::Rcout << "gamma_i: " << gamma_i << "\n"
 					<< "x_old: " << x_old.transpose() << "\n"
 					<< "x_curr: " << x_curr.transpose() << std::endl << std::endl;*/
 
 		// Convergence check
-		if (state.current_gradient_norm < options.tol()){
-			stan::math::hessian(target_function, state.current_minimizer,
-								state.current_solution, state.current_gradient, state.current_hessian);
-			//state.print();
+		if (state.current_gradient_norm < options.tol())
+			break;
+
+		// Stagnation check
+		/*if (gamma_i < 1e-16 and gamma_i_old < 1e-16) {
+			state.stagnated = true;
 			break;
 		}
+
+		// Save gamma_i_old
+		gamma_i_old = gamma_i;*/
 	}
+
+	stan::math::hessian(target_function, state.current_minimizer,
+						state.current_solution, state.current_gradient, state.current_hessian);
+	//state.print();
+	return;
 };
