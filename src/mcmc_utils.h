@@ -13,6 +13,8 @@ std::vector<double> normalGammaUpdate(std::vector<double> data, double priorMean
 
 double marginalLogLikeNormalGamma(double datum, double mean, double a, double b, double lambda);
 
+double numComponentsPrior(int H, double Am, double tau);
+
 }; // namespace utils
 
 #endif  // MCMC_UTILS

@@ -43,4 +43,8 @@ double marginalLogLikeNormalGamma(
     return out;
 }
 
+double numComponentsPrior(int H, double Am, double tau) {
+    return std::exp(-Am*H*std::pow(std::log(H),tau));
+}
+
 } // namespace utils
