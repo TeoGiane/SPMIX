@@ -104,15 +104,15 @@ SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(),
     if (is.null(options)) {
 
       cat("Optimization Options required but not given: setting default values ... ")
-      RProtoBuf::readProtoFiles("proto/optimization_options.proto", package = "SPMIX")
-      options_in <- new(OptimOptions, max_iter = 1000, tol = 1e-8)
+      RProtoBuf::readProtoFiles(file = system.file("proto/optimization_options.proto", package = "SPMIX"))
+      options_in <- RProtoBuf::new(OptimOptions, max_iter = 1000, tol = 1e-8)
       cat("done!\n")
 
     } else if(typeof(options) == "character") {
 
       cat("Optimization Options are provided as a path to an asciipb file\n")
       # Check if file exists
-      if(!file.exists(options))
+      if(!file.exists(options)){}
         stop("Input file does not exist.")
       # Read ASCII file
       cat("readOptimOptionsfromASCII ... ")
