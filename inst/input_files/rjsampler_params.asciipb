@@ -14,8 +14,8 @@ rho_params {
 
 sigma_params {
 	inv_gamma {
-		alpha: 1
-		beta: 5
+		alpha: 2
+		beta: 2
 	}
 }
 
