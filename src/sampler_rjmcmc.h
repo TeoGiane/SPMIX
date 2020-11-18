@@ -11,6 +11,7 @@ protected:
 	// prior for Sigma --> here is an InvGamma
 	double alpha_Sigma;
 	double beta_Sigma;
+	int count{1};
 
 	// Options for Newton Method for Optimization
 	OptimOptions options;
