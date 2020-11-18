@@ -94,7 +94,8 @@ double spmixLogLikelihood::operator()() const {
 		for (int i = 0; i < numGroups; i++)
 			F(i, i) = rho * W.row(i).sum() + (1 - rho);
 		Eigen::VectorXd weightsMean = Eigen::VectorXd::Zero(transformed_weights.size()); //TO IMPROVE INDEED
-		Eigen::MatrixXd weightsCov = Eigen::KroneckerProduct((F - rho*W), Sigma.inverse()).eval().inverse();
+		Eigen::MatrixXd F_rhoWInv = (F-rho*W).inverse();
+		Eigen::MatrixXd weightsCov = Eigen::kroneckerProduct(F_rhoWInv, Sigma);
 		output += stan::math::multi_normal_lpdf(transformed_weights_vect, weightsMean, weightsCov);
 	}
 

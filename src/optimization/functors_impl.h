@@ -32,7 +32,7 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 	<< "Sigma:\n" << Sigma << std::endl << std::endl;*/
 
 	// Promoting and extending variables
-	numComponents_ext++;
+	++numComponents_ext;
 	transformed_weights_ext.resize(transformed_weights_vect.size() + weights_toadd.size());
 	transformed_weights_ext << transformed_weights_vect, weights_toadd;
 	means_ext.resize(means.size() + 1);
@@ -63,9 +63,13 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 		weights.row(i) = utils::InvAlr(static_cast<Eigen::Matrix<T,-1,1>>(transformed_weights.row(i)), true);
 	}
 
+	//Rcpp::Rcout << "promotion ok" << std::endl;
 	//DEBUG
 	/*Rcpp::Rcout << "transformed_weights:\n" << transformed_weights << "\n"
 	<< "weights:\n" << weights << std::endl;*/
+
+	/*Rcpp::Rcout << "means: " << means_ext.transpose() << std::endl;
+	Rcpp::Rcout << "sqrt_std_devs: " << sqrt_std_devs_ext.transpose() << std::endl;*/
 
 	// Computing contribution of data
 	for (int i = 0; i < data.size(); ++i) {
@@ -79,7 +83,7 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 	        output += stan::math::log_sum_exp(contributions);
 	    }
 	}
-
+	//Rcpp::Rcout << "data ok" << std::endl;
     // Contributions from kernels
     for (int h = 0; h < numComponents_ext; ++h) {
 		T sigma = sqrt_std_devs_ext(h)*sqrt_std_devs_ext(h);
@@ -93,19 +97,19 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 		//output += stan::math::gamma_lpdf(tau, params.p0_params().a(), params.p0_params().b()) +
         //          stan::math::normal_lpdf(means_ext[h], params.p0_params().mu0(), sigmaNorm);
     }
-
-    // Contribution from weights
-    if (numComponents > 1) {
+    //Rcpp::Rcout << "kernels ok" << std::endl;
+	// Contribution from weights
+	if (numComponents > 1) {
 		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> F = Eigen::MatrixXd::Zero(numGroups, numGroups);
 		for (int i = 0; i < numGroups; i++)
 			F(i, i) = rho * W.row(i).sum() + (1 - rho);
 		Eigen::Matrix<T, Eigen::Dynamic, 1> weightsMean = Eigen::VectorXd::Zero(transformed_weights_ext.size());
-		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> weightsCov = Eigen::KroneckerProduct((F - rho*W),
-			Sigma_ext.inverse()).eval().inverse();
+		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> F_rhoWInv = (F-rho*W).inverse();
+		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> weightsCov = Eigen::kroneckerProduct(F_rhoWInv,Sigma_ext);
 		output += stan::math::multi_normal_lpdf(transformed_weights_ext, weightsMean, weightsCov);
 	}
-
-    // Contribution from other stuff if needed (rho, m_tilde, H, Sigma)
+	//Rcpp::Rcout << "weights ok" << std::endl;
+	// Contribution from other stuff if needed (rho, m_tilde, H, Sigma)
 	return output;
 }
 
