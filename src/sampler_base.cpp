@@ -143,43 +143,45 @@ void SpatialMixtureSamplerBase::init() {
 }
 
 void SpatialMixtureSamplerBase::sampleAtoms() {
-  std::vector<std::vector<double>> datavec(numComponents);
-  for (int h = 0; h < numComponents; h++) datavec[h].reserve(numdata);
 
-  for (int i = 0; i < numGroups; i++) {
-    for (int j = 0; j < samplesPerGroup[i]; j++) {
-      int comp = cluster_allocs[i][j];
-      datavec[comp].push_back(data[i][j]);
-    }
-  }
+	std::vector<std::vector<double>> datavec(numComponents);
+	for (int h = 0; h < numComponents; h++)
+		datavec[h].reserve(numdata);
+		
+	for (int i = 0; i < numGroups; i++) {
+		for (int j = 0; j < samplesPerGroup[i]; j++) {
+			int comp = cluster_allocs[i][j];
+			datavec[comp].push_back(data[i][j]);
+		}
+	}
 
-#pragma omp parallel for
-  for (int h = 0; h < numComponents; h++) {
-    std::vector<double> params = utils::normalGammaUpdate(
-        datavec[h], priorMean, priorA, priorB, priorLambda);
-    double tau = stan::math::gamma_rng(params[1], params[2], rng);
-    double sigmaNorm = 1.0 / std::sqrt(tau * params[3]);
-    double mu = stan::math::normal_rng(params[0], sigmaNorm, rng);
-    means[h] = mu;
-    stddevs[h] = 1.0 / std::sqrt(tau);
-  }
+	#pragma omp parallel for
+	for (int h = 0; h < numComponents; h++) {
+		std::vector<double> params = utils::normalGammaUpdate(
+		datavec[h], priorMean, priorA, priorB, priorLambda);
+		double tau = stan::math::gamma_rng(params[1], params[2], rng);
+		double sigmaNorm = 1.0 / std::sqrt(tau * params[3]);
+		double mu = stan::math::normal_rng(params[0], sigmaNorm, rng);
+		means[h] = mu;
+		stddevs[h] = 1.0 / std::sqrt(tau);
+	}
 }
 
 void SpatialMixtureSamplerBase::sampleAllocations() {
-  for (int i = 0; i < numGroups; i++) {
-#pragma omp parallel for
-    for (int j = 0; j < samplesPerGroup[i]; j++) {
-      double datum = data[i][j];
-      Eigen::VectorXd logProbas(numComponents);
-      for (int h = 0; h < numComponents; h++) {
-        logProbas(h) = std::log(weights(i, h) + 1e-6) +
-                       normal_lpdf(datum, means[h], stddevs[h]);
-      }
-      Eigen::VectorXd probas = logProbas.array().exp();
-      probas /= probas.sum();
-      cluster_allocs[i][j] = categorical_rng(probas, rng) - 1;
-    }
-  }
+	for (int i = 0; i < numGroups; i++) {
+		
+		#pragma omp parallel for
+    	for (int j = 0; j < samplesPerGroup[i]; j++) {
+      		double datum = data[i][j];
+      		Eigen::VectorXd logProbas(numComponents);
+      		for (int h = 0; h < numComponents; h++) {
+        		logProbas(h) = std::log(weights(i, h) + 1e-6) + normal_lpdf(datum, means[h], stddevs[h]);
+			}
+			Eigen::VectorXd probas = logProbas.array().exp();
+			probas /= probas.sum();
+			cluster_allocs[i][j] = categorical_rng(probas, rng) - 1;
+    	}
+	}
 }
 
 void SpatialMixtureSamplerBase::sampleWeights() {
@@ -414,12 +416,14 @@ UnivariateState SpatialMixtureSamplerBase::getStateAsProto() {
     *p->mutable_cluster_allocs() = {cluster_allocs[i].begin(),
                                     cluster_allocs[i].end()};
   }
+
   for (int h = 0; h < numComponents; h++) {
     UnivariateMixtureAtom *atom;
     atom = state.add_atoms();
     atom->set_mean(means[h]);
     atom->set_stdev(stddevs[h]);
   }
+
   state.set_rho(rho);
   state.mutable_sigma()->set_rows(Sigma.rows());
   state.mutable_sigma()->set_cols(Sigma.cols());
