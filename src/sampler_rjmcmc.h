@@ -36,6 +36,10 @@ public:
 	void sampleSigma() override;
 
 	void betweenModelMove();
+
+	void IncreaseMove();
+
+	void ReduceMove();
 };
 
 #endif // RJMCMC_SAMPLER_HH
