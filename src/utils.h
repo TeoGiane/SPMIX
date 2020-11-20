@@ -59,9 +59,7 @@ void _dephtFirstSearch(const Eigen::MatrixXd &adjacency, int curr_node,
                        std::vector<int> *node2comp,
                        int curr_comp);
 
-double matrix_normal_prec_lpdf(
-    Eigen::MatrixXd x, Eigen::MatrixXd m, Eigen::MatrixXd A,
-    Eigen::MatrixXd B);
+double matrix_normal_prec_lpdf(Eigen::MatrixXd x, Eigen::MatrixXd m, Eigen::MatrixXd A, Eigen::MatrixXd B);
 
 Rcpp::RawVector str2raw(const std::string & str);
 
