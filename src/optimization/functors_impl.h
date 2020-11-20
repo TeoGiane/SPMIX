@@ -12,6 +12,7 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 	Eigen::Matrix<T, Eigen::Dynamic, 1> means_ext;
 	Eigen::Matrix<T, Eigen::Dynamic, 1> sqrt_std_devs_ext;
 	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Sigma_ext;
+	std::vector<std::vector<double>> postNormalGammaParams_ext = postNormalGammaParams;
 
 	// Splitting input vector
 	Eigen::Matrix<T, Eigen::Dynamic, 1> weights_toadd(numGroups);
@@ -85,12 +86,17 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 	}
 	//Rcpp::Rcout << "data ok" << std::endl;
     // Contributions from kernels
+	std::vector<double> params_ext = utils::normalGammaUpdate(std::vector<double>(),params.p0_params().mu0(),
+															  params.p0_params().a(),params.p0_params().b(),
+															  params.p0_params().lam_());
+	postNormalGammaParams_ext.push_back(params_ext);
+
     for (int h = 0; h < numComponents_ext; ++h) {
 		T sigma = sqrt_std_devs_ext(h)*sqrt_std_devs_ext(h);
 		T sigmasq = sigma*sigma;
-		T means_stdev = sigma / std::sqrt(params.p0_params().lam_());
-		output += stan::math::inv_gamma_lpdf(sigmasq, params.p0_params().a(), params.p0_params().b()) +
-                  stan::math::normal_lpdf(means_ext(h), params.p0_params().mu0(), means_stdev);
+		T means_stdev = sigma / std::sqrt(postNormalGammaParams_ext[h][3]);
+		output += stan::math::inv_gamma_lpdf(sigmasq, postNormalGammaParams_ext[h][1], postNormalGammaParams_ext[h][2]) +
+                  stan::math::normal_lpdf(means_ext(h), postNormalGammaParams_ext[h][0], means_stdev);
 		//T std_dev = sqrt_std_devs_ext(h)*sqrt_std_devs_ext(h)*sqrt_std_devs_ext(h)*sqrt_std_devs_ext(h);
 		//T tau = 1.0/(std_dev * std_dev);
 		//T sigmaNorm = std_dev / std::sqrt(params.p0_params().lam_());

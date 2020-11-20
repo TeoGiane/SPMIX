@@ -12,6 +12,7 @@
 #include "univariate_mixture_state.pb.h"
 #include "sampler_params.pb.h"
 #include "utils.h"
+#include "mcmc_utils.h"
 
 namespace function {
 
@@ -35,20 +36,22 @@ class spmixLogLikelihood : public functorBase<spmixLogLikelihood> {
 	double rho;
 	Eigen::VectorXd means;
 	Eigen::VectorXd sqrt_std_devs;
+	std::vector<std::vector<double>> postNormalGammaParams;
 	Eigen::VectorXd transformed_weights_vect;
 	Eigen::MatrixXd Sigma;
   public:
-	spmixLogLikelihood(const std::vector<std::vector<double>> & _data, const Eigen::MatrixXd & _W,
-					   const SamplerParams & _params, const UnivariateState & _state);
+	/*spmixLogLikelihood(const std::vector<std::vector<double>> & _data, const Eigen::MatrixXd & _W,
+					   const SamplerParams & _params, const UnivariateState & _state);*/
 
 	spmixLogLikelihood(const std::vector<std::vector<double>> & _data,
 					   const Eigen::MatrixXd & _W,
-					   const SamplerParams & _params, 
+					   const SamplerParams & _params,
 					   int _numGroups,
 					   int _numComponents,
 					   double _rho,
 					   const Eigen::VectorXd & _means,
 					   const Eigen::VectorXd & _sqrt_std_devs,
+					   const std::vector<std::vector<double>> & _postNormalGammaParams,
 					   const Eigen::VectorXd & _transformed_weights_vect,
 					   const Eigen::MatrixXd & _Sigma);
 

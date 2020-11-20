@@ -3,7 +3,7 @@
 namespace function {
 
 /* Definitions for spmixLogLikelihood */
-spmixLogLikelihood::spmixLogLikelihood(const std::vector<std::vector<double>> & _data, const Eigen::MatrixXd & _W,
+/*spmixLogLikelihood::spmixLogLikelihood(const std::vector<std::vector<double>> & _data, const Eigen::MatrixXd & _W,
                                        const SamplerParams & _params, const UnivariateState & _state):
 data(_data), W(_W), params(_params), numGroups(data.size()) {
 
@@ -40,7 +40,7 @@ data(_data), W(_W), params(_params), numGroups(data.size()) {
             Sigma(i,j) = _state.sigma().data()[i*_state.sigma().rows()+j];
         }
     }
-}
+}*/
 
 spmixLogLikelihood::spmixLogLikelihood(const std::vector<std::vector<double>> & _data,
                                        const Eigen::MatrixXd & _W,
@@ -50,10 +50,12 @@ spmixLogLikelihood::spmixLogLikelihood(const std::vector<std::vector<double>> & 
                                        double _rho,
                                        const Eigen::VectorXd & _means,
                                        const Eigen::VectorXd & _sqrt_std_devs,
+                                       const std::vector<std::vector<double>> & _postNormalGammaParams,
                                        const Eigen::VectorXd & _transformed_weights_vect,
                                        const Eigen::MatrixXd & _Sigma):
 data(_data), W(_W), params(_params), numGroups(_numGroups), numComponents(_numComponents), rho(_rho), means(_means),
-sqrt_std_devs(_sqrt_std_devs), transformed_weights_vect(_transformed_weights_vect), Sigma(_Sigma) {};
+sqrt_std_devs(_sqrt_std_devs), postNormalGammaParams(_postNormalGammaParams),
+transformed_weights_vect(_transformed_weights_vect), Sigma(_Sigma) {};
 
 double spmixLogLikelihood::operator()() const {
 
@@ -83,9 +85,9 @@ double spmixLogLikelihood::operator()() const {
     // Contributions from kernels
     for (int h = 0; h < numComponents; ++h) {
     	double sigmasq = sqrt_std_devs(h)*sqrt_std_devs(h)*sqrt_std_devs(h)*sqrt_std_devs(h);
-		double means_stdev = std::sqrt(sigmasq / params.p0_params().lam_());
-		output += stan::math::inv_gamma_lpdf(sigmasq, params.p0_params().a(), params.p0_params().b()) +
-                  stan::math::normal_lpdf(means(h), params.p0_params().mu0(), means_stdev);
+		double means_stdev = std::sqrt(sigmasq / postNormalGammaParams[h][3]);
+		output += stan::math::inv_gamma_lpdf(sigmasq, postNormalGammaParams[h][1], postNormalGammaParams[h][2]) +
+                  stan::math::normal_lpdf(means(h), postNormalGammaParams[h][0], means_stdev);
     }
 
     // Contribution from weights
