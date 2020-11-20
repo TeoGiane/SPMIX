@@ -11,7 +11,8 @@ protected:
 	// prior for Sigma --> here is an InvGamma
 	double alpha_Sigma;
 	double beta_Sigma;
-	int count{1};
+	int cutoff{2};
+	int acceptedMoves{0};
 
 	// Options for Newton Method for Optimization
 	OptimOptions options;
@@ -35,11 +36,15 @@ public:
 
 	void sampleSigma() override;
 
+	void labelSwitch();
+
 	void betweenModelMove();
 
 	void IncreaseMove();
 
 	void ReduceMove();
+
+	int get_acceptedMoves() {return acceptedMoves;};
 };
 
 #endif // RJMCMC_SAMPLER_HH
