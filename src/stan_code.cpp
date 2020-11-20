@@ -162,8 +162,8 @@ void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<doubl
     Rcpp::XPtr<OptimOptions>(Rcpp::as<Rcpp::XPtr<OptimOptions>>(options.slot("pointer")))
     	->SerializeToString(&tmp); options_cp.ParseFromString(tmp);
 
-    function::spmixLogLikelihood fun(data, W, params_cp, state_cp);
-    //function::test_function fun;
+    //function::spmixLogLikelihood fun(data, W, params_cp, state_cp);
+    function::test_function fun;
     optimization::NewtonMethod<decltype(fun)> solver(fun, options_cp);
 
     // Initialize and executing Newton Method
@@ -223,8 +223,8 @@ void grad_ascent_test(const Rcpp::S4 & state, const std::vector<std::vector<doub
         ->SerializeToString(&tmp); options_cp.ParseFromString(tmp);
 
     // Instanciating functor and solver
-    //function::test_function fun;
-    function::spmixLogLikelihood fun(data, W, params_cp, state_cp);
+    function::test_function fun;
+    //function::spmixLogLikelihood fun(data, W, params_cp, state_cp);
     optimization::GradientAscent<decltype(fun)> solver(fun, options_cp);
 
     // Initialize and executing Gradient Ascent Method
@@ -243,6 +243,7 @@ void grad_ascent_test(const Rcpp::S4 & state, const std::vector<std::vector<doub
 	return;
 }
 
+/*
 //' Test to evaluate the acceptance rate in case of extension move
 //' @export
 // [[Rcpp::export]]
@@ -455,7 +456,7 @@ void ReduceMove_test(const std::vector<std::vector<double>> & data,
     << "sqrt_stddevs_reduced: " << utils::removeElem(sqrt_stddevs, to_drop).transpose() << "\n"
     << "Sigma_reduced:\n" << utils::removeRowColumn(Sigma,to_drop) << std::endl;*/
 
-    function::spmixLogLikelihood loglik_reduced(data, W, params_cp, numGroups, numComponents-1, rho,
+    /*function::spmixLogLikelihood loglik_reduced(data, W, params_cp, numGroups, numComponents-1, rho,
                                                 utils::removeElem(means_map,to_drop), utils::removeElem(sqrt_stddevs,to_drop),
                                                 trans_weights_vect_reduced, utils::removeRowColumn(Sigma,to_drop));
 
@@ -512,7 +513,7 @@ void ReduceMove_test(const std::vector<std::vector<double>> & data,
     << "Sigma:\n" << Sigma << std::endl << std::endl;
 
     return;
-}
+}*/
 
 //' Test fot the RJSampler
 //' @export
@@ -579,4 +580,13 @@ void poisson_lpmf(size_t seed) {
     Rcpp::Rcout << std::endl;    
 
     return;
+}
+
+//' Test to swap two columns of a matrix with eigen
+//' @export
+// [[Rcpp::export]]
+Eigen::MatrixXd swapCols(Eigen::MatrixXd mat, unsigned int index1, unsigned int index2){
+    Eigen::MatrixXd out = mat;
+    out.col(index1).swap(out.col(index2));
+    return out;
 }

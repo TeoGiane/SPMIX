@@ -46,12 +46,6 @@ readDataFromCSV <- function(filename) {
     .Call(`_SPMIX_readDataFromCSV`, filename)
 }
 
-#' Loglikelihood of a Spatial Mixture model state
-#' @export
-spmixLogLikelihood <- function(state, data, W, params) {
-    .Call(`_SPMIX_spmixLogLikelihood`, state, data, W, params)
-}
-
 #' Simple test with stan/math C++ library
 #'
 #' Simply computes logN(1|2,3)
@@ -90,18 +84,6 @@ grad_ascent_test <- function(state, data, W, params, options) {
     invisible(.Call(`_SPMIX_grad_ascent_test`, state, data, W, params, options))
 }
 
-#' Test to evaluate the acceptance rate in case of extension move
-#' @export
-IncreaseMove_test <- function(data, W, params, state, options) {
-    invisible(.Call(`_SPMIX_IncreaseMove_test`, data, W, params, state, options))
-}
-
-#' Test to evaluate the acceptance rate in case of reduction move
-#' @export
-ReduceMove_test <- function(data, W, params, state, options) {
-    invisible(.Call(`_SPMIX_ReduceMove_test`, data, W, params, state, options))
-}
-
 #' Test fot the RJSampler
 #' @export
 RJsampler_test <- function(data, W, params, options) {
@@ -112,5 +94,11 @@ RJsampler_test <- function(data, W, params, options) {
 #' @export
 poisson_lpmf <- function(seed) {
     invisible(.Call(`_SPMIX_poisson_lpmf`, seed))
+}
+
+#' Test to swap two columns of a matrix with eigen
+#' @export
+swapCols <- function(mat, index1, index2) {
+    .Call(`_SPMIX_swapCols`, mat, index1, index2)
 }
 

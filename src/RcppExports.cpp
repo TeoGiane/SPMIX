@@ -89,20 +89,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// spmixLogLikelihood
-double spmixLogLikelihood(const Rcpp::S4& state, const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const Rcpp::S4& params);
-RcppExport SEXP _SPMIX_spmixLogLikelihood(SEXP stateSEXP, SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const Rcpp::S4& >::type state(stateSEXP);
-    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::S4& >::type params(paramsSEXP);
-    rcpp_result_gen = Rcpp::wrap(spmixLogLikelihood(state, data, W, params));
-    return rcpp_result_gen;
-END_RCPP
-}
 // stan_HelloWorld
 void stan_HelloWorld();
 RcppExport SEXP _SPMIX_stan_HelloWorld() {
@@ -170,34 +156,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// IncreaseMove_test
-void IncreaseMove_test(const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const Rcpp::S4& params, const Rcpp::S4& state, const Rcpp::S4& options);
-RcppExport SEXP _SPMIX_IncreaseMove_test(SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP, SEXP stateSEXP, SEXP optionsSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::S4& >::type params(paramsSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::S4& >::type state(stateSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::S4& >::type options(optionsSEXP);
-    IncreaseMove_test(data, W, params, state, options);
-    return R_NilValue;
-END_RCPP
-}
-// ReduceMove_test
-void ReduceMove_test(const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const Rcpp::S4& params, const Rcpp::S4& state, const Rcpp::S4& options);
-RcppExport SEXP _SPMIX_ReduceMove_test(SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP, SEXP stateSEXP, SEXP optionsSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::S4& >::type params(paramsSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::S4& >::type state(stateSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::S4& >::type options(optionsSEXP);
-    ReduceMove_test(data, W, params, state, options);
-    return R_NilValue;
-END_RCPP
-}
 // RJsampler_test
 void RJsampler_test(const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const Rcpp::S4& params, const Rcpp::S4& options);
 RcppExport SEXP _SPMIX_RJsampler_test(SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP, SEXP optionsSEXP) {
@@ -221,6 +179,19 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// swapCols
+Eigen::MatrixXd swapCols(Eigen::MatrixXd mat, unsigned int index1, unsigned int index2);
+RcppExport SEXP _SPMIX_swapCols(SEXP matSEXP, SEXP index1SEXP, SEXP index2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type mat(matSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type index1(index1SEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type index2(index2SEXP);
+    rcpp_result_gen = Rcpp::wrap(swapCols(mat, index1, index2));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_alr", (DL_FUNC) &_SPMIX_alr, 2},
@@ -229,17 +200,15 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_runSpatialRJSampler", (DL_FUNC) &_SPMIX_runSpatialRJSampler, 9},
     {"_SPMIX_readMatrixFromCSV", (DL_FUNC) &_SPMIX_readMatrixFromCSV, 1},
     {"_SPMIX_readDataFromCSV", (DL_FUNC) &_SPMIX_readDataFromCSV, 1},
-    {"_SPMIX_spmixLogLikelihood", (DL_FUNC) &_SPMIX_spmixLogLikelihood, 4},
     {"_SPMIX_stan_HelloWorld", (DL_FUNC) &_SPMIX_stan_HelloWorld, 0},
     {"_SPMIX_fromProto_tostring", (DL_FUNC) &_SPMIX_fromProto_tostring, 0},
     {"_SPMIX_readingStates", (DL_FUNC) &_SPMIX_readingStates, 1},
     {"_SPMIX_messageFromR", (DL_FUNC) &_SPMIX_messageFromR, 1},
     {"_SPMIX_newton_opt_test", (DL_FUNC) &_SPMIX_newton_opt_test, 5},
     {"_SPMIX_grad_ascent_test", (DL_FUNC) &_SPMIX_grad_ascent_test, 5},
-    {"_SPMIX_IncreaseMove_test", (DL_FUNC) &_SPMIX_IncreaseMove_test, 5},
-    {"_SPMIX_ReduceMove_test", (DL_FUNC) &_SPMIX_ReduceMove_test, 5},
     {"_SPMIX_RJsampler_test", (DL_FUNC) &_SPMIX_RJsampler_test, 4},
     {"_SPMIX_poisson_lpmf", (DL_FUNC) &_SPMIX_poisson_lpmf, 1},
+    {"_SPMIX_swapCols", (DL_FUNC) &_SPMIX_swapCols, 3},
     {NULL, NULL, 0}
 };
 
