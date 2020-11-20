@@ -147,7 +147,7 @@ std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin
     REprintf("SPMIX RJ Sampler: Burn-in\n");
     Progress p_burn(burnin, display_progress);
     for (int i=0; i < burnin; i++) {
-        Rcpp::Rcout << "Burn-in iter: " << i+1 << std::endl;
+        //Rcpp::Rcout << "Burn-in iter: " << i+1 << std::endl;
         spSampler.sample();
         p_burn.increment();
     }
@@ -158,7 +158,7 @@ std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin
     REprintf("SPMIX RJ Sampler: Running\n");
     Progress p_run(niter, display_progress);
     for (int i=0; i < niter; i++) {
-        Rcpp::Rcout << "Running iter: " << i+1 << std::endl;
+        //Rcpp::Rcout << "Running iter: " << i+1 << std::endl;
         spSampler.sample();
         if ((i+1) % thin == 0) {
             std::string s;
@@ -172,6 +172,7 @@ std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin
 
     double duration = std::chrono::duration<double>(end - start).count();
     Rcpp::Rcout << "Duration: " << duration << std::endl;
+    Rcpp::Rcout << "Acceptance rate: " << static_cast<double>(spSampler.get_acceptedMoves())/(burnin+niter)*100 << "%" << std::endl;
     return out;
 }
 
@@ -189,7 +190,7 @@ std::vector<std::vector<double>> readDataFromCSV(std::string filename) {
     return utils::readDataFromCSV(filename);
 }
 
-
+/*
 //' Loglikelihood of a Spatial Mixture model state
 //' @export
 // [[Rcpp::export]]
@@ -221,6 +222,6 @@ double spmixLogLikelihood(const Rcpp::S4 & state, const std::vector<std::vector<
 
     function::spmixLogLikelihood fun(data, W, params_cp, state_cp);
     return fun();
-}
+}*/
 
 #endif // SPMIX_EXPORTS
