@@ -43,6 +43,7 @@ class SpatialMixtureSamplerBase {
 	int numComponents;
 	std::vector<double> means;
 	std::vector<double> stddevs;
+	std::vector<std::vector<double>> postNormalGammaParams;
 
 	Eigen::MatrixXd weights; // one set of weights per location
 	Eigen::MatrixXd transformed_weights;

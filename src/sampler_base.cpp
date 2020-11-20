@@ -144,6 +144,9 @@ void SpatialMixtureSamplerBase::init() {
 
 void SpatialMixtureSamplerBase::sampleAtoms() {
 
+  // clear storage for posterior parameters
+  postNormalGammaParams.clear();
+
 	std::vector<std::vector<double>> datavec(numComponents);
 	for (int h = 0; h < numComponents; h++)
 		datavec[h].reserve(numdata);
@@ -155,15 +158,17 @@ void SpatialMixtureSamplerBase::sampleAtoms() {
 		}
 	}
 
-	#pragma omp parallel for
+	//#pragma omp parallel for
 	for (int h = 0; h < numComponents; h++) {
-		std::vector<double> params = utils::normalGammaUpdate(
-		datavec[h], priorMean, priorA, priorB, priorLambda);
+		std::vector<double> params = utils::normalGammaUpdate(datavec[h], priorMean, priorA, priorB, priorLambda);
 		double tau = stan::math::gamma_rng(params[1], params[2], rng);
 		double sigmaNorm = 1.0 / std::sqrt(tau * params[3]);
 		double mu = stan::math::normal_rng(params[0], sigmaNorm, rng);
 		means[h] = mu;
 		stddevs[h] = 1.0 / std::sqrt(tau);
+
+    // Add params to postNormalGammaParams
+    postNormalGammaParams.push_back(params);
 	}
 }
 
