@@ -66,18 +66,32 @@ rm(list=c('i','j','x_coor','y_coor','check_prox'))
 # Sampler Execution -------------------------------------------------------
 
 # Setting MCMC parameters
-burnin = 400
-niter = 600
-thin = 5
+burnin = 5000
+niter = 5000
+thin = 2
 
 # Grab input filenames
 params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
 # options_filename = system.file("input_files/optimization_options.asciipb", package = "SPMIX")
 
-# Run test utility
-out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc", display_progress = FALSE)
-save('out', file = "output.txt")
-#RJsampler_test(data_obj, w_obj, params_obj, options_obj)
+# Run Spatial sampler
+out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
+save('out', file = "SPMIXoutput10K.dat")
+
+# Data analysis on chains (ONGOING)
+chains <- sapply(out, function(x) unserialize_proto("UnivariateState",x))
+H_chain <- sapply(chains, function(x) x$num_components)
+means_chain <- sapply(chains, function(x) sapply(x$atoms, function(x) x$mean))
+stdev_chain <- sapply(chains, function(x) sapply(x$atoms, function(x) x$stdev))
+weights_chain <- sapply(chains, function(x) x$groupParams[[1]]$weights)
+x_grid <- seq(-6,6, length.out = 500)
+est_dens <- seq(0, length.out = length(x_grid))
+for (i in 1:length(chains)) {
+  for (h in 1:H_chain[i]) {
+    est_dens <- est_dens + weights_chain[[i]][h]*dnorm(x_grid,means_chain[[i]][h], stdev_chain[[i]][h])
+  }
+}
+est_dens <- est_dens/length(chains)
 
 ###########################################################################
 
