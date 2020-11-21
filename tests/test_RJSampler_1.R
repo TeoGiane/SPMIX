@@ -35,7 +35,7 @@ stdev_chain <- sapply(chains, function(x) sapply(x$atoms, function(x) x$stdev))
 weights_chain <- sapply(chains, function(x) x$groupParams[[1]]$weights)
 
 # Barplot for the number of components
-x11(height = 4, width = 8.27); barplot(table(H_chain))
+x11(height = 4, width = 8.27); barplot(table(H_chain)/length(chains),ylim = c(0,0.5))
 title("Posterior of H")
 
 # Plotting the average density over iterations and compare with true curve
