@@ -55,7 +55,13 @@ spmixLogLikelihood::spmixLogLikelihood(const std::vector<std::vector<double>> & 
                                        const Eigen::MatrixXd & _Sigma):
 data(_data), W(_W), params(_params), numGroups(_numGroups), numComponents(_numComponents), rho(_rho), means(_means),
 sqrt_std_devs(_sqrt_std_devs), postNormalGammaParams(_postNormalGammaParams),
-transformed_weights_vect(_transformed_weights_vect), Sigma(_Sigma) {};
+transformed_weights_vect(_transformed_weights_vect), Sigma(_Sigma) {
+
+	// Computing F
+	F = Eigen::MatrixXd::Zero(numGroups, numGroups);
+	for (int i = 0; i < numGroups; i++)
+		F(i, i) = rho*W.row(i).sum()+(1.-rho);
+};
 
 double spmixLogLikelihood::operator()() const {
 
@@ -92,9 +98,6 @@ double spmixLogLikelihood::operator()() const {
 
     // Contribution from weights
     if (numComponents > 1) {
-		Eigen::MatrixXd F = Eigen::MatrixXd::Zero(numGroups, numGroups);
-		for (int i = 0; i < numGroups; i++)
-			F(i, i) = rho * W.row(i).sum() + (1 - rho);
 		Eigen::VectorXd weightsMean = Eigen::VectorXd::Zero(transformed_weights.size()); //TO IMPROVE INDEED
 		Eigen::MatrixXd F_rhoWInv = (F-rho*W).inverse();
 		Eigen::MatrixXd weightsCov = Eigen::kroneckerProduct(F_rhoWInv, Sigma);

@@ -39,6 +39,7 @@ class spmixLogLikelihood : public functorBase<spmixLogLikelihood> {
 	std::vector<std::vector<double>> postNormalGammaParams;
 	Eigen::VectorXd transformed_weights_vect;
 	Eigen::MatrixXd Sigma;
+	Eigen::MatrixXd F;
   public:
 	/*spmixLogLikelihood(const std::vector<std::vector<double>> & _data, const Eigen::MatrixXd & _W,
 					   const SamplerParams & _params, const UnivariateState & _state);*/
