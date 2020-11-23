@@ -24,7 +24,7 @@ thin = 2
 params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
 
 # Run Spatial sampler
-out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc", display_progress = TRUE)
+out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
 save(out, file = "RJTest1_output_10k.dat")
 
 # Analyses
