@@ -44,8 +44,8 @@ void SpatialMixtureRJSampler::sample() {
 	sampleWeights();
 	sampleSigma();
 	sampleRho();
-	//Rcpp::Rcout << "jump\n";
 	labelSwitch();
+	//Rcpp::Rcout << "jump\n";
 	betweenModelMove();
 	sampleAllocations();
 }
