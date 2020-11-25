@@ -145,7 +145,7 @@ void SpatialMixtureSamplerBase::init() {
 void SpatialMixtureSamplerBase::sampleAtoms() {
 
 	// Resize storage for posterior parameters
-	postNormalGammaParams.resize(numComponents);
+	postNormalGammaParams.resize(numComponents,4);
 
 	std::vector<std::vector<double>> datavec(numComponents);
 	for (int h = 0; h < numComponents; h++)
@@ -168,7 +168,7 @@ void SpatialMixtureSamplerBase::sampleAtoms() {
 		stddevs[h] = 1.0 / std::sqrt(tau);
 
 	    // Add params to postNormalGammaParams
-	    postNormalGammaParams[h] = params;
+	    postNormalGammaParams.row(h) = Eigen::Map<Eigen::VectorXd>(params.data(), params.size());
 	}
 }
 
