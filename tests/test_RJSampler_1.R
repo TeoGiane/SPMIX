@@ -7,7 +7,7 @@ readProtoFiles(system.file("proto/univariate_mixture_state.proto", package = "SP
 # Generate data (1 location, mixture of 3 normals)
 set.seed(230196)
 ngroups <- 1; ncomponents <- 3; N <- 1000
-means <- c(-4,0,4); std_devs <- c(1,1,1); weights <- c(rep(1/3,3))
+means <- c(-2,0,5); std_devs <- c(1,1,1); weights <- c(1/6,3/6,2/6)
 cluster_alloc <- sample(1:ncomponents, prob = weights, size = N, replace = T)
 data <- list(); data[[1]] <- rnorm(N, mean = means[cluster_alloc], sd = std_devs[cluster_alloc])
 
@@ -25,7 +25,8 @@ params_filename = system.file("input_files/rjsampler_params.asciipb", package = 
 
 # Run Spatial sampler
 out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
-save(out, file = "RJTest1_output_10k.dat")
+# save(out, file = "RJTest1_output_10k.dat")
+save(out, file = "RJTest1_output_10k_noswitch.dat")
 
 # Analyses
 chains <- sapply(out, function(x) unserialize_proto("UnivariateState",x))
@@ -33,6 +34,7 @@ H_chain <- sapply(chains, function(x) x$num_components)
 means_chain <- sapply(chains, function(x) sapply(x$atoms, function(x) x$mean))
 stdev_chain <- sapply(chains, function(x) sapply(x$atoms, function(x) x$stdev))
 weights_chain <- sapply(chains, function(x) x$groupParams[[1]]$weights)
+allocs_chain <- sapply(chains, function(x) table(x$groupParams[[1]]$cluster_allocs))
 
 # Barplot for the number of components
 x11(height = 4, width = 8.27); barplot(table(H_chain)/length(chains),ylim = c(0,0.5))
