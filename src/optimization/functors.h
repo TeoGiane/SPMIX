@@ -35,10 +35,11 @@ class spmixLogLikelihood : public functorBase<spmixLogLikelihood> {
 	int numComponents;
 	double rho;
 	Eigen::VectorXd means;
-	Eigen::VectorXd sqrt_std_devs;
-	std::vector<std::vector<double>> postNormalGammaParams;
-	Eigen::VectorXd transformed_weights_vect;
+	Eigen::VectorXd sqrt_stddevs;
+	Eigen::MatrixXd transformed_weights;
 	Eigen::MatrixXd Sigma;
+	int dropped_index;
+	Eigen::MatrixXd postNormalGammaParams;
 	Eigen::MatrixXd F;
   public:
 	/*spmixLogLikelihood(const std::vector<std::vector<double>> & _data, const Eigen::MatrixXd & _W,
@@ -51,10 +52,11 @@ class spmixLogLikelihood : public functorBase<spmixLogLikelihood> {
 					   int _numComponents,
 					   double _rho,
 					   const Eigen::VectorXd & _means,
-					   const Eigen::VectorXd & _sqrt_std_devs,
-					   const std::vector<std::vector<double>> & _postNormalGammaParams,
-					   const Eigen::VectorXd & _transformed_weights_vect,
-					   const Eigen::MatrixXd & _Sigma);
+					   const Eigen::VectorXd & _sqrt_stddevs,
+					   const Eigen::MatrixXd & _postNormalGammaParams,
+					   const Eigen::MatrixXd & _transformed_weights,
+					   const Eigen::MatrixXd & _Sigma,
+					   int _dropped_index = -1);
 
 	double operator()() const;
 	template<typename T> T operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x) const;
