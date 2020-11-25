@@ -40,11 +40,12 @@ void SpatialMixtureRJSampler::sample() {
     	regress();
     	computeRegressionResiduals();
 	}*/
+	labelSwitch();
 	sampleAtoms();
+	sampleAllocations();
 	sampleWeights();
 	sampleSigma();
 	sampleRho();
-	labelSwitch();
 	//Rcpp::Rcout << "jump\n";
 	betweenModelMove();
 	sampleAllocations();
@@ -65,7 +66,7 @@ void SpatialMixtureRJSampler::sampleSigma() {
 		}
 	}
 
-	double sigma_new = stan::math::inv_gamma_rng(alpha_n/2, (1/beta_n)/2, rng);
+	double sigma_new = stan::math::inv_gamma_rng(alpha_n/2, beta_n/2, rng);
 	Sigma = sigma_new * Eigen::MatrixXd::Identity(numComponents - 1, numComponents -1);
 	_computeInvSigmaH();
 	return;
@@ -115,16 +116,15 @@ void SpatialMixtureRJSampler::IncreaseMove() {
 	//Rcpp::Rcout << "Increase." << std::endl;
 
 	// Build the extended loglikelihood
-	Eigen::Map<Eigen::VectorXd> trans_weights_vect(transformed_weights.block(0,0,numGroups,numComponents-1).data(),
-												   transformed_weights.block(0,0,numGroups,numComponents-1).size());
+	Eigen::MatrixXd trans_weights = transformed_weights.block(0,0,numGroups,numComponents-1);
 	Eigen::Map<Eigen::VectorXd> means_map(means.data(), means.size());
-	//Eigen::Map<Eigen::VectorXd> stddevs_map(stddevs.data(), stddevs.size());
 	Eigen::VectorXd sqrt_stddevs(numComponents);
 	for (int i = 0; i < numComponents; ++i)
 		sqrt_stddevs(i) = std::sqrt(stddevs[i]);
 
 	function::spmixLogLikelihood loglik_extended(data, W_init, params, numGroups, numComponents, rho,
-				   								 means_map, sqrt_stddevs, postNormalGammaParams, trans_weights_vect, Sigma);
+				   								 means_map, sqrt_stddevs, postNormalGammaParams,
+				   								 trans_weights, Sigma);
 
 	// Eliciting the approximated optimal proposal parameters
 	optimization::GradientAscent<decltype(loglik_extended)> solver(loglik_extended, options);
@@ -157,7 +157,6 @@ void SpatialMixtureRJSampler::IncreaseMove() {
 		++acceptedMoves;
 		++numComponents;
 		means.emplace_back(x(numGroups));
-		//stddevs.emplace_back(x(numGroups+1));
 		stddevs.emplace_back(x(numGroups+1)*x(numGroups+1));
 		transformed_weights.conservativeResize(numGroups, numComponents);
 		transformed_weights.col(numComponents-2) = x.head(numGroups);
@@ -174,6 +173,7 @@ void SpatialMixtureRJSampler::IncreaseMove() {
 		pippo.resize(numComponents-1);
 		sigma_star_h.resize(numGroups, numComponents-1);
 		_computeInvSigmaH();
+		sampleAllocations();
 		//Rcpp::Rcout << "State Enlarged" << std::endl;
 	}
 	return;
@@ -188,21 +188,16 @@ void SpatialMixtureRJSampler::ReduceMove() {
 	int to_drop = stan::math::categorical_rng(Eigen::VectorXd::Constant(numComponents-1, 1./(numComponents-1)), rng)-1;
 
 	// Build the reduced loglikelihood
-	Eigen::MatrixXd trans_weights_reduced = utils::removeColumn(transformed_weights.block(0,0,numGroups,numComponents-1),
-																to_drop);
-	Eigen::Map<Eigen::VectorXd> trans_weights_vect_reduced(trans_weights_reduced.data(),trans_weights_reduced.size());
+	Eigen::MatrixXd trans_weights = transformed_weights.block(0,0,numGroups,numComponents-1);
 	Eigen::Map<Eigen::VectorXd> means_map(means.data(), means.size());
-	//Eigen::Map<Eigen::VectorXd> stddevs_map(stddevs.data(), stddevs.size());
 	Eigen::VectorXd sqrt_stddevs(numComponents);
 	for (int i = 0; i < numComponents; ++i)
 		sqrt_stddevs(i) = std::sqrt(stddevs[i]);
-	std::vector<std::vector<double>> postNGParams_reduced = postNormalGammaParams;
-	postNGParams_reduced.erase(postNGParams_reduced.begin()+to_drop);
 
 	function::spmixLogLikelihood loglik_reduced(data, W_init, params, numGroups, numComponents-1, rho,
 				   								utils::removeElem(means_map,to_drop), utils::removeElem(sqrt_stddevs,to_drop),
-				   								postNGParams_reduced, trans_weights_vect_reduced,
-				   								utils::removeRowColumn(Sigma,to_drop));
+				   								postNormalGammaParams, utils::removeColumn(trans_weights, to_drop),
+				   								utils::removeRowColumn(Sigma,to_drop),to_drop);
 
 	// Eliciting the approximated optimal proposal parameters
 	optimization::GradientAscent<decltype(loglik_reduced)> solver(loglik_reduced, options);
@@ -213,9 +208,6 @@ void SpatialMixtureRJSampler::ReduceMove() {
 	Eigen::VectorXd optMean = solver.get_state().current_minimizer;
 	Eigen::MatrixXd optCov = -solver.get_state().current_hessian.inverse();
 
-	/*Rcpp::Rcout << "optMean: " << optMean.transpose() << "\n"
-	<< "optCov:\n" << optCov << std::endl;*/
-
 	double alpha{0.};
 	//Rcpp::Rcout << "Has stagnated? " << std::boolalpha << solver.get_state().stagnated << std::endl;
 	//Rcpp::Rcout << "Is negative stdev? " << std::boolalpha << (solver.get_state().current_minimizer(numGroups+1) < 0.) << std::endl;
@@ -223,8 +215,8 @@ void SpatialMixtureRJSampler::ReduceMove() {
 
 		// Compute Acceptance rate
 		alpha = std::exp(loglik_reduced()-loglik_reduced(x0)+stan::math::multi_normal_lpdf(x0,optMean,optCov)) *
-				//utils::numComponentsPrior(numComponents-1,0.3,1.1)/utils::numComponentsPrior(numComponents,0.3,1.1);
 				std::exp(stan::math::poisson_lpmf(numComponents-1,1)-stan::math::poisson_lpmf(numComponents,1));
+				//utils::numComponentsPrior(numComponents-1,0.3,1.1)/utils::numComponentsPrior(numComponents,0.3,1.1);
 	}
 
 	// Accept of Reject the move
@@ -246,6 +238,7 @@ void SpatialMixtureRJSampler::ReduceMove() {
 		pippo.resize(numComponents-1);
 		sigma_star_h.resize(numGroups, numComponents-1);
 		_computeInvSigmaH();
+		sampleAllocations();
 		//Rcpp::Rcout << "State Reduced" << std::endl;
 	}
 	return;
