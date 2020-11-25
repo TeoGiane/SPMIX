@@ -15,6 +15,8 @@
 #include <memory>
 #include <functional>
 
+#include <google/protobuf/text_format.h>
+
 #include "PolyaGamma.h"
 #include "sampler_params.pb.h"
 #include "univariate_mixture_state.pb.h"
@@ -247,95 +249,87 @@ void grad_ascent_test(const Rcpp::S4 & state, const std::vector<std::vector<doub
 //' @export
 // [[Rcpp::export]]
 void test_spmixloglikelihood(const std::vector<std::vector<double>> & data,
-                             const Eigen::MatrixXd & W, const Rcpp::S4 & params,
-                             const Rcpp::S4 & state) {
+                             const Eigen::MatrixXd & W, const std::string & params_str,
+                             const std::string & state_str) {
 
     //Omettiamo i controlli che tanto poi si cancella tutto
     // Create a deep-copy of the messages with the workaround
-    std::string tmp;
+    // std::string tmp;
 
-    // Params copy
-    SamplerParams params_cp;
-    Rcpp::XPtr<SamplerParams>(Rcpp::as<Rcpp::XPtr<SamplerParams>>(params.slot("pointer")))
-        ->SerializeToString(&tmp); params_cp.ParseFromString(tmp);
-
-    // State copy
-    UnivariateState state_cp;
-    Rcpp::XPtr<UnivariateState>(Rcpp::as<Rcpp::XPtr<UnivariateState>>(state.slot("pointer")))
-        ->SerializeToString(&tmp); state_cp.ParseFromString(tmp);
+    // Messages parsing
+    SamplerParams params; google::protobuf::TextFormat::ParseFromString(params_str, &params);
+    UnivariateState state; google::protobuf::TextFormat::ParseFromString(state_str, &state);
 
     // Build spmix objects with mtilde
-    int numGroups = data.size();
-    int numComponents = params_cp.num_components();
+	int numGroups = data.size();
+	int numComponents = params.num_components();
     double rho = 0.95;
     Eigen::VectorXd means(numComponents);
     Eigen::VectorXd sqrt_std_devs(numComponents);
     for (int i = 0; i < numComponents; ++i) {
-        means(i) = state_cp.atoms()[i].mean();
-        sqrt_std_devs(i) = std::sqrt(state_cp.atoms()[i].stdev());
+        means(i) = state.atoms()[i].mean();
+        sqrt_std_devs(i) = std::sqrt(state.atoms()[i].stdev());
     }
-    std::vector<std::vector<double>> postNormalGammaParams(numComponents);
-    for (int h = 0; h < numComponents; ++h) {
-        std::vector<double> tmp{{params_cp.p0_params().mu0(),params_cp.p0_params().a(),
-                                 params_cp.p0_params().b(), params_cp.p0_params().lam_()}};
-        postNormalGammaParams[h] = tmp;
+    Rcpp::Rcout << "means: " << means.transpose() << "\n"
+    << "sqrt_std_devs: " << sqrt_std_devs.transpose() << std::endl;
+
+    Eigen::MatrixXd postNormalGammaParams(numComponents,4);
+    for (int i = 0; i < numComponents; ++i){
+    	postNormalGammaParams.row(i) << params.p0_params().mu0(),params.p0_params().a(),
+    								    params.p0_params().b(), params.p0_params().lam_();
     }
-    Eigen::VectorXd transformed_weights_vect;
+    Rcpp::Rcout << "postNormalGammaParams:\n" << postNormalGammaParams << std::endl;
+
     Eigen::MatrixXd transformed_weights = Eigen::MatrixXd::Zero(numGroups, numComponents);
     Eigen::MatrixXd weights(numGroups, numComponents);
     for (int i = 0; i < numGroups; ++i) {
         Eigen::VectorXd tmp(numComponents);
         for (int j = 0; j < numComponents; ++j) {
-            tmp(j) = state_cp.groupparams()[i].weights()[j];
-            weights(i,j) = state_cp.groupparams()[i].weights()[j];
+            tmp(j) = state.groupparams()[i].weights()[j];
+            weights(i,j) = state.groupparams()[i].weights()[j];
         }
         transformed_weights.row(i) = utils::Alr(tmp, true);
     }
-    transformed_weights_vect.resize(transformed_weights.block(0,0,numGroups,numComponents-1).size());
-    transformed_weights_vect << transformed_weights.block(0,0,numGroups,numComponents-1);
-    Eigen::MatrixXd Sigma(state_cp.sigma().rows(), state_cp.sigma().cols());
-    for (int i = 0; i < state_cp.sigma().rows(); ++i) {
-        for (int j = 0; j < state_cp.sigma().cols(); ++j) {
-            Sigma(i,j) = state_cp.sigma().data()[i*state_cp.sigma().rows()+j];
+    Rcpp::Rcout << "weights:\n" << weights << "\n"
+    << "transformed_weights:\n" << transformed_weights << std::endl;
+
+    Eigen::MatrixXd Sigma = 0.85 * Eigen::MatrixXd::Identity(state.sigma().rows(), state.sigma().cols());
+    /*for (int i = 0; i < state.sigma().rows(); ++i) {
+        for (int j = 0; j < state.sigma().cols(); ++j) {
+            Sigma(i,j) = state.sigma().data()[i*state.sigma().rows()+j];
         }
-    }
-    std::vector<int> node2comp = utils::findConnectedComponents(W);
-    auto it = std::max_element(node2comp.begin(), node2comp.end());
-    int num_connected_comps = *it + 1;
-    Eigen::MatrixXd mtildes = Eigen::MatrixXd::Zero(num_connected_comps,numComponents);
-    std::vector<Eigen::VectorXd> mtildePostMean;
-    std::vector<Eigen::MatrixXd> mtildePostPrec;
-    for (int k = 0; k < num_connected_comps; ++k) {
-        Eigen::VectorXd m_tmp = Eigen::VectorXd::Zero(numComponents-1);
-        Eigen::MatrixXd prec_tmp = (1/params_cp.mtilde_sigmasq())*Eigen::MatrixXd::Identity(numComponents-1,numComponents-1);
-        mtildePostMean.emplace_back(m_tmp);
-        mtildePostPrec.emplace_back(prec_tmp);
-    }
+    }*/
+    Rcpp::Rcout << "Sigma:\n" << Sigma << std::endl << std::endl;
 
-    /*function::spmixLogLikelihood fun(data,W,params_cp,numGroups,numComponents,
-                                     rho, means, sqrt_std_devs, postNormalGammaParams,
-                                     transformed_weights_vect,Sigma,mtildes.block(0,0,num_connected_comps,numComponents-1),
-                                     mtildePostMean,mtildePostPrec);*/
-    function::spmixLogLikelihood fun(data,W,params_cp,numGroups,numComponents,
-                                     rho, means, sqrt_std_devs, postNormalGammaParams,
-                                     transformed_weights_vect,Sigma);
+    // Auxiliary variables to instanciate various tests
+    int to_drop = 2;
+    Eigen::MatrixXd trans_weights = transformed_weights.block(0,0,numGroups,numComponents-1);
 
-    Eigen::VectorXd x(numGroups+num_connected_comps+2);
-    Rcpp::Rcout << "with mtildes:" << std::endl;
-    x << 1,2,3,4,5,6,1,2,3,2.5,1;
-    auto start = std::chrono::high_resolution_clock::now();
-    double res = fun(x);
-    auto end = std::chrono::high_resolution_clock::now();
-    double duration = std::chrono::duration<double>(end - start).count();
-    Rcpp::Rcout << "Duration: " << duration << std::endl << std::endl;
+    // Instanciating functors
+    Rcpp::Rcout << "EVALUATING FUNCTION AND TESTING - EXPANSION:" << std::endl;
+    function::spmixLogLikelihood fun_extended(data,W,params,numGroups,numComponents,rho,means,sqrt_std_devs,
+    										  postNormalGammaParams,trans_weights,Sigma);
 
-    Rcpp::Rcout << "without mtildes:" << std::endl;
-    x.resize(numGroups+2); x << 1,2,3,4,5,6,2.5,1;
-    start = std::chrono::high_resolution_clock::now();
-    res = fun(x);
-    end = std::chrono::high_resolution_clock::now();
-    duration = std::chrono::duration<double>(end - start).count();
-    Rcpp::Rcout << "Duration: " << duration << std::endl << std::endl;
+    Eigen::VectorXd x(numGroups+2); x << 1,2,3,4,5,6,2.5,1;
+    Rcpp::Rcout << "x: " << x.transpose() << std::endl;
+    double res = fun_extended(x);
+    Rcpp::Rcout << "fun_extended(x): " << res << std::endl;
+    res = fun_extended();
+    Rcpp::Rcout << "fun_extended(): " << res << std::endl << std::endl;
+
+
+    Rcpp::Rcout << "EVALUATING FUNCTION AND TESTING - REDUCTION:" << std::endl;
+    function::spmixLogLikelihood fun_reduced(data,W,params,numGroups,numComponents-1,rho,
+    										 utils::removeElem(means,to_drop), utils::removeElem(sqrt_std_devs,to_drop),
+    										 postNormalGammaParams,utils::removeColumn(trans_weights,to_drop),
+    										 utils::removeRowColumn(Sigma,to_drop),to_drop);
+    x << trans_weights.col(to_drop), means(to_drop), sqrt_std_devs(to_drop);
+    Rcpp::Rcout << "x: " << x.transpose() << std::endl;
+    res = fun_reduced(x);
+    Rcpp::Rcout << "fun_reduced(x): " << res << std::endl;
+    res = fun_reduced();
+    Rcpp::Rcout << "fun_reduced(): " << res << std::endl;
+
     return;
 }
 
