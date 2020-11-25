@@ -86,8 +86,8 @@ grad_ascent_test <- function(state, data, W, params, options) {
 
 #' Test for loglikelohood with m_tilde contribution
 #' @export
-test_spmixloglikelihood <- function(data, W, params, state) {
-    invisible(.Call(`_SPMIX_test_spmixloglikelihood`, data, W, params, state))
+test_spmixloglikelihood <- function(data, W, params_str, state_str) {
+    invisible(.Call(`_SPMIX_test_spmixloglikelihood`, data, W, params_str, state_str))
 }
 
 #' Test fot the RJSampler

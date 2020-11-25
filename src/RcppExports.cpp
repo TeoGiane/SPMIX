@@ -157,15 +157,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // test_spmixloglikelihood
-void test_spmixloglikelihood(const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const Rcpp::S4& params, const Rcpp::S4& state);
-RcppExport SEXP _SPMIX_test_spmixloglikelihood(SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP, SEXP stateSEXP) {
+void test_spmixloglikelihood(const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const std::string& params_str, const std::string& state_str);
+RcppExport SEXP _SPMIX_test_spmixloglikelihood(SEXP dataSEXP, SEXP WSEXP, SEXP params_strSEXP, SEXP state_strSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::S4& >::type params(paramsSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::S4& >::type state(stateSEXP);
-    test_spmixloglikelihood(data, W, params, state);
+    Rcpp::traits::input_parameter< const std::string& >::type params_str(params_strSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type state_str(state_strSEXP);
+    test_spmixloglikelihood(data, W, params_str, state_str);
     return R_NilValue;
 END_RCPP
 }

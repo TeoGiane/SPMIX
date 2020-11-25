@@ -4,7 +4,7 @@
 \alias{test_spmixloglikelihood}
 \title{Test for loglikelohood with m_tilde contribution}
 \usage{
-test_spmixloglikelihood(data, W, params, state)
+test_spmixloglikelihood(data, W, params_str, state_str)
 }
 \description{
 Test for loglikelohood with m_tilde contribution
