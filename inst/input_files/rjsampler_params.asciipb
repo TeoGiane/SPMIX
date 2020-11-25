@@ -2,7 +2,7 @@ num_components: 2
 
 p0_params {
   mu0: 0
-  a: 2
+  a: 3
   b: 2
   lam_: 0.1
 }
