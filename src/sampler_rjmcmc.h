@@ -11,7 +11,7 @@ protected:
 	// prior for Sigma --> here is an InvGamma
 	double alpha_Sigma;
 	double beta_Sigma;
-	int cutoff{2};
+	int cutoff{10};
 	int acceptedMoves{0};
 
 	// Options for Newton Method for Optimization
