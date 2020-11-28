@@ -60,7 +60,7 @@ class spmixLogLikelihood : public functorBase<spmixLogLikelihood> {
 
 	double operator()() const;
 	template<typename T> T operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x) const;
-	Eigen::VectorXd init() const;
+	Eigen::VectorXd init(const int & randComp) const;
 };
 
 class test_function : public functorBase<test_function> {

@@ -95,6 +95,7 @@ double spmixLogLikelihood::operator()() const {
             output += stan::math::log_sum_exp(contributions);
         }
     }
+    //Rcpp::Rcout << "data contrib: " << output << std::endl;
 
     // Contributions from kernels
     for (int h = 0; h < numComponents; ++h) {
@@ -113,6 +114,7 @@ double spmixLogLikelihood::operator()() const {
                       stan::math::normal_lpdf(means(h), postNormalGammaParams_red(h,0), means_stdev);
         }
     }
+    //Rcpp::Rcout << "data + kernels contrib: " << output << std::endl;
 
     // Contribution from weights
     if (numComponents > 1) {
@@ -122,16 +124,17 @@ double spmixLogLikelihood::operator()() const {
 		Eigen::MatrixXd weightsCov = Eigen::kroneckerProduct(F_rhoWInv, Sigma);
 		output += stan::math::multi_normal_lpdf(tw_vec, weightsMean, weightsCov);
     }
-
+    //Rcpp::Rcout << "data + kernels + weights contrib: " << output << std::endl;
     // Contribution from other stuff, if needed (rho, m_tilde, H, Sigma)
     return output;
 };
 
-Eigen::VectorXd spmixLogLikelihood::init() const {
+Eigen::VectorXd spmixLogLikelihood::init(const int & randComp) const {
 
 	// Generate the initial point for the newton solver.
 	Eigen::VectorXd x0(numGroups + 2);
-	x0 << transformed_weights.rowwise().mean(), means.mean(), sqrt_stddevs.mean();
+    x0 << transformed_weights.col(randComp), means(randComp), sqrt_stddevs(randComp);
+	//x0 << transformed_weights.rowwise().mean(), means.mean(), sqrt_stddevs.mean();
 	return x0;
 }
 
