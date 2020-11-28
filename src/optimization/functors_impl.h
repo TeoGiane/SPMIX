@@ -96,6 +96,7 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 	        output += stan::math::log_sum_exp(contributions);
 	    }
 	}
+	//Rcpp::Rcout << "data contrib: " << output << std::endl;
 	//Rcpp::Rcout << "data ok" << std::endl;
 
     // Contributions from kernels
@@ -116,6 +117,8 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
             	      stan::math::normal_lpdf(means_ext(h), postNormalGammaParams(h,0), means_stdev);
         }
     }
+
+    //Rcpp::Rcout << "data + kernels contrib: " << output << std::endl;
     //Rcpp::Rcout << "kernels ok" << std::endl;
 
 	// Contribution from weights
@@ -130,6 +133,7 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 	}
 	//Rcpp::Rcout << "weights ok" << std::endl;
 
+	//Rcpp::Rcout << "data + kernels + weights contrib: " << output << std::endl;
 	// Contribution from other stuff if needed (rho, m_tilde, H, Sigma)
 	return output;
 }
