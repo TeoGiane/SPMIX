@@ -105,7 +105,7 @@ SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(),
 
       cat("Optimization Options required but not given: setting default values ... ")
       RProtoBuf::readProtoFiles(file = system.file("proto/optimization_options.proto", package = "SPMIX"))
-      options_in <- RProtoBuf::new(OptimOptions, max_iter = 1000, tol = 1e-12)
+      options_in <- RProtoBuf::new(OptimOptions, max_iter = 1000, tol = 1e-6)
       cat("done!\n")
 
     } else if(typeof(options) == "character") {
