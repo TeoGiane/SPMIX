@@ -7,7 +7,7 @@ readProtoFiles(system.file("proto/univariate_mixture_state.proto", package = "SP
 # Generate data (1 location, mixture of 3 normals)
 set.seed(230196)
 ngroups <- 1; ncomponents <- 3; N <- 1000
-means <- c(-2,1,5); std_devs <- c(0.5,1,0.25); weights <- c(1/6,3/6,2/6)
+means <- c(-4,1,5); std_devs <- c(0.5,1,0.5); weights <- c(1/6,3/6,2/6)
 cluster_alloc <- sample(1:ncomponents, prob = weights, size = N, replace = T)
 data <- list(); data[[1]] <- rnorm(N, mean = means[cluster_alloc], sd = std_devs[cluster_alloc])
 
@@ -16,8 +16,8 @@ W <- matrix(0, nrow = 1, ncol = 1, byrow = T)
 
 # Run Sampler
 # Setting MCMC parameters
-burnin = 2000
-niter = 2000
+burnin = 10000
+niter = 10000
 thin = 2
 
 # Grab input filenames
@@ -26,7 +26,7 @@ params_filename = system.file("input_files/rjsampler_params.asciipb", package = 
 # Run Spatial sampler
 out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")#, display_progress = F)
 # save(out, file="output.txt")
-# save(out, file = "RJTest1_output_10k.dat")
+# save(out, file = "RJTest1_output_20k.dat")
 # save(out, file = "RJTest1_output_10k_noswitch.dat")
 
 # Analyses
@@ -51,7 +51,7 @@ for (i in 1:length(chains)) {
   est_dens <- est_dens + t(as.matrix(weights_chain[[i]])) %*% dnorm(xgrid_expand,
                                                                     means_chain[[i]],stdev_chain[[i]])
 }
-est_dens <- est_dens / length(chains)
+est_dens <- est_dens/length(chains)
 
 # Computing true density
 xgrid_expand <- t(rbind(replicate(ncomponents, x_grid, simplify = "matrix")))
