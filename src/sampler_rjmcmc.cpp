@@ -105,14 +105,14 @@ void SpatialMixtureRJSampler::betweenModelMove() {
 
 	// Select the proper move
 	if (not increase)
-		ReduceMove();
+		reduceMove();
 	else
-		IncreaseMove();
+		increaseMove();
 
 	return;
 };
 
-void SpatialMixtureRJSampler::IncreaseMove() {
+void SpatialMixtureRJSampler::increaseMove() {
 
 	// Increase Case
 	//Rcpp::Rcout << "Increase." << std::endl;
@@ -186,10 +186,10 @@ void SpatialMixtureRJSampler::IncreaseMove() {
 			weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), true);
 		
 		// THE ATOMS SWITCH IS FOLLOWED BY THE WEIGHTS ONE!
-		weights.col(numComponents-2).swap(weights.col(numComponents-1));
+		/*weights.col(numComponents-2).swap(weights.col(numComponents-1));
 		for (int i = 0; i < numGroups; ++i){
 			transformed_weights.row(i) = utils::Alr(weights.row(i),true);
-		}
+		}*/
 
 		mtildes.conservativeResize(num_connected_comps, numComponents);
 		mtildes.col(numComponents-1) = Eigen::VectorXd::Zero(num_connected_comps);
@@ -206,7 +206,7 @@ void SpatialMixtureRJSampler::IncreaseMove() {
 	return;
 }
 
-void SpatialMixtureRJSampler::ReduceMove() {
+void SpatialMixtureRJSampler::reduceMove() {
 
 	// Reduction Case
 	//Rcpp::Rcout << "Reduce." << std::endl;

@@ -40,9 +40,9 @@ public:
 
 	void betweenModelMove();
 
-	void IncreaseMove();
+	void increaseMove();
 
-	void ReduceMove();
+	void reduceMove();
 
 	int get_acceptedMoves() {return acceptedMoves;};
 };
