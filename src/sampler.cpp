@@ -196,7 +196,7 @@ void SpatialMixtureSampler::sample() {
   sampleWeights();
   sampleSigma();
   sampleRho();
-  sample_mtilde();
+  //sample_mtilde();
 }
 
 /*void SpatialMixtureSampler::sampleAtoms() {
