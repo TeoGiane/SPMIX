@@ -16,15 +16,15 @@ W <- matrix(0, nrow = 1, ncol = 1, byrow = T)
 
 # Run Sampler
 # Setting MCMC parameters
-burnin = 10000
-niter = 10000
-thin = 2
+burnin = 20000
+niter = 20000
+thin = 4
 
 # Grab input filenames
-params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
+params_filename = system.file("input_files/sampler_params.asciipb", package = "SPMIX")
 
 # Run Spatial sampler
-out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")#, display_progress = F)
+out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "no_rjmcmc")#, display_progress = F)
 # save(out, file="output.txt")
 # save(out, file = "RJTest1_output_20k.dat")
 # save(out, file = "RJTest1_output_10k_noswitch.dat")
@@ -33,9 +33,9 @@ out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmc
 load("./tests/output.txt")
 chains <- sapply(out, function(x) unserialize_proto("UnivariateState",x))
 H_chain <- sapply(chains, function(x) x$num_components)
-means_chain <- sapply(chains, function(x) sapply(x$atoms, function(x) x$mean))
-stdev_chain <- sapply(chains, function(x) sapply(x$atoms, function(x) x$stdev))
-weights_chain <- sapply(chains, function(x) x$groupParams[[1]]$weights)
+means_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$mean))
+stdev_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$stdev))
+weights_chain <- lapply(chains, function(x) x$groupParams[[1]]$weights)
 # allocs_chain <- sapply(chains, function(x) table(x$groupParams[[1]]$cluster_allocs))
 
 # Barplot for the number of components
