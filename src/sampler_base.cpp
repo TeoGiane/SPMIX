@@ -190,10 +190,13 @@ void SpatialMixtureSamplerBase::sampleAllocations() {
 }
 
 void SpatialMixtureSamplerBase::sampleWeights() {
+
+  //_computeInvSigmaH();
+
   for (int i = 0; i < numGroups; i++) {
     std::vector<int> cluster_sizes(numComponents, 0);
 
-	#pragma omp parallel for
+	//#pragma omp parallel for
     for (int j = 0; j < samplesPerGroup[i]; j++)
       cluster_sizes[cluster_allocs[i][j]] += 1;
 

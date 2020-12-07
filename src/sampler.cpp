@@ -192,8 +192,10 @@ void SpatialMixtureSampler::sample() {
     computeRegressionResiduals();
   }
   sampleAtoms();
-  sampleAllocations();
-  sampleWeights();
+  for (int i = 0; i < 2; ++i) {
+    sampleAllocations();
+    sampleWeights();
+  }
   sampleSigma();
   sampleRho();
   //sample_mtilde();
