@@ -253,4 +253,16 @@ std::string raw2str(const Rcpp::RawVector & raw_vect){
     return out;
 }
 
+std::pair<double,double> range(const std::vector<std::vector<double>> & vectvect) {
+
+    int N = vectvect.size();
+    std::vector<double> mins(N), maxs(N);
+    for (int i = 0; i < N; ++i){
+        auto [minit, maxit] = std::minmax_element(vectvect[i].begin(), vectvect[i].end());
+        mins[i] = *minit; maxs[i] = *maxit;
+    }
+    return std::make_pair(*std::min_element(mins.begin(), mins.end()),
+                          *std::max_element(maxs.begin(), maxs.end()));
 }
+
+} // namespace utils
