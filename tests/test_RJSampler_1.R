@@ -21,10 +21,10 @@ niter = 10000
 thin = 2
 
 # Grab input filenames
-params_filename = system.file("input_files/sampler_params.asciipb", package = "SPMIX")
+params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
 
 # Run Spatial sampler
-out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "no_rjmcmc")#, display_progress = F)
+out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")#, display_progress = F)
 # save(out, file="output.txt")
 # save(out, file = "RJTest1_output_20k.dat")
 # save(out, file = "RJTest1_output_10k_noswitch.dat")
