@@ -4,9 +4,11 @@
 #include <map>
 #include <random>
 #include <vector>
+#include <utility>
 #include <sstream>
 #include <string>
 #include <fstream>
+
 #include <stan/math/prim/mat.hpp>
 #include <Eigen/Dense>
 #define STRICT_R_HEADERS
@@ -64,6 +66,8 @@ double matrix_normal_prec_lpdf(Eigen::MatrixXd x, Eigen::MatrixXd m, Eigen::Matr
 Rcpp::RawVector str2raw(const std::string & str);
 
 std::string raw2str(const Rcpp::RawVector & raw_vect);
+
+std::pair<double,double> range(const std::vector<std::vector<double>> & vectvect);
 
 } // namespace utils
 
