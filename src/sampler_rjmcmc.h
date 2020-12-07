@@ -11,6 +11,11 @@ protected:
 	// prior for Sigma --> here is an InvGamma
 	double alpha_Sigma;
 	double beta_Sigma;
+
+	// data range --> used in gradient ascent
+	double lowerBound, upperBound;
+
+	// DEBUG
 	int cutoff{10};
 	int acceptedMoves{0};
 

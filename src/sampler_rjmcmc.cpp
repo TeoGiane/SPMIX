@@ -26,12 +26,23 @@ SpatialMixtureSamplerBase(_params, _data, W, X), options(_options) {
 }
 
 void SpatialMixtureRJSampler::init() {
+
+	// Base class init
 	SpatialMixtureSamplerBase::init();
+	
+	// DEBUG
 	/*while (utils::numComponentsPrior(cutoff,0.3,1.1) > 1e-8)
 		cutoff++;*/
 	Rcpp::Rcout << "cutoff: " << cutoff << std::endl;
+	
+	// Setting InvGamma Params
 	alpha_Sigma = params.sigma_params().inv_gamma().alpha();
 	beta_Sigma = params.sigma_params().inv_gamma().beta();
+
+	// Setting data range
+	std::tie(lowerBound, upperBound) = utils::range(data);
+
+	// Confirm
 	Rcpp::Rcout << "Init done." << std::endl;
 }
 
@@ -40,7 +51,6 @@ void SpatialMixtureRJSampler::sample() {
     	regress();
     	computeRegressionResiduals();
 	}*/
-	
 	sampleAtoms();
 	sampleWeights();
 	sampleSigma();
@@ -137,7 +147,12 @@ void SpatialMixtureRJSampler::increaseMove() {
 	// Eliciting the approximated optimal proposal parameters
 	optimization::GradientAscent<decltype(loglik_extended)> solver(loglik_extended, options);
 	int randComp = stan::math::categorical_rng(Eigen::VectorXd::Constant(numComponents-1, 1./(numComponents-1)), rng)-1;
-	Eigen::VectorXd x0 = loglik_extended.init(randComp);
+	//Eigen::VectorXd x0 = loglik_extended.init(randComp);
+	Eigen::VectorXd x0(numGroups+2);
+	//Rcpp::Rcout << "low_bound: " << lowerBound << ", up_bound: " << upperBound << std::endl;
+	//double low_bound = *std::min_element(data[0].begin(),data[0].end());
+	//double up_bound = *std::max_element(data[0].begin(),data[0].end());
+	x0 << Eigen::VectorXd::Zero(numGroups), stan::math::uniform_rng(lowerBound,upperBound,rng), 1.;
 	solver.solve(x0);
 	//Rcpp::Rcout << "Ended after " << solver.get_state().current_iteration << " iterations" << std::endl;
 	Eigen::VectorXd optMean = solver.get_state().current_minimizer;
@@ -185,7 +200,7 @@ void SpatialMixtureRJSampler::increaseMove() {
 		weights.resize(numGroups, numComponents);
 		for (int i = 0; i < numGroups; ++i)
 			weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), true);
-		
+
 		// THE ATOMS SWITCH IS FOLLOWED BY THE WEIGHTS ONE!
 		/*weights.col(numComponents-2).swap(weights.col(numComponents-1));
 		for (int i = 0; i < numGroups; ++i){
@@ -236,8 +251,8 @@ void SpatialMixtureRJSampler::reduceMove() {
 	// Eliciting the approximated optimal proposal parameters
 	//optimization::GradientAscent<decltype(loglik_reduced)> solver(loglik_reduced, options);
 	Eigen::VectorXd x0(numGroups+2); x0 << trans_weights.col(to_drop), means_map(to_drop), sqrt_stddevs(to_drop);
-	double fx; Eigen::MatrixXd grad_fx; Eigen::MatrixXd hess_fx;
-	stan::math::hessian(loglik_reduced,x,fx,grad_fx,hess_fx);
+	double fx; Eigen::VectorXd grad_fx; Eigen::MatrixXd hess_fx;
+	stan::math::hessian(loglik_reduced, x0, fx, grad_fx, hess_fx);
 	Eigen::MatrixXd optCov = -hess_fx.inverse();
 	//solver.solve(x0);
 	//Rcpp::Rcout << "Ended after " << solver.get_state().current_iteration << " iterations" << std::endl;
@@ -248,7 +263,7 @@ void SpatialMixtureRJSampler::reduceMove() {
 	//Rcpp::Rcout << "Has stagnated? " << std::boolalpha << solver.get_state().stagnated << std::endl;
 	//Rcpp::Rcout << "Is negative stdev? " << std::boolalpha << (solver.get_state().current_minimizer(numGroups+1) < 0.) << std::endl;
 	if (Eigen::LDLT<Eigen::MatrixXd>(optCov).isPositive()) { //solver.get_state().current_iteration < options.max_iter() and !solver.get_state().stagnated) {
-		
+
 		/*Rcpp::Rcout << "trans_weights: " << transformed_weights << std::endl;
 		Rcpp::Rcout << "x removed: " << x0.transpose() << std::endl;*/
 		/*Rcpp::Rcout << "(+)loglik_reduced():\n" << loglik_reduced() << "\n"
