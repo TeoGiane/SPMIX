@@ -131,7 +131,7 @@ void SpatialMixtureRJSampler::increaseMove() {
 	}
 
 	function::spmixLogLikelihood loglik_extended(data, W_init, params, numGroups, numComponents, rho,
-				   								 means_map, sqrt_stddevs, postNormalGammaParams,
+				   								 means_map, sqrt_stddevs, priorMatrix,
 				   								 trans_weights, Sigma);
 
 	// Eliciting the approximated optimal proposal parameters
@@ -172,12 +172,13 @@ void SpatialMixtureRJSampler::increaseMove() {
 	if (accept) {
 		++acceptedMoves;
 		++numComponents;
-		//means.resize(numComponents, means[numComponents-2]); means[numComponents-2] = x(numGroups);
-		//stddevs.resize(numComponents, stddevs[numComponents-2]); stddevs[numComponents-2] = x(numGroups+1)*x(numGroups+1);
-		
+
 		// HERE WE INDUCE A SWITCH BETWEEN LAST AND BEFORE LAST COMPONENT!
-		means.emplace_back(x(numGroups));
-		stddevs.emplace_back(x(numGroups+1)*x(numGroups+1));
+		means.resize(numComponents, means[numComponents-2]); means[numComponents-2] = x(numGroups);
+		stddevs.resize(numComponents, stddevs[numComponents-2]); stddevs[numComponents-2] = x(numGroups+1)*x(numGroups+1);
+		//means.emplace_back(x(numGroups));
+		//stddevs.emplace_back(x(numGroups+1)*x(numGroups+1));
+
 		transformed_weights.conservativeResize(numGroups, numComponents);
 		transformed_weights.col(numComponents-2) = x.head(numGroups);
 		transformed_weights.col(numComponents-1) = Eigen::VectorXd::Zero(numGroups);
@@ -229,22 +230,24 @@ void SpatialMixtureRJSampler::reduceMove() {
 
 	function::spmixLogLikelihood loglik_reduced(data, W_init, params, numGroups, numComponents-1, rho,
 				   								utils::removeElem(means_map,to_drop), utils::removeElem(sqrt_stddevs,to_drop),
-				   								postNormalGammaParams, utils::removeColumn(trans_weights, to_drop),
+				   								priorMatrix, utils::removeColumn(trans_weights, to_drop),
 				   								utils::removeRowColumn(Sigma,to_drop),to_drop);
 
 	// Eliciting the approximated optimal proposal parameters
-	optimization::GradientAscent<decltype(loglik_reduced)> solver(loglik_reduced, options);
-	Eigen::VectorXd x0(numGroups+2);
-	x0 << trans_weights.col(to_drop), means_map(to_drop), sqrt_stddevs(to_drop);
-	solver.solve(x0);
+	//optimization::GradientAscent<decltype(loglik_reduced)> solver(loglik_reduced, options);
+	Eigen::VectorXd x0(numGroups+2); x0 << trans_weights.col(to_drop), means_map(to_drop), sqrt_stddevs(to_drop);
+	double fx; Eigen::MatrixXd grad_fx; Eigen::MatrixXd hess_fx;
+	stan::math::hessian(loglik_reduced,x,fx,grad_fx,hess_fx);
+	Eigen::MatrixXd optCov = -hess_fx.inverse();
+	//solver.solve(x0);
 	//Rcpp::Rcout << "Ended after " << solver.get_state().current_iteration << " iterations" << std::endl;
-	Eigen::VectorXd optMean = solver.get_state().current_minimizer;
-	Eigen::MatrixXd optCov = -solver.get_state().current_hessian.inverse();
+	//Eigen::VectorXd optMean = solver.get_state().current_minimizer;
+	//Eigen::MatrixXd optCov = -solver.get_state().current_hessian.inverse();
 
 	double alpha{0.};
 	//Rcpp::Rcout << "Has stagnated? " << std::boolalpha << solver.get_state().stagnated << std::endl;
 	//Rcpp::Rcout << "Is negative stdev? " << std::boolalpha << (solver.get_state().current_minimizer(numGroups+1) < 0.) << std::endl;
-	if (solver.get_state().current_iteration < options.max_iter() and !solver.get_state().stagnated) {
+	if (Eigen::LDLT<Eigen::MatrixXd>(optCov).isPositive()) { //solver.get_state().current_iteration < options.max_iter() and !solver.get_state().stagnated) {
 		
 		/*Rcpp::Rcout << "trans_weights: " << transformed_weights << std::endl;
 		Rcpp::Rcout << "x removed: " << x0.transpose() << std::endl;*/
@@ -256,6 +259,8 @@ void SpatialMixtureRJSampler::reduceMove() {
 		alpha = std::exp(loglik_reduced()-loglik_reduced(x0)+stan::math::multi_normal_lpdf(x0,x0,optCov)) *
 				std::exp(stan::math::poisson_lpmf((numComponents-1-2),1)-stan::math::poisson_lpmf((numComponents-2),1));
 				//utils::numComponentsPrior(numComponents-1,0.3,1.1)/utils::numComponentsPrior(numComponents,0.3,1.1);
+	} else {
+		alpha = 1.;
 	}
 
 	// Accept of Reject the move
