@@ -16,9 +16,9 @@ W <- matrix(0, nrow = 1, ncol = 1, byrow = T)
 
 # Run Sampler
 # Setting MCMC parameters
-burnin = 20000
-niter = 20000
-thin = 4
+burnin = 10000
+niter = 10000
+thin = 2
 
 # Grab input filenames
 params_filename = system.file("input_files/sampler_params.asciipb", package = "SPMIX")
