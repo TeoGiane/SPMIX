@@ -198,7 +198,7 @@ void SpatialMixtureSampler::sample() {
   }
   sampleSigma();
   sampleRho();
-  //sample_mtilde();
+  sample_mtilde();
 }
 
 /*void SpatialMixtureSampler::sampleAtoms() {
@@ -447,7 +447,7 @@ void SpatialMixtureSampler::sample_mtilde() {
 
   Eigen::MatrixXd F_min_rhoG = F - rho * W_init;
 
-  for (int k = 1; k < num_connected_comps; k++) {
+  for (int k = 0; k < num_connected_comps; k++) {
     Eigen::VectorXd currweights(comp2node[k].size() * (numComponents - 1));
     for (int i = 0; i < comp2node[k].size(); i++) {
       currweights.segment(i * (H - 1), (H - 1)) =
