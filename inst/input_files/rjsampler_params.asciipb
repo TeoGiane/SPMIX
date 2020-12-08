@@ -1,9 +1,9 @@
-num_components: 2
+num_components: 5
 
 p0_params {
   mu0: 0
-  a: 4
-  b: 3
+  a: 2
+  b: 2
   lam_: 0.1
 }
 
@@ -14,8 +14,8 @@ rho_params {
 
 sigma_params {
 	inv_gamma {
-		alpha: 8
-		beta: 6
+		alpha: 2
+		beta: 2
 	}
 }
 
