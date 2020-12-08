@@ -171,9 +171,9 @@ std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin
     auto end = std::chrono::high_resolution_clock::now();
 
 	double duration = std::chrono::duration<double>(end - start).count();
-	double arate = static_cast<double>(spSampler.get_acceptedMoves())/(burnin+niter)*100;
+	//double arate = static_cast<double>(5*spSampler.get_acceptedMoves())/(burnin+niter)*100;
 	Rcpp::Rcout << "Duration: " << duration << std::endl;
-	Rcpp::Rcout << "Acceptance rate: " << arate << "%" << std::endl;
+	//Rcpp::Rcout << "Acceptance rate: " << arate << "%" << std::endl;
 	return out;
 }
 
