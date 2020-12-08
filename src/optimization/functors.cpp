@@ -121,7 +121,7 @@ double spmixLogLikelihood::operator()() const {
 		Eigen::VectorXd tw_vec = Eigen::Map<const Eigen::VectorXd>(transformed_weights.data(), transformed_weights.size());
 		Eigen::VectorXd weightsMean = Eigen::VectorXd::Zero(tw_vec.size()); //TO IMPROVE INDEED
 		Eigen::MatrixXd F_rhoWInv = (F-rho*W).inverse();
-		Eigen::MatrixXd weightsCov = Eigen::kroneckerProduct(F_rhoWInv, Sigma);
+		Eigen::MatrixXd weightsCov = Eigen::kroneckerProduct(Sigma, F_rhoWInv);
 		output += stan::math::multi_normal_lpdf(tw_vec, weightsMean, weightsCov);
     }
     //Rcpp::Rcout << "data + kernels + weights contrib: " << output << std::endl;

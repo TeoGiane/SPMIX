@@ -128,7 +128,7 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 		//Rcpp::Rcout << "tw_vec: " << tw_vec.transpose() << std::endl;
 		Eigen::Matrix<T,Eigen::Dynamic,1> weightsMean = Eigen::VectorXd::Zero(tw_vec.size());
 		Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> F_rhoWInv = (F-rho*W).inverse();
-		Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> weightsCov = Eigen::kroneckerProduct(F_rhoWInv,Sigma_ext);
+		Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> weightsCov = Eigen::kroneckerProduct(Sigma_ext, F_rhoWInv);
 		output += stan::math::multi_normal_lpdf(tw_vec, weightsMean, weightsCov);
 	}
 	//Rcpp::Rcout << "weights ok" << std::endl;
