@@ -160,7 +160,7 @@ class SpatialMixtureSamplerBase {
 	/*
 	 * Sampler the hyperparameters in the base measure P_0
 	 */
-	void sampleHyperParams();
+	//void sampleHyperParams();
 
 	//void sample_mtilde();
 
