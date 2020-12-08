@@ -33,7 +33,7 @@ void SpatialMixtureRJSampler::init() {
 	// DEBUG
 	/*while (utils::numComponentsPrior(cutoff,0.3,1.1) > 1e-8)
 		cutoff++;*/
-	Rcpp::Rcout << "cutoff: " << cutoff << std::endl;
+	//Rcpp::Rcout << "cutoff: " << cutoff << std::endl;
 	
 	// Setting InvGamma Params
 	alpha_Sigma = params.sigma_params().inv_gamma().alpha();
@@ -51,13 +51,25 @@ void SpatialMixtureRJSampler::sample() {
     	regress();
     	computeRegressionResiduals();
 	}*/
+	//Rcpp::Rcout << "atoms, ";
 	sampleAtoms();
-	sampleWeights();
+	//Rcpp::Rcout << "Sigma, ";
 	sampleSigma();
+	//Rcpp::Rcout << "rho, ";
 	sampleRho();
 	//labelSwitch();
-	betweenModelMove();
-	sampleAllocations();
+	if (iter % 5 == 0)
+		//Rcpp::Rcout << "jump, ";
+		betweenModelMove();
+
+	for (int i = 0; i < 2; ++i) {
+		//Rcpp::Rcout << "allocs, ";
+		sampleAllocations();
+		//Rcpp::Rcout << "weights, ";
+		sampleWeights();
+	}
+	//Rcpp::Rcout << std::endl;
+	++iter;
 }
 
 void SpatialMixtureRJSampler::sampleSigma() {
@@ -75,7 +87,7 @@ void SpatialMixtureRJSampler::sampleSigma() {
 		}
 	}
 
-	double sigma_new = stan::math::inv_gamma_rng(alpha_n/2, (1./beta_n)/2, rng);
+	double sigma_new = stan::math::inv_gamma_rng(alpha_n/2, beta_n/2, rng);
 	Sigma = sigma_new * Eigen::MatrixXd::Identity(numComponents-1, numComponents-1);
 	_computeInvSigmaH();
 	return;
@@ -93,7 +105,7 @@ void SpatialMixtureRJSampler::labelSwitch() {
 		transformed_weights.row(i) = utils::Alr(weights.row(i), true);
 
 	// Swap postNormalGammaParams rows
-	postNormalGammaParams.row(to_swap).swap(postNormalGammaParams.row(numComponents-1));
+	//postNormalGammaParams.row(to_swap).swap(postNormalGammaParams.row(numComponents-1));
 
 	// Swap Atoms
 	std::iter_swap(means.begin()+to_swap, means.begin()+(numComponents-1));
@@ -108,8 +120,8 @@ void SpatialMixtureRJSampler::betweenModelMove() {
 	bool increase;
 	if (numComponents == 2)
 		increase = true;
-	else if (numComponents == cutoff)
-		increase = false;
+	/*else if (numComponents == cutoff)
+		increase = false;*/
 	else
 		increase = stan::math::bernoulli_rng(0.5, rng);
 
@@ -146,7 +158,7 @@ void SpatialMixtureRJSampler::increaseMove() {
 
 	// Eliciting the approximated optimal proposal parameters
 	optimization::GradientAscent<decltype(loglik_extended)> solver(loglik_extended, options);
-	int randComp = stan::math::categorical_rng(Eigen::VectorXd::Constant(numComponents-1, 1./(numComponents-1)), rng)-1;
+	//int randComp = stan::math::categorical_rng(Eigen::VectorXd::Constant(numComponents-1, 1./(numComponents-1)), rng)-1;
 	//Eigen::VectorXd x0 = loglik_extended.init(randComp);
 	Eigen::VectorXd x0(numGroups+2);
 	//Rcpp::Rcout << "low_bound: " << lowerBound << ", up_bound: " << upperBound << std::endl;
@@ -174,8 +186,8 @@ void SpatialMixtureRJSampler::increaseMove() {
 
 		//Computing Acceptance Rate
 		alpha = std::exp(loglik_extended(x)-loglik_extended()-stan::math::multi_normal_lpdf(x,optMean,optCov)) *
-				//utils::numComponentsPrior(numComponents+1,0.3,1.1)/utils::numComponentsPrior(numComponents,0.3,1.1);
 				std::exp(stan::math::poisson_lpmf((numComponents+1-2),1)-stan::math::poisson_lpmf((numComponents-2),1));
+				//utils::numComponentsPrior(numComponents+1,0.3,1.1)/utils::numComponentsPrior(numComponents,0.3,1.1);
 	}
 
 	//Rcpp::Rcout << "mean_diff: " << (means_map-Eigen::VectorXd::Constant(means_map.size(),x(numGroups))).transpose() << std::endl;
@@ -185,12 +197,12 @@ void SpatialMixtureRJSampler::increaseMove() {
 
 	// Update state to augment dimension
 	if (accept) {
-		++acceptedMoves;
+		//++acceptedMoves;
 		++numComponents;
 
-		// HERE WE INDUCE A SWITCH BETWEEN LAST AND BEFORE LAST COMPONENT!
 		means.resize(numComponents, means[numComponents-2]); means[numComponents-2] = x(numGroups);
 		stddevs.resize(numComponents, stddevs[numComponents-2]); stddevs[numComponents-2] = x(numGroups+1)*x(numGroups+1);
+		// HERE WE INDUCE A SWITCH BETWEEN LAST AND BEFORE LAST COMPONENT!
 		//means.emplace_back(x(numGroups));
 		//stddevs.emplace_back(x(numGroups+1)*x(numGroups+1));
 
@@ -284,7 +296,7 @@ void SpatialMixtureRJSampler::reduceMove() {
 
 	// Update state to reduce dimension
 	if (accept) {
-		++acceptedMoves;
+		//++acceptedMoves;
 		--numComponents;
 		means.erase(means.begin()+to_drop);
 		stddevs.erase(stddevs.begin()+to_drop);

@@ -16,14 +16,15 @@ protected:
 	double lowerBound, upperBound;
 
 	// DEBUG
-	int cutoff{10};
-	int acceptedMoves{0};
+	int iter{1};
+	//int cutoff{10};
+	//int acceptedMoves{0};
 
 	// Options for Newton Method for Optimization
 	OptimOptions options;
 public:
 	SpatialMixtureRJSampler() = default;
-	
+
 	SpatialMixtureRJSampler(const SamplerParams &_params,
 							const std::vector<std::vector<double>> &_data,
 							const Eigen::MatrixXd &W,
@@ -49,7 +50,7 @@ public:
 
 	void reduceMove();
 
-	int get_acceptedMoves() {return acceptedMoves;};
+	//int get_acceptedMoves() {return acceptedMoves;};
 };
 
 #endif // RJMCMC_SAMPLER_HH
