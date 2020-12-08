@@ -7,7 +7,7 @@ readProtoFiles(system.file("proto/univariate_mixture_state.proto", package = "SP
 # Generate data (1 location, mixture of 3 normals)
 set.seed(230196)
 ngroups <- 1; ncomponents <- 3; N <- 1000
-means <- c(-4,1,5); std_devs <- c(0.5,1,0.5); weights <- c(1/6,3/6,2/6)
+means <- c(-4,1,5); std_devs <- c(1,1,1); weights <- c(1/6,3/6,2/6)
 cluster_alloc <- sample(1:ncomponents, prob = weights, size = N, replace = T)
 data <- list(); data[[1]] <- rnorm(N, mean = means[cluster_alloc], sd = std_devs[cluster_alloc])
 
@@ -16,21 +16,21 @@ W <- matrix(0, nrow = 1, ncol = 1, byrow = T)
 
 # Run Sampler
 # Setting MCMC parameters
-burnin = 10000
-niter = 10000
+burnin = 5000
+niter = 5000
 thin = 2
 
 # Grab input filenames
 params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
 
 # Run Spatial sampler
-out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")#, display_progress = F)
+out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")# display_progress = F)
 # save(out, file="output.txt")
 # save(out, file = "RJTest1_output_20k.dat")
 # save(out, file = "RJTest1_output_10k_noswitch.dat")
 
 # Analyses
-load("./tests/output.txt")
+# load("./tests/output.txt")
 chains <- sapply(out, function(x) unserialize_proto("UnivariateState",x))
 H_chain <- sapply(chains, function(x) x$num_components)
 means_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$mean))
@@ -44,7 +44,8 @@ title("Posterior of H")
 
 # Plotting the average density over iterations and compare with true curve
 # Computing average density
-x_grid <- seq(-5,7,length.out = 500)
+data_range <- range(data[[1]])
+x_grid <- seq(data_range[1], data_range[2], length.out = 500)
 est_dens <- rep(0,length(x_grid))
 for (i in 1:length(chains)) {
   xgrid_expand <- t(rbind(replicate(H_chain[i], x_grid, simplify = "matrix")))
