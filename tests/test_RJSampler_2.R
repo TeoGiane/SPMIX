@@ -153,7 +153,7 @@ plot1 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i1)) +
   geom_polygon() + scale_fill_continuous(type = "gradient")
 plot2 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i2)) +
   geom_polygon() + scale_fill_continuous(type = "gradient")
-title <- grid::textGrob("Weights on spatial grid\n", gp=grid::gpar(fontsize=16,font=2))
+title <- grid::textGrob("Weights on spatial grid", gp=grid::gpar(fontsize=14,font=2))
 x11(height = 4, width = 8.27); gridExtra::grid.arrange(plot1, plot2, ncol=2,top = title)
 rm(list='df')
 
