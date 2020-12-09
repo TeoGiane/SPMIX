@@ -6,16 +6,72 @@ library("SPMIX")
 library("ggplot2")
 library("sp") # also rgdal, rgeos, maptools have been installed
 
+# Helper functions (INSERT INTO SPMIX PACKAGE??)
+buildLattice <- function(coords) {
+  numGroups <- dim(coords)[1]
+
+  # Build spatial grid from coordinates
+  spPixels <- sp::SpatialPixels(sp::SpatialPoints(coords))
+  spatialGrid <- sp::as.SpatialPolygons.GridTopology(spPixels@grid)
+
+  # Compute proximity matrix
+  nblist <- sp::gridIndex2nb(spPixels, maxdist = 1)
+  W <- matrix(0,numGroups,numGroups)
+  for (i in 1:numGroups) {
+    row_ind <- i; col_inds <- unlist(nblist[[i]]); names(col_inds) <- NULL
+    W[row_ind,col_inds] <- 1; W[i,i] <- 0
+  }
+
+  # Return output list
+  out <- list(); out[[1]] <- spatialGrid; out[[2]] <- W
+  names(out) <- c("spatialGrid", "proxMatrix")
+  return(out)
+}
+posteriorDensities <- function(unserialized_chains, ranges, names = NULL) {
+
+  # Elicit numGroups
+  numGroups <- length(unserialized_chains[[1]]$groupParams)
+
+  # Extract necessary chains
+  H_chain <- sapply(unserialized_chains, function(x) x$num_components)
+  means_chain <- lapply(unserialized_chains, function(x) sapply(x$atoms, function(x) x$mean))
+  stdev_chain <- lapply(unserialized_chains, function(x) sapply(x$atoms, function(x) x$stdev))
+
+  # Compute Estimated densities
+  estimated_densities <- list()
+  for (i in 1:numGroups) {
+    weights_chain <- sapply(unserialized_chains, function(x) x$groupParams[[i]]$weights)
+    x_grid <- seq(ranges[1,i], ranges[2,i], length.out = 500)
+    est_dens <- rep(0,length(x_grid))
+    for (j in 1:length(unserialized_chains)) {
+      xgrid_expand <- t(rbind(replicate(H_chain[j], x_grid, simplify = "matrix")))
+      est_dens <- est_dens + t(as.matrix(weights_chain[[j]])) %*% dnorm(xgrid_expand,
+                                                                        means_chain[[j]],stdev_chain[[j]])
+    }
+    est_dens <- est_dens/length(chains)
+    estimated_densities[[i]] <- est_dens
+  }
+
+  # Set names if passed
+  if (!is.null(names)) {
+    names(estimated_densities) <- labels
+  }
+
+  # Return list
+  return(estimated_densities)
+}
+
 ###########################################################################
 # Data Generation ---------------------------------------------------------
 
-# Generate spatial grid from coordinates
-set.seed(230196)
+# Build spatial grid and proximity matrix from coordinates
 numGroups <- 9; numComponents <- 3
 coords <- expand.grid(x = seq(0,1,length.out = sqrt(numGroups)),
                       y = seq(0,1,length.out = sqrt(numGroups)))
 xbar <- ybar <- 0.5
-spatial_grid <- as.SpatialPolygons.GridTopology(SpatialPixels(SpatialPoints(coords))@grid)
+
+spatial_grid <- buildLattice(coords)$spatialGrid
+W <- buildLattice(coords)$proxMatrix
 labels <- row.names(coordinates(spatial_grid))
 rm(list='coords')
 
@@ -33,9 +89,8 @@ row.names(trasformed_weights) <- labels
 row.names(weights) <- labels
 
 # Generate data
-means <- c(-5,0,5)
-sds <- c(1,1,1)
-Ns <- rep(50, numGroups)
+set.seed(230196)
+means <- c(-5,0,5); sds <- c(1,1,1); Ns <- rep(50, numGroups)
 data <- list()
 for (i in 1:numGroups) {
   cluster_alloc <- sample(1:numComponents, prob = weights[i,], size = Ns[i], replace = T)
@@ -43,22 +98,6 @@ for (i in 1:numGroups) {
 }
 names(data) <- labels
 rm(list=c('cluster_alloc','i'))
-
-# Build adjacency matrix (FIND A BETTER WAY)
-W <- matrix(0, numGroups, numGroups); colnames(W) <- rownames(W) <- labels
-check_prox <- function(x,y) {
-  dist <- 1/(sqrt(numGroups)-1)
-  return(ifelse((x[1]==y[1] & abs(x[2]-y[2])<=dist) | (x[2]==y[2] & abs(x[1]-y[1])<=dist), 1, 0))
-}
-for (i in 1:numGroups) {
-  for (j in 1:numGroups) {
-    x_coor <- coordinates(spatial_grid)[labels[i],]
-    y_coor <- coordinates(spatial_grid)[labels[j],]
-    W[i,j] <- check_prox(x_coor, y_coor)
-  }
-  W[i,i] <- 0
-}
-rm(list=c('i','j','x_coor','y_coor','check_prox'))
 
 ###########################################################################
 
@@ -76,38 +115,62 @@ params_filename = system.file("input_files/rjsampler_params.asciipb", package = 
 
 # Run Spatial sampler
 out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
-save('out', file = "SPMIXoutput10K.dat")
+# save('out', file = "SPMIXoutput10K.dat")
 
 # Data analysis on chains (ONGOING)
 chains <- sapply(out, function(x) unserialize_proto("UnivariateState",x))
 H_chain <- sapply(chains, function(x) x$num_components)
 means_chain <- sapply(chains, function(x) sapply(x$atoms, function(x) x$mean))
 stdev_chain <- sapply(chains, function(x) sapply(x$atoms, function(x) x$stdev))
-weights_chain <- sapply(chains, function(x) x$groupParams[[1]]$weights)
-x_grid <- seq(-6,6, length.out = 500)
-est_dens <- seq(0, length.out = length(x_grid))
-for (i in 1:length(chains)) {
-  for (h in 1:H_chain[i]) {
-    est_dens <- est_dens + weights_chain[[i]][h]*dnorm(x_grid,means_chain[[i]][h], stdev_chain[[i]][h])
-  }
+
+# Computing estimated densities
+data_ranges <- sapply(data, range)
+estimated_densities <- posteriorDensities(chains, ranges = data_ranges, names = labels)
+
+# Computing true densities for comparison
+true_densities <- list()
+for (i in 1:numGroups) {
+  data_range <- range(data[[i]])
+  x_grid <- seq(data_range[1], data_range[2], length.out = 500)
+  xgrid_expand <- t(rbind(replicate(numComponents, x_grid, simplify = "matrix")))
+  true_dens <- t(as.matrix(weights[i,])) %*% dnorm(xgrid_expand, means, sds)
+  true_densities[[i]] <- true_dens
 }
-est_dens <- est_dens/length(chains)
+names(true_densities) <- labels
 
 ###########################################################################
 
 ###########################################################################
 # Visualization -----------------------------------------------------------
 
-# Generate dataframe for plotting
-# df <- fortify(spatial_grid)
-# for (i in 1:length(labels)) {
-#   df[which(df$id==labels[i]),'w_i1'] <- weights[i,1]
-#   df[which(df$id==labels[i]),'w_i2'] <- weights[i,2]
-# }
-# plot1 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i1)) +
-#   geom_polygon() + scale_fill_continuous(type = "gradient")
-# plot2 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i2)) +
-#   geom_polygon() + scale_fill_continuous(type = "gradient")
-# x11(height = 4, width = 8.27); gridExtra::grid.arrange(plot1, plot2, ncol=2)
+# Weights distribution on the spatial grid - Plot
+df <- fortify(spatial_grid)
+for (i in 1:length(labels)) {
+  df[which(df$id==labels[i]),'w_i1'] <- weights[i,1]
+  df[which(df$id==labels[i]),'w_i2'] <- weights[i,2]
+}
+plot1 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i1)) +
+  geom_polygon() + scale_fill_continuous(type = "gradient")
+plot2 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i2)) +
+  geom_polygon() + scale_fill_continuous(type = "gradient")
+title <- grid::textGrob("Weights on spatial grid\n", gp=grid::gpar(fontsize=16,font=2))
+x11(height = 4, width = 8.27); gridExtra::grid.arrange(plot1, plot2, ncol=2,top = title)
+rm(list='df')
+
+# Posterior of H - Barplot
+df <- as.data.frame(table(H_chain)/length(H_chain)); names(df) <- c("NumComponents", "Prob.")
+plot_postH <- ggplot(data = df, aes(x=NumComponents, y=Prob.)) +
+  geom_bar(stat="identity", color="steelblue", fill="lightblue") +#"white") +
+  theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
+  ggtitle("Posterior of H")
+x11(height = 4, width = 4.135); plot_postH
+rm(list='df')
+
+# Area i-th - Comparison plot between estimated and true densities (DA RIFARE CON GGPLOT)
+x11(height = 4, width = 8.27)
+plot(x_grid, true_densities$g1, type = 'l', col='blue', lwd=2, lty=1, xlab = "Grid", ylab = "Density")
+lines(x_grid, estimated_densities$g1, col='darkorange', lwd=2, lty=1)
+legend("topleft", legend = c("True", "Estimated"), col=c("blue","darkorange"), lty = 1, lwd = 2)
+title("Area 1 - Density estimation")
 
 ###########################################################################
