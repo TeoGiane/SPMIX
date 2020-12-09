@@ -8,6 +8,7 @@ readProtoFiles(system.file("proto/univariate_mixture_state.proto", package = "SP
 set.seed(230196)
 ngroups <- 1; ncomponents <- 3; N <- 1000
 means <- c(-4,1,5); std_devs <- c(1,1,1); weights <- c(1/6,3/6,2/6)
+# means <- c(-4,1,5,3); std_devs <- c(1,0.5,1,0.5); weights <- c(1/4,1/4,1/4,1/4)
 cluster_alloc <- sample(1:ncomponents, prob = weights, size = N, replace = T)
 data <- list(); data[[1]] <- rnorm(N, mean = means[cluster_alloc], sd = std_devs[cluster_alloc])
 
@@ -16,9 +17,9 @@ W <- matrix(0, nrow = 1, ncol = 1, byrow = T)
 
 # Run Sampler
 # Setting MCMC parameters
-burnin = 5000
-niter = 5000
-thin = 2
+burnin = 10000
+niter = 10000
+thin = 4
 
 # Grab input filenames
 params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
