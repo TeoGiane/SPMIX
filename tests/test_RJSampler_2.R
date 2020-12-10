@@ -40,7 +40,7 @@ posteriorDensities <- function(unserialized_chains, ranges, names = NULL) {
   # Compute Estimated densities
   estimated_densities <- list()
   for (i in 1:numGroups) {
-    weights_chain <- sapply(unserialized_chains, function(x) x$groupParams[[i]]$weights)
+    weights_chain <- lapply(unserialized_chains, function(x) x$groupParams[[i]]$weights)
     x_grid <- seq(ranges[1,i], ranges[2,i], length.out = 500)
     est_dens <- rep(0,length(x_grid))
     for (j in 1:length(unserialized_chains)) {
@@ -59,6 +59,16 @@ posteriorDensities <- function(unserialized_chains, ranges, names = NULL) {
 
   # Return list
   return(estimated_densities)
+}
+dataRecast <- function(x, y, labels = row.names(y)) {
+  rows <- dim(y)[1]; cols <- dim(y)[2]
+  out <- data.frame()
+  for (i in 1:rows) {
+    tmp <- data.frame(x, y[i,], as.factor(rep(labels[i],cols)));
+    names(tmp) <- c("Grid", "Value", "Density"); row.names(tmp) <- NULL
+    out <- rbind(out,tmp)
+  }
+  return(out)
 }
 
 ###########################################################################
@@ -120,8 +130,8 @@ out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmc
 # Data analysis on chains (ONGOING)
 chains <- sapply(out, function(x) unserialize_proto("UnivariateState",x))
 H_chain <- sapply(chains, function(x) x$num_components)
-means_chain <- sapply(chains, function(x) sapply(x$atoms, function(x) x$mean))
-stdev_chain <- sapply(chains, function(x) sapply(x$atoms, function(x) x$stdev))
+means_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$mean))
+stdev_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$stdev))
 
 # Computing estimated densities
 data_ranges <- sapply(data, range)
@@ -167,10 +177,13 @@ x11(height = 4, width = 4.135); plot_postH
 rm(list='df')
 
 # Area i-th - Comparison plot between estimated and true densities (DA RIFARE CON GGPLOT)
-x11(height = 4, width = 8.27)
-plot(x_grid, true_densities$g1, type = 'l', col='blue', lwd=2, lty=1, xlab = "Grid", ylab = "Density")
-lines(x_grid, estimated_densities$g1, col='darkorange', lwd=2, lty=1)
-legend("topleft", legend = c("True", "Estimated"), col=c("blue","darkorange"), lty = 1, lwd = 2)
-title("Area 1 - Density estimation")
+i <- 8
+x <- seq(data_ranges[1,i], data_ranges[2,i], length.out = 500)
+y <- rbind(estimated_densities[[i]], true_densities[[i]]); row.names(y) <- c("Estimated", "True")
+tmp <- ggplot(data = dataRecast(x,y), aes(x=Grid, y=Value, group=Density, col=Density)) +
+  geom_line(lwd=1) + theme(plot.title = element_text(face="bold", hjust = 0.5)) +
+  ggtitle(paste0("Area ", i, " - Density estimation"))
+assign(paste0("plot_area", i), tmp); rm(list='tmp')
+x11(height = 4, width = 8.27); get(paste0("plot_area",i))
 
 ###########################################################################
