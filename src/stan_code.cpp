@@ -178,7 +178,7 @@ void newton_opt_test(const Rcpp::S4 & state, const std::vector<std::vector<doubl
     double duration = std::chrono::duration<double>(end - start).count();
     Rcpp::Rcout << "Duration: " << duration << std::endl;
     optimization::OptimState currstate = solver.get_state();
-    Rcpp::Rcout << "minimizer: " << currstate.current_minimizer.transpose() << std::endl;
+    Rcpp::Rcout << "minimizer: " << currstate.current_maximizer.transpose() << std::endl;
     Rcpp::Rcout << "||grad_f(x)||: " << currstate.current_gradient.norm() << std::endl;
     Rcpp::Rcout << "||hess_f(x)||: " << currstate.current_hessian.norm() << std::endl;
 
@@ -239,7 +239,7 @@ void grad_ascent_test(const Rcpp::S4 & state, const std::vector<std::vector<doub
     double duration = std::chrono::duration<double>(end - start).count();
     Rcpp::Rcout << "Duration: " << duration << std::endl;
     optimization::OptimState currstate = solver.get_state();
-    Rcpp::Rcout << "minimizer: " << currstate.current_minimizer.transpose() << std::endl;
+    Rcpp::Rcout << "minimizer: " << currstate.current_maximizer.transpose() << std::endl;
     Rcpp::Rcout << "||grad_f(x)||: " << currstate.current_gradient_norm << std::endl;
 
 	return;
@@ -308,7 +308,7 @@ void test_spmixloglikelihood(const std::vector<std::vector<double>> & data,
     // Instanciating functors
     Rcpp::Rcout << "EVALUATING FUNCTION AND TESTING - EXPANSION:" << std::endl;
     function::spmixLogLikelihood fun_extended(data,W,params,numGroups,numComponents,rho,means,sqrt_std_devs,
-    										  postNormalGammaParams,trans_weights,Sigma);
+    										  trans_weights,Sigma);
 
     Eigen::VectorXd x(numGroups+2); x << 1,2,3,4,5,6,2.5,1;
     Rcpp::Rcout << "x: " << x.transpose() << std::endl;
@@ -321,7 +321,7 @@ void test_spmixloglikelihood(const std::vector<std::vector<double>> & data,
     Rcpp::Rcout << "EVALUATING FUNCTION AND TESTING - REDUCTION:" << std::endl;
     function::spmixLogLikelihood fun_reduced(data,W,params,numGroups,numComponents-1,rho,
     										 utils::removeElem(means,to_drop), utils::removeElem(sqrt_std_devs,to_drop),
-    										 postNormalGammaParams,utils::removeColumn(trans_weights,to_drop),
+    										 utils::removeColumn(trans_weights,to_drop),
     										 utils::removeRowColumn(Sigma,to_drop),to_drop);
     x << trans_weights.col(to_drop), means(to_drop), sqrt_std_devs(to_drop);
     Rcpp::Rcout << "x: " << x.transpose() << std::endl;
@@ -407,7 +407,7 @@ void IncreaseMove_test(const std::vector<std::vector<double>> & data,
     optimization::GradientAscent<decltype(loglik_extended)> solver(loglik_extended, options_cp);
     Eigen::VectorXd x0 = loglik_extended.init();
     solver.solve(x0);
-    Eigen::VectorXd optMean = solver.get_state().current_minimizer;
+    Eigen::VectorXd optMean = solver.get_state().current_maximizer;
     Eigen::MatrixXd optCov = -solver.get_state().current_hessian.inverse();
 
     // Simulating from the approximated optimal posterior
@@ -556,7 +556,7 @@ void ReduceMove_test(const std::vector<std::vector<double>> & data,
     x0 << transformed_weights.col(to_drop), means_map(to_drop), sqrt_stddevs(to_drop);
     // Rcpp::Rcout << "x0: " << x0.transpose() << std::endl;
     solver.solve(x0);
-    Eigen::VectorXd optMean = solver.get_state().current_minimizer;
+    Eigen::VectorXd optMean = solver.get_state().current_maximizer;
     Eigen::MatrixXd optCov = -solver.get_state().current_hessian.inverse();
 
     double alpha{0.};
