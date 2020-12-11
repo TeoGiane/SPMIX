@@ -1,4 +1,4 @@
-## First test for the RJSampler ##
+## Second test for the RJSampler ##
 # The scenario is described in Sec. 6.2 of Beraha et al. (2020)
 
 # Required libraries
@@ -125,7 +125,6 @@ params_filename = system.file("input_files/rjsampler_params.asciipb", package = 
 
 # Run Spatial sampler
 out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
-# save('out', file = "SPMIXoutput10K.dat")
 
 # Data analysis on chains (ONGOING)
 chains <- sapply(out, function(x) unserialize_proto("UnivariateState",x))
@@ -159,12 +158,11 @@ for (i in 1:length(labels)) {
   df[which(df$id==labels[i]),'w_i1'] <- weights[i,1]
   df[which(df$id==labels[i]),'w_i2'] <- weights[i,2]
 }
-plot1 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i1)) +
+plot_weightsi1 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i1)) +
   geom_polygon() + scale_fill_continuous(type = "gradient")
-plot2 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i2)) +
+plot_weightsi2 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i2)) +
   geom_polygon() + scale_fill_continuous(type = "gradient")
 title <- grid::textGrob("Weights on spatial grid", gp=grid::gpar(fontsize=14,font=2))
-x11(height = 4, width = 8.27); gridExtra::grid.arrange(plot1, plot2, ncol=2,top = title)
 rm(list='df')
 
 # Posterior of H - Barplot
@@ -173,17 +171,22 @@ plot_postH <- ggplot(data = df, aes(x=NumComponents, y=Prob.)) +
   geom_bar(stat="identity", color="steelblue", fill="lightblue") +#"white") +
   theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
   ggtitle("Posterior of H")
-x11(height = 4, width = 4.135); plot_postH
 rm(list='df')
 
-# Area i-th - Comparison plot between estimated and true densities (DA RIFARE CON GGPLOT)
-i <- 8
-x <- seq(data_ranges[1,i], data_ranges[2,i], length.out = 500)
-y <- rbind(estimated_densities[[i]], true_densities[[i]]); row.names(y) <- c("Estimated", "True")
-tmp <- ggplot(data = dataRecast(x,y), aes(x=Grid, y=Value, group=Density, col=Density)) +
-  geom_line(lwd=1) + theme(plot.title = element_text(face="bold", hjust = 0.5)) +
-  ggtitle(paste0("Area ", i, " - Density estimation"))
-assign(paste0("plot_area", i), tmp); rm(list='tmp')
-x11(height = 4, width = 8.27); get(paste0("plot_area",i))
+# Comparison plots between estimated and true densities in i-th area
+plots_area <- list()
+for (i in 1:numGroups) {
+  x <- seq(data_ranges[1,i], data_ranges[2,i], length.out = 500)
+  y <- rbind(estimated_densities[[i]], true_densities[[i]]); row.names(y) <- c("Estimated", "True")
+  tmp <- ggplot(data = dataRecast(x,y), aes(x=Grid, y=Value, group=Density, col=Density)) +
+    geom_line(lwd=1) + theme(plot.title = element_text(face="bold", hjust = 0.5)) +
+    ggtitle(paste0("Area ", i))
+  plots_area[[i]] <- tmp; rm(list=c('x','y','tmp'))
+}
+names(plots_area) <- labels
+
+# Printing plots
+x11(height = 2, width = 8.27); gridExtra::grid.arrange(plot_weightsi1, plot_weightsi2, plot_postH, ncol=3)
+x11(height = 8.27, width = 8.27); gridExtra::grid.arrange(grobs=plots_area, nrow=3, ncol=3)
 
 ###########################################################################
