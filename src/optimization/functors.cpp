@@ -50,13 +50,11 @@ spmixLogLikelihood::spmixLogLikelihood(const std::vector<std::vector<double>> & 
                                        double _rho,
                                        const Eigen::VectorXd & _means,
                                        const Eigen::VectorXd & _sqrt_stddevs,
-                                       const Eigen::MatrixXd & _postNormalGammaParams,
                                        const Eigen::MatrixXd & _transformed_weights,
                                        const Eigen::MatrixXd & _Sigma,
                                        int _dropped_index):
 data(_data), W(_W), params(_params), numGroups(_numGroups), numComponents(_numComponents), rho(_rho), means(_means),
-sqrt_stddevs(_sqrt_stddevs), transformed_weights(_transformed_weights), Sigma(_Sigma), dropped_index(_dropped_index),
-postNormalGammaParams(_postNormalGammaParams) {
+sqrt_stddevs(_sqrt_stddevs), transformed_weights(_transformed_weights), Sigma(_Sigma), dropped_index(_dropped_index) {
 
 	// Computing F
 	F = Eigen::MatrixXd::Zero(numGroups, numGroups);
@@ -66,18 +64,9 @@ postNormalGammaParams(_postNormalGammaParams) {
 
 double spmixLogLikelihood::operator()() const {
 
-    //Defining buffers
-    Eigen::MatrixXd postNormalGammaParams_red;
-    if (dropped_index != -1) {
-    	//Rcpp::Rcout << "generate postNormalGammaParams_red" << std::endl;
-        postNormalGammaParams_red = utils::removeRow(postNormalGammaParams, dropped_index);
-    }
-
     // Computation
     double output{0.};
 
-    /*Eigen::MatrixXd transformed_weights = Eigen::Map<const Eigen::MatrixXd>(transformed_weights_vect.data(),
-                                                                            numGroups, numComponents-1);*/
     Eigen::MatrixXd weights(numGroups, numComponents);
     for (int i = 0; i < weights.rows(); ++i) {
         weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), false);
@@ -90,41 +79,29 @@ double spmixLogLikelihood::operator()() const {
             for (int h = 0; h < numComponents; ++h) {
                 contributions[h] = log(weights(i,h)) + stan::math::normal_lpdf(data[i][j],
                 															   means[h],
-                															   sqrt_stddevs[h] * sqrt_stddevs[h]);
+                															   sqrt_stddevs[h]*sqrt_stddevs[h]);
             }
             output += stan::math::log_sum_exp(contributions);
         }
     }
-    //Rcpp::Rcout << "data contrib: " << output << std::endl;
 
     // Contributions from kernels
     for (int h = 0; h < numComponents; ++h) {
     	double sigmasq = sqrt_stddevs(h)*sqrt_stddevs(h)*sqrt_stddevs(h)*sqrt_stddevs(h);
-        double means_stdev;
-        if (dropped_index == -1) {
-        	//Rcpp::Rcout << "dropped_index == -1 case in kernels" << std::endl;
-            means_stdev = std::sqrt(sigmasq / postNormalGammaParams(h,3));
-            output += stan::math::inv_gamma_lpdf(sigmasq, postNormalGammaParams(h,1), postNormalGammaParams(h,2)) +
-                      stan::math::normal_lpdf(means(h), postNormalGammaParams(h,0), means_stdev);
-        }
-        else {
-        	//Rcpp::Rcout << "dropped_index != -1 case in kernels" << std::endl;
-            means_stdev = std::sqrt(sigmasq / postNormalGammaParams_red(h,3));
-            output += stan::math::inv_gamma_lpdf(sigmasq, postNormalGammaParams_red(h,1), postNormalGammaParams_red(h,2)) +
-                      stan::math::normal_lpdf(means(h), postNormalGammaParams_red(h,0), means_stdev);
-        }
+        double means_stdev = std::sqrt(sigmasq / params.p0_params().lam_());
+        output += stan::math::inv_gamma_lpdf(sigmasq, params.p0_params().a(), params.p0_params().b()) +
+        		  stan::math::normal_lpdf(means(h), params.p0_params().mu0(), means_stdev);
     }
-    //Rcpp::Rcout << "data + kernels contrib: " << output << std::endl;
 
     // Contribution from weights
     if (numComponents > 1) {
 		Eigen::VectorXd tw_vec = Eigen::Map<const Eigen::VectorXd>(transformed_weights.data(), transformed_weights.size());
-		Eigen::VectorXd weightsMean = Eigen::VectorXd::Zero(tw_vec.size()); //TO IMPROVE INDEED
+		Eigen::VectorXd weightsMean = Eigen::VectorXd::Zero(tw_vec.size());
 		Eigen::MatrixXd F_rhoWInv = (F-rho*W).inverse();
 		Eigen::MatrixXd weightsCov = Eigen::kroneckerProduct(Sigma, F_rhoWInv);
 		output += stan::math::multi_normal_lpdf(tw_vec, weightsMean, weightsCov);
     }
-    //Rcpp::Rcout << "data + kernels + weights contrib: " << output << std::endl;
+
     // Contribution from other stuff, if needed (rho, m_tilde, H, Sigma)
     return output;
 };
