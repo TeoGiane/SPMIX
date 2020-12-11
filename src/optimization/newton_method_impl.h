@@ -30,7 +30,7 @@ void NewtonMethod<D>::solve(const ArgumentType & x0) {
 
 		// Update state
 		state.current_solution = fx;
-		state.current_minimizer = x_old;
+		state.current_maximizer = x_old;
 		state.current_gradient = grad_fx;
 		state.current_hessian = hess_fx;
 		state.current_gradient_norm = grad_fx.norm();

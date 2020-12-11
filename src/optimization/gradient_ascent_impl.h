@@ -39,7 +39,7 @@ void GradientAscent<D>::solve(const ArgumentType & x0) {
 
 		// Update state
 		state.current_solution = fx_curr;
-		state.current_minimizer = x_curr;
+		state.current_maximizer = x_curr;
 		state.current_gradient = grad_fx_curr;
 		state.current_gradient_norm = grad_fx_curr.norm();
 
@@ -68,7 +68,7 @@ void GradientAscent<D>::solve(const ArgumentType & x0) {
 		gamma_i_old = gamma_i;*/
 	}
 
-	stan::math::hessian(target_function, state.current_minimizer,
+	stan::math::hessian(target_function, state.current_maximizer,
 						state.current_solution, state.current_gradient, state.current_hessian);
 	//state.print();
 	return;
