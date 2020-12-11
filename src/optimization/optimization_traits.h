@@ -30,7 +30,7 @@ class OptimizationTraits {
 class OptimState: public OptimizationTraits {
   public:
 	ReturnType current_solution;
-	ArgumentType current_minimizer;
+	ArgumentType current_maximizer;
 	GradientType current_gradient;
 	HessianType current_hessian;
 	unsigned int current_iteration;
