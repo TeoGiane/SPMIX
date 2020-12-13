@@ -49,7 +49,7 @@ void SpatialMixtureRJSampler::sample() {
 	sampleAtoms();
 	sampleSigma();
 	sampleRho();
-	//labelSwitch();
+	labelSwitch();
 	if (iter % 5 == 0)
 		betweenModelMove();
 	for (int i = 0; i < 2; ++i) {
