@@ -173,6 +173,14 @@ plot_postH <- ggplot(data = df, aes(x=NumComponents, y=Prob.)) +
   ggtitle("Posterior of H")
 rm(list='df')
 
+# Posterior of H - Traceplot
+df <- data.frame("Iteration"=1:niter, "LowPoints"=H_chain-0.3, "UpPoints"=H_chain+0.3)
+plot_traceH <- ggplot(data=df, aes(x=Iteration, y=LowPoints, xend=Iteration, yend=UpPoints)) +
+  ylim(range(df[,-1])) + ylab("NumComponents") + geom_segment(lwd=0.1) +
+  theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
+  ggtitle("Traceplot of H")
+rm(list='df')
+
 # Comparison plots between estimated and true densities in i-th area
 plots_area <- list()
 for (i in 1:numGroups) {
@@ -188,5 +196,6 @@ names(plots_area) <- labels
 # Printing plots
 x11(height = 2, width = 8.27); gridExtra::grid.arrange(plot_weightsi1, plot_weightsi2, plot_postH, ncol=3)
 x11(height = 8.27, width = 8.27); gridExtra::grid.arrange(grobs=plots_area, nrow=3, ncol=3)
+x11(height = 4, width = 8.27); plot_traceH
 
 ###########################################################################
