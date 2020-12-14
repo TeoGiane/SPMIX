@@ -7,26 +7,24 @@
 using namespace Rcpp;
 
 // alr
-Eigen::VectorXd alr(Eigen::VectorXd x, bool pad_zero);
-RcppExport SEXP _SPMIX_alr(SEXP xSEXP, SEXP pad_zeroSEXP) {
+Eigen::VectorXd alr(Eigen::VectorXd x);
+RcppExport SEXP _SPMIX_alr(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Eigen::VectorXd >::type x(xSEXP);
-    Rcpp::traits::input_parameter< bool >::type pad_zero(pad_zeroSEXP);
-    rcpp_result_gen = Rcpp::wrap(alr(x, pad_zero));
+    rcpp_result_gen = Rcpp::wrap(alr(x));
     return rcpp_result_gen;
 END_RCPP
 }
-// inv_alr
-Eigen::VectorXd inv_alr(Eigen::VectorXd x, bool padded_zero);
-RcppExport SEXP _SPMIX_inv_alr(SEXP xSEXP, SEXP padded_zeroSEXP) {
+// invAlr
+Eigen::VectorXd invAlr(Eigen::VectorXd x);
+RcppExport SEXP _SPMIX_invAlr(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Eigen::VectorXd >::type x(xSEXP);
-    Rcpp::traits::input_parameter< bool >::type padded_zero(padded_zeroSEXP);
-    rcpp_result_gen = Rcpp::wrap(inv_alr(x, padded_zero));
+    rcpp_result_gen = Rcpp::wrap(invAlr(x));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -91,8 +89,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_SPMIX_alr", (DL_FUNC) &_SPMIX_alr, 2},
-    {"_SPMIX_inv_alr", (DL_FUNC) &_SPMIX_inv_alr, 2},
+    {"_SPMIX_alr", (DL_FUNC) &_SPMIX_alr, 1},
+    {"_SPMIX_invAlr", (DL_FUNC) &_SPMIX_invAlr, 1},
     {"_SPMIX_runSpatialSampler", (DL_FUNC) &_SPMIX_runSpatialSampler, 8},
     {"_SPMIX_runSpatialRJSampler", (DL_FUNC) &_SPMIX_runSpatialRJSampler, 9},
     {"_SPMIX_readMatrixFromCSV", (DL_FUNC) &_SPMIX_readMatrixFromCSV, 1},

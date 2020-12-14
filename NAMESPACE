@@ -2,10 +2,10 @@
 
 export(SPMIX_sampler)
 export(alr)
-export(inv_alr)
+export(invAlr)
 export(readDataFromCSV)
 export(readMatrixFromCSV)
-export(unserialize_proto)
+export(unserializeSPMIXProto)
 import(Rcpp)
 import(methods)
 importFrom(rstan,sampling)

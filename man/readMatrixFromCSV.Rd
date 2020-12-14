@@ -2,10 +2,18 @@
 % Please edit documentation in R/RcppExports.R
 \name{readMatrixFromCSV}
 \alias{readMatrixFromCSV}
-\title{Just a check for output format in R when reading a matrix}
+\title{Import Proximity Matrix from File}
 \usage{
 readMatrixFromCSV(filename)
 }
+\arguments{
+\item{filename}{A string identifying the path to a \code{.csv} file from which the matrix will be read.}
+}
+\value{
+The proximity matrix as a usual \code{R matrix} object.
+}
 \description{
-Just a check for output format in R when reading a matrix
+This function simply reads the proximity matrix G of the Spatial Mixture Model from a \code{.csv} file. This file
+needs to be provided with no columns or row headers and in the visual form of a matrix only composed by 0 or 1.
+As assumption, the diagonal of this matrix should be 0.
 }

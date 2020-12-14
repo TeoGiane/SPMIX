@@ -2,14 +2,12 @@
 % Please edit documentation in R/RcppExports.R
 \name{alr}
 \alias{alr}
-\title{Additive log ratio}
+\title{Additive Log Ratio}
 \usage{
-alr(x, pad_zero = FALSE)
+alr(x)
 }
 \arguments{
 \item{x}{Vector of double in \ifelse{html}{\out{R<sup>H</sup>}}{\eqn{R^{H}}}.}
-
-\item{pad_zero}{Boolean, default to FALSE.}
 }
 \value{
 Vector of double in \ifelse{html}{\out{R<sup>H-1</sup>}}{\eqn{R^{H-1}}} i.e. alr(x).

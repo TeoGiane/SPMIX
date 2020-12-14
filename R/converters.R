@@ -1,15 +1,16 @@
-#' Unserialize raw vectors
+#' Unserialize Messages of the \code{SPMIX} Package
 #'
-#' This funciton is a wrapper to unserialize raw vectors that comes from the serialization of
-#' messages using Google Protocol Buffer API using the proto files available in the \code{SPMIX} package.
+#' This funciton is a wrapper to unserialize raw vectors using the \code{.proto} files available in this package.
+#' We rely on Google Protocol Buffer for the serialization procedure and on \code{\link{RProtoBuf}} package to
+#' provide and easy-to-use interface for \code{R} users
 #'
 #' @param message_type A string containing the name of the Message in which the serialized message will be converted
 #' @param raw_vector A vector of type \code{raw}. The message to be unserialized
 #' @return An object of class \code{RProtoBuf::Message}, which stores the unserialized message and can be manipulated
-#' using \link{RProtoBuf}.
+#' using \link{RProtoBuf} package.
 #'
 #' @export
-unserialize_proto <- function(message_type, raw_vector) {
+unserializeSPMIXProto <- function(message_type, raw_vector) {
 
   # Check Message Descriptor
   if (message_type == "EigenMatrix") {
