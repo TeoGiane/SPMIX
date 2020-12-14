@@ -39,11 +39,6 @@ void NewtonMethod<D>::solve(const ArgumentType & x0) {
 		x_new = x_old - h;
 		x_old = x_new;
 
-		// Printing state (FOR DEBUG)
-		state.print();
-		Rcpp::Rcout << "h: " << h.transpose() << std::endl;
-		Rcpp::Rcout << "Next step evaluation point: " << x_old.transpose() << std::endl << std::endl;
-
 		// Convergence check
 		if (state.current_gradient.norm() < options.tol())
 			break;

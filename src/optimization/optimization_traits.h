@@ -13,7 +13,6 @@
 #include <RcppEigen.h>
 
 #include <Eigen/Dense>
-// #include <functional>
 
 #include "functors.h"
 

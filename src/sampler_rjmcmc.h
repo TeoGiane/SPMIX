@@ -7,7 +7,7 @@
 #include "optimization_options.pb.h"
 
 class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
-protected:
+  protected:
 	// prior for Sigma --> here is an InvGamma
 	double alpha_Sigma;
 	double beta_Sigma;
@@ -22,7 +22,8 @@ protected:
 
 	// Options for Newton Method for Optimization
 	OptimOptions options;
-public:
+
+  public:
 	SpatialMixtureRJSampler() = default;
 
 	SpatialMixtureRJSampler(const SamplerParams &_params,

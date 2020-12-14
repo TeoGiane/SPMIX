@@ -7,16 +7,6 @@
 
 namespace optimization {
 
-/*class GradientState : public OptimizationTraits {
-  public:
-  	ReturnType current_solution;
-	ArgumentType current_minimizer;
-	GradientType current_gradient;
-	unsigned int current_iteration;
-	double current_gradient_norm;
-	void print() const;
-};*/
-
 template<typename D>
 class GradientAscent: public OptimizationTraits {
   private:

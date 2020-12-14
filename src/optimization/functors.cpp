@@ -115,7 +115,6 @@ Eigen::VectorXd spmixLogLikelihood::init(const int & randComp) const {
 	return x0;
 }
 
-
 /* Definitions for test_function */
 Eigen::VectorXd test_function::init() const {
     return (Eigen::VectorXd(2) << -10., -10.).finished();

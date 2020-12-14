@@ -10,10 +10,6 @@ void GradientAscent<D>::solve(const ArgumentType & x0) {
 	ArgumentType x_old = x0 - Eigen::VectorXd::Constant(x0.size(),0.1);
 	ArgumentType x_curr = x0;
 
-	// DEBUG
-	/*Rcpp::Rcout << "x_old: " << x_old.transpose() << "\n"
-	<< "x_curr: " << x_curr.transpose() << std::endl;*/
-
 	state.current_iteration = 0;
 
 	for (int i = 0; i < options.max_iter(); ++i) {
@@ -22,7 +18,7 @@ void GradientAscent<D>::solve(const ArgumentType & x0) {
 		++state.current_iteration;
 
 		// Initializing buffers
-		double gamma_i; //double gamma_i_old = 1;
+		double gamma_i;
 		ArgumentType x_new;
 		ReturnType fx_curr, fx_old;
 		GradientType grad_fx_curr, grad_fx_old;
@@ -48,28 +44,12 @@ void GradientAscent<D>::solve(const ArgumentType & x0) {
 		x_old = x_curr;
 		x_curr = x_new;
 
-		// DEBUG
-		/*state.print();
-		Rcpp::Rcout << "gamma_i: " << gamma_i << "\n"
-					<< "x_old: " << x_old.transpose() << "\n"
-					<< "x_curr: " << x_curr.transpose() << std::endl << std::endl;*/
-
 		// Convergence check
 		if (state.current_gradient_norm < options.tol())
 			break;
-
-		// Stagnation check
-		/*if (gamma_i < 1e-16 and gamma_i_old < 1e-16) {
-			state.stagnated = true;
-			break;
-		}
-
-		// Save gamma_i_old
-		gamma_i_old = gamma_i;*/
 	}
 
 	stan::math::hessian(target_function, state.current_maximizer,
 						state.current_solution, state.current_gradient, state.current_hessian);
-	//state.print();
 	return;
 };
