@@ -12,8 +12,9 @@ This package relies, for various purposes, on the following libraries:
 * [Stan Math](https://mc-stan.org/math/): this library provides both probability distributions utilities and the reverse mode automatic differentiation module, required in the samplers. Using this library, also its dependencies are necessairly required.
 * [Google Protocol Buffers](https://developers.google.com/protocol-buffers): this library provides tools for quick serialization of structured data.
 
-In order for the code to be available both for Windows and Unix systems, it attempts to provide headers and libraries through already existing R packages. Since this is not possible for all the aforementioned dependencies, some extra effort is required to make them all available on your operating system.
+In order for this package to be available both for Windows and Unix systems, headers and libraries are provided, whenever possible, through already existing R packages. Nevertheless, some aforementioned dependencies require some extra effort to make them available on your operating system (Expecially for Widows users).
 
+<!---
 ## Required R Packages
 The DESCRIPTION file lists all the dependencies of this package. Opening an R terminal, these can be easily installed via
 ```r
@@ -35,4 +36,4 @@ As an alternative, you can download this repo as a tar.gz archive, open a Termin
 ```shell
 R CMD INSTALL SPMIX-master.tar.gz
 ```
-
+-->
