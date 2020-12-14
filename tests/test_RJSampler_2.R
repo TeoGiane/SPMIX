@@ -127,7 +127,7 @@ params_filename = system.file("input_files/rjsampler_params.asciipb", package = 
 out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
 
 # Data analysis on chains (ONGOING)
-chains <- sapply(out, function(x) unserialize_proto("UnivariateState",x))
+chains <- sapply(out, function(x) unserializeSPMIXProto("UnivariateState",x))
 H_chain <- sapply(chains, function(x) x$num_components)
 means_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$mean))
 stdev_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$stdev))
