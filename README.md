@@ -4,6 +4,16 @@
 
 This repo collects the developing of the thesis project on Spatial Mixture models.
 
+## Requirements
+This package relies, for various purposes, on the following libraries:
+<par>
+* [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page): it provides advanced and optimized linear algebra utilities, used extensively throughout the code.
+* [GSL](https://www.gnu.org/software/gsl/): the GNU Scientific Library is used as linear algebra tool in the <code>/src/polyagamma</code> subfolder, which is a third-party code.
+* [Stan Math](https://mc-stan.org/math/): this library provides both probability distributions utilities and the reverse mode automatic differentiation module, required in the samplers. Using this library, also its dependencies are necessairly required.
+* [Google Protocol Buffer](https://developers.google.com/protocol-buffers): this library provides tools for quick serialization of structured data.
+
+In order for the code to be available both for Windows and Unix systems, it attempts to provide headers and libraries through already existing R packages. Since this is not possible for all the aforementioned dependencies, some extra effort is required to make them all available on your operating system.
+
 ## Required R Packages
 The DESCRIPTION file lists all the dependencies of this package. Opening an R terminal, these can be easily installed via
 ```r
