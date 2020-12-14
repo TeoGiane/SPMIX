@@ -25,7 +25,4 @@ As an alternative, you can download this repo as a tar.gz archive, open a Termin
 ```shell
 R CMD INSTALL SPMIX-master.tar.gz
 ```
-<strong>Remark</strong>: During installation, the compiler will raise a lot of warnings. To avoid them, you can create a .R/Makevars file in you home directory and then add the following lines:
-```makefile
-CXX17FLAGS += -Wno-ignored-attributes -Wno-deprecated-declarations
-```
+
