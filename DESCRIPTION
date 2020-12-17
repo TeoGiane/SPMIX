@@ -18,7 +18,7 @@ Depends:
     RProtoBuf (>= 0.4.17)
 Imports:
     methods (>= 3.5.0),
-    rstan (>= 2.21.2)
+    rstan (>= 2.18.1)
 LinkingTo: 
     BH (>= 1.66.0),
     Rcpp (>= 0.12.0),
