@@ -16,18 +16,14 @@ In order for this package to be available both for Windows and Unix systems, hea
 
 ## Installation - Unix
 ### R development tools
-First of all, <code>SPMIX</code> is an R development package, hence you need to have R installed on your computer as well as all development tools. The [R homepage](https://www.r-project.org/) offers extensive documentation on how to install R on your machine. In Unix, the development tools are often installed alongside with R through
-```shell
-sudo apt-get install r-base r-base-dev
-```
-once the CRAN repository has been added to your package manager source list. Moreover, it is advisable to have installed also an IDE for R. [RStudio](https://rstudio.com/) is a pretty complete programme and it is highly advisable to have it installed on your system.
+First of all, <code>SPMIX</code> is an R development package, hence you need to have R installed on your computer as well as all development tools. The [R homepage](https://www.r-project.org/) offers extensive documentation on how to install R on your machine. Moreover, it is advisable to have installed also an IDE for R. [RStudio](https://rstudio.com/) is a pretty complete programme and it is highly advisable to have it installed on your system.
 
 Since the development tools package for R has many dependencies that rely on external libraries, it is advisable to install them at this stage in order to avoid several iterations to get <code>devtools</code> installed. Thus, you can easily install those libraries via package manager with
 ```shell
 sudo apt get install libssl-dev libcurl4-openssl-dev libxml2-dev libgit2-dev libnode-dev
 ```
 At the end of this procedure, you will be able to install the <code>devtools</code> package and its dependencies from an R console simply typing
-```R
+```r
 install.packages("devtools")
 ```
 ### External Libraries Dependencies
@@ -60,7 +56,7 @@ Once all dependencies have been installed, the <code>SPMIX</code> is rather simp
 git clone https://github.com/TeoGiane/SPMIX
 ```
 Then, open an R terminal and set as current working directory the SPMIX directory and then install via
-```R()
+```r
 setwd("path/to/the/folder")
 devtools::install()
 ```
