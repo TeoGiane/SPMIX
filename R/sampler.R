@@ -1,6 +1,6 @@
-#' Spatial Mixture Model Sampler
+#' Spatial Mixture Model Samplers
 #'
-#' Runs the Gibbs sampler for the SPMIX model for a total of burnin + niter iterations,
+#' Runs the Gibbs samplers for the SPMIX model for a total of burnin + niter iterations,
 #' discarding the first 'burnin' ones and keeping in memory only one every 'thin' iterations.
 #'
 #' @usage SPMIX_sampler(burnin, niter, thin, data, W, params,
@@ -34,7 +34,7 @@
 #'
 #' @return A list of raw vectors where the i-th element is the i-th saved draw In order to reduce the space
 #' occupied by these draws, data are serialized through Google Protocol Buffers serialization procedure.
-#' Each state can be easily deserialized in R using the \code{\link{unserialize_proto}} function in this package.
+#' Each state can be easily deserialized in R using the \code{\link{unserializeSPMIXProto}} function in this package.
 #'
 #' @export
 SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(),
@@ -81,11 +81,11 @@ SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(),
     # Read ASCII file
     cat("readParamsfromASCII ... ")
     RProtoBuf::readProtoFiles(file = system.file("proto/sampler_params.proto", package = "SPMIX"))
-    params_in <- RProtoBuf::readASCII(SamplerParams, file(params))
+    params_in <- RProtoBuf::toString(RProtoBuf::readASCII(SamplerParams, file(params)))
     cat("done!\n")
   } else if ( is(params)=="Message" && params@type=="SamplerParams" ) {
     cat("Hyperparameters are provided as an RProtoBuf::Message\n")
-    params_in <- params
+    params_in <- RProtoBuf::toString(params)
   } else {
     cat("ERROR: input parameter 'params' is of unknown type\n")
     return()
@@ -105,7 +105,7 @@ SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(),
 
       cat("Optimization Options required but not given: setting default values ... ")
       RProtoBuf::readProtoFiles(file = system.file("proto/optimization_options.proto", package = "SPMIX"))
-      options_in <- RProtoBuf::new(OptimOptions, max_iter = 1000, tol = 1e-6)
+      options_in <- RProtoBuf::toString(RProtoBuf::new(OptimOptions, max_iter = 1000, tol = 1e-6))
       cat("done!\n")
 
     } else if(typeof(options) == "character") {
@@ -117,13 +117,13 @@ SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(),
       # Read ASCII file
       cat("readOptimOptionsfromASCII ... ")
       RProtoBuf::readProtoFiles(file = system.file("proto/optimization_options.proto", package = "SPMIX"))
-      options_in <- RProtoBuf::readASCII(OptimOptions, file(options))
+      options_in <- RProtoBuf::toString(RProtoBuf::readASCII(OptimOptions, file(options)))
       cat("done!\n")
 
     } else if ( is(options)=="Message" && options@type=="OptimOptions" ) {
 
       cat("Optimization Options are provided as an RProtoBuf::Message\n")
-      options_in <- options
+      options_in <- RProtoBuf::toString(options)
 
     } else {
 

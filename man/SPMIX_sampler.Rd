@@ -2,7 +2,7 @@
 % Please edit documentation in R/sampler.R
 \name{SPMIX_sampler}
 \alias{SPMIX_sampler}
-\title{Spatial Mixture Model Sampler}
+\title{Spatial Mixture Model Samplers}
 \usage{
 SPMIX_sampler(burnin, niter, thin, data, W, params,
      cov = list(), type = "no_rjmcmc",
@@ -46,9 +46,9 @@ and sampling phase. As default value, is set to TRUE.}
 \value{
 A list of raw vectors where the i-th element is the i-th saved draw In order to reduce the space
 occupied by these draws, data are serialized through Google Protocol Buffers serialization procedure.
-Each state can be easily deserialized in R using the \code{\link{unserialize_proto}} function in this package.
+Each state can be easily deserialized in R using the \code{\link{unserializeSPMIXProto}} function in this package.
 }
 \description{
-Runs the Gibbs sampler for the SPMIX model for a total of burnin + niter iterations,
+Runs the Gibbs samplers for the SPMIX model for a total of burnin + niter iterations,
 discarding the first 'burnin' ones and keeping in memory only one every 'thin' iterations.
 }
