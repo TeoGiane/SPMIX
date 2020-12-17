@@ -16,7 +16,7 @@ In order for this package to be available both for Windows and Unix systems, hea
 
 ## Installation - Unix
 ### R development tools
-First of all, <code>SPMIX</code> is an R development package, hence you need to have R installed on your computer as well as all development tools. The [R homepage](https://www.r-project.org/) offers extensive documentation on how to install R on your machine. Moreover, it is advisable to have installed also an IDE for R. [RStudio](https://rstudio.com/) is a pretty complete programme and it is highly advisable to have it installed on your system.
+First of all, <code>SPMIX</code> is an R development package, hence you need to have R installed on your computer as well as all development tools. The [R homepage](https://www.r-project.org/) offers extensive documentation on how to install R on your machine. Moreover, it is also advisable to have an IDE for R installed, in order to simplify future workflow. [RStudio](https://rstudio.com/) is a pretty complete programme and it is highly advisable to have it installed on your system.
 
 Since the development tools package for R has many dependencies that rely on external libraries, it is advisable to install them at this stage in order to avoid several iterations to get <code>devtools</code> installed. Thus, you can easily install those libraries via package manager with
 ```shell
@@ -36,7 +36,7 @@ Be aware that this library is under continuous development, so you may incurr in
 
 **Note on Compiler**
 
-If you ae using GNU compiler version 10.2 (available, for instance, in Ubuntu 20.10), you will have issues at compile time if you download the release of protobuf. So it is advisable to use more stable versions of the compiler (no problems have been reported with g++ version 9.3.0)
+If you are using GNU compiler version 10.2 (available, for instance, in Ubuntu 20.10), you will have issues at compile time if you download the release of protobuf. So it is advisable to use more stable versions of the compiler (no problems have been reported with g++ version 9.3.0)
 
 **Note on Memory**
 
