@@ -20,19 +20,31 @@ First of all, <code>SPMIX</code> is an R development package, hence you need to 
 ```shell
 sudo apt-get install r-base r-base-dev
 ```
-once the CRAN repository has been added to your package manager source list.
+once the CRAN repository has been added to your package manager source list. Moreover, it is advisable to have installed also an IDE for R. [RStudio](https://rstudio.com/) is a pretty complete programme and it is highly advisable to have it installed on your system.
 
-At the end of this procedure, you will be able to install the <code>devtools</code> package from an R shell simply typing
+Since the development tools package for R has many dependencies that rely on external libraries, it is advisable to install them at this stage in order to avoid several iterations to get <code>devtools</code> installed. Thus, you can easily install those libraries via package manager with
+```shell
+sudo apt get install libssl-dev libcurl4-openssl-dev libxml2-dev libgit2-dev libnode-dev
+```
+At the end of this procedure, you will be able to install the <code>devtools</code> package and its dependencies from an R console simply typing
 ```R
 install.packages("devtools")
 ```
 ### External Libraries Dependencies
-On the other hand, the <code>gsl</code> and the <code>protobuf</code> libraries are linked to the package as external libraries. As far as the GNU Scientific Library is concerned, it can be easily installed, in most Unix operating systems, through the package manager with commands like
+In this package, the <code>gsl</code> and the <code>protobuf</code> libraries are linked to the package as external libraries. As far as the GNU Scientific Library is concerned, it can be easily installed, in most Unix operating systems, through the package manager with commands like
 ```shell
 sudo apt-get install libgsl-dev
 ```
 The protobuf library needs to be installed from source following these [instructions](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md).
-This package assumes the default install location for the library, so do not change the installation prefix during installation.
+Be aware that this library is under continuous development, so you may incurr into some troubles during installation, expecially at checking stage. The following notes may be helpful in order to avoid issues while installing protobuf.
+
+**Note on Compiler**
+
+If you ae using GNU compiler version 10.2 (available, for instance, in Ubuntu 20.10), you will have issues at compile time if you download the release of protobuf. So it is advisable to use more stable versions of the compiler (no problems have been reported with g++ version 9.3.0)
+
+**Note on Memory**
+
+The latest release of protobuf, one of the tests requires a huge amount of memory so you may see your <code>make check</code> failed due to the fact that your machine or VM has not enough memory. With 8GB of RAM available, there should not be issues. In case you have less amount of memory, make sure to provide an adeguate amount of swap memory to you Unix machine (the tests were succesfull on a VM with 4GB of RAM and 8GB of swap, for instance). As an alternative, you can pick an older release, in which the aforemontioned test is missing (e.g. protobuf v. 3.13).
 
 ### R Packages Dependencies
 The DESCRIPTION file lists all the dependencies of this package. Both the <strong>Eigen</strong> and the <strong>Stan Math</strong> libraries are available as R packages, which are, respectively, <code>RcppEigen</code> and <code>StanHeaders</code>, which itself depend on other libraries that will be installed automatically. Moreover, since this package manages compiled code through the <code>[Rcpp](http://www.rcpp.org/)</code> package, this should be installed as well. On the other hand, <code>RProtoBuf</code> is a required package due to the fact that <code>SPMIX</code> relies on Google Protocol Buffers as serialization tool and, hence, an easy-to-use R interface to this API is suggested.
