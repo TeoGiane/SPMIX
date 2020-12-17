@@ -7,8 +7,8 @@ GSL_CFLAGS = $(shell gsl-config --cflags)
 GSL_LIBS = $(shell gsl-config --libs)
 
 # Google protocol buffers flags
-PROTOBUF_CFLAGS = $(shell pkg-config --cflags protobuf) #-I'/usr/local/include'
-PROTOBUF_LIBS = $(shell pkg-config --libs protobuf) #-L'/usr/local/lib' -lprotobuf
+PROTOBUF_CFLAGS = $(shell pkg-config --cflags protobuf)
+PROTOBUF_LIBS = $(shell pkg-config --libs protobuf)
 
 # Setting Package Flags
 PKG_CXXFLAGS += -D_REENTRANT -DSTAN_THREADS $(GSL_CFLAGS) $(PROTOBUF_CFLAGS) \
