@@ -13,8 +13,8 @@ GSL_INC = $(shell $(FOLDER)/bin/gsl-config --cflags)
 GSL_LIBS = $(shell $(FOLDER)/bin/gsl-config --libs)
 
 # Google protocol buffers flags
-PROTOBUF_INC = -I$(FOLDER)/include
-PROTOBUF_LIBS = -L$(FOLDER)/lib -lprotobuf
+PROTOBUF_INC = $(shell $(FOLDER)/bin/pkg-config --cflags protobuf) #-I$(FOLDER)/include
+PROTOBUF_LIBS = $(shell $(FOLDER)/bin/pkg-config --libs protobuf) #-L$(FOLDER)/lib -lprotobuf
 
 # Setting Package Flags
 PKG_CXXFLAGS += $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::CxxFlags()") \
