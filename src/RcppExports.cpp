@@ -29,8 +29,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // runSpatialSampler
-std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, Rcpp::S4 params, const std::vector<Eigen::MatrixXd>& covariates, bool display_progress);
-RcppExport SEXP _SPMIX_runSpatialSampler(SEXP burninSEXP, SEXP niterSEXP, SEXP thinSEXP, SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP, SEXP covariatesSEXP, SEXP display_progressSEXP) {
+std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, std::string params_str, const std::vector<Eigen::MatrixXd>& covariates, bool display_progress);
+RcppExport SEXP _SPMIX_runSpatialSampler(SEXP burninSEXP, SEXP niterSEXP, SEXP thinSEXP, SEXP dataSEXP, SEXP WSEXP, SEXP params_strSEXP, SEXP covariatesSEXP, SEXP display_progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -39,16 +39,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type thin(thinSEXP);
     Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type params(paramsSEXP);
+    Rcpp::traits::input_parameter< std::string >::type params_str(params_strSEXP);
     Rcpp::traits::input_parameter< const std::vector<Eigen::MatrixXd>& >::type covariates(covariatesSEXP);
     Rcpp::traits::input_parameter< bool >::type display_progress(display_progressSEXP);
-    rcpp_result_gen = Rcpp::wrap(runSpatialSampler(burnin, niter, thin, data, W, params, covariates, display_progress));
+    rcpp_result_gen = Rcpp::wrap(runSpatialSampler(burnin, niter, thin, data, W, params_str, covariates, display_progress));
     return rcpp_result_gen;
 END_RCPP
 }
 // runSpatialRJSampler
-std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, Rcpp::S4 params, const std::vector<Eigen::MatrixXd>& covariates, const Rcpp::S4& options, bool display_progress);
-RcppExport SEXP _SPMIX_runSpatialRJSampler(SEXP burninSEXP, SEXP niterSEXP, SEXP thinSEXP, SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP, SEXP covariatesSEXP, SEXP optionsSEXP, SEXP display_progressSEXP) {
+std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, std::string params_str, const std::vector<Eigen::MatrixXd>& covariates, const std::string& options_str, bool display_progress);
+RcppExport SEXP _SPMIX_runSpatialRJSampler(SEXP burninSEXP, SEXP niterSEXP, SEXP thinSEXP, SEXP dataSEXP, SEXP WSEXP, SEXP params_strSEXP, SEXP covariatesSEXP, SEXP options_strSEXP, SEXP display_progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -57,11 +57,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type thin(thinSEXP);
     Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
-    Rcpp::traits::input_parameter< Rcpp::S4 >::type params(paramsSEXP);
+    Rcpp::traits::input_parameter< std::string >::type params_str(params_strSEXP);
     Rcpp::traits::input_parameter< const std::vector<Eigen::MatrixXd>& >::type covariates(covariatesSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::S4& >::type options(optionsSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type options_str(options_strSEXP);
     Rcpp::traits::input_parameter< bool >::type display_progress(display_progressSEXP);
-    rcpp_result_gen = Rcpp::wrap(runSpatialRJSampler(burnin, niter, thin, data, W, params, covariates, options, display_progress));
+    rcpp_result_gen = Rcpp::wrap(runSpatialRJSampler(burnin, niter, thin, data, W, params_str, covariates, options_str, display_progress));
     return rcpp_result_gen;
 END_RCPP
 }

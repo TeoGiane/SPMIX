@@ -24,6 +24,7 @@
 #include <progress_bar.hpp>
 #include <utility>
 #include <exception>
+#include <google/protobuf/text_format.h>
 
 #include "utils.h"
 #include "functors.h"
@@ -63,19 +64,14 @@ Eigen::VectorXd invAlr(Eigen::VectorXd x) {
 /* Spatial Sampler execution routine (no RJMCMC, w/ or w/o covariates,data,W and params as strings or proper data types from R)*/
 // [[Rcpp::export]]
 std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>> & data,
-    										   const Eigen::MatrixXd & W, Rcpp::S4 params,
+    										   const Eigen::MatrixXd & W, std::string params_str,
     										   const std::vector<Eigen::MatrixXd> & covariates, bool display_progress) {
 
-	// Deep copy of messages
-	std::string tmp;
-
-	// Params copy
-    SamplerParams params_cp;
-    Rcpp::XPtr<SamplerParams>(Rcpp::as<Rcpp::XPtr<SamplerParams>>(params.slot("pointer")))
-    	->SerializeToString(&tmp); params_cp.ParseFromString(tmp);
+	// Messages Parsing
+	SamplerParams params; google::protobuf::TextFormat::ParseFromString(params_str, &params);
 
     // Initializarion
-    SpatialMixtureSampler spSampler(params_cp, data, W, covariates);
+    SpatialMixtureSampler spSampler(params, data, W, covariates);
     spSampler.init();
 
     // Initialize output container
@@ -115,29 +111,20 @@ std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, 
 /* Spatial Sampler execution routine (RJMCMC, w/ or w/o covariates,data,W and params as strings or proper data types from R)*/
 // [[Rcpp::export]]
 std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>> & data,
-    											 const Eigen::MatrixXd & W, Rcpp::S4 params,
+    											 const Eigen::MatrixXd & W, std::string params_str,
     											 const std::vector<Eigen::MatrixXd> & covariates,
-    											 const Rcpp::S4 & options, bool display_progress) {
+    											 const std::string & options_str, bool display_progress) {
 
-	// Deep copy of messages
-	std::string tmp;
-
-	// Params copy
-    SamplerParams params_cp;
-    Rcpp::XPtr<SamplerParams>(Rcpp::as<Rcpp::XPtr<SamplerParams>>(params.slot("pointer")))
-    	->SerializeToString(&tmp); params_cp.ParseFromString(tmp);
-
-    // Options copy
-    OptimOptions options_cp;
-    Rcpp::XPtr<OptimOptions>(Rcpp::as<Rcpp::XPtr<OptimOptions>>(options.slot("pointer")))
-    	->SerializeToString(&tmp); options_cp.ParseFromString(tmp);
-
-    // Initializarion
-	SpatialMixtureRJSampler spSampler(params_cp, data, W, options_cp, covariates);
+	// Messages Parsing
+	SamplerParams params; google::protobuf::TextFormat::ParseFromString(params_str, &params);
+	OptimOptions options; google::protobuf::TextFormat::ParseFromString(options_str, &options);
+		
+	// Initializarion
+	SpatialMixtureRJSampler spSampler(params, data, W, options, covariates);
 	spSampler.init();
 
-    // Initialize output container
-    std::vector<Rcpp::RawVector> out;
+	// Initialize output container
+	std::vector<Rcpp::RawVector> out;
 
     // Sampling
     auto start = std::chrono::high_resolution_clock::now();
