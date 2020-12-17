@@ -86,13 +86,13 @@ labels <- row.names(coordinates(spatial_grid))
 rm(list='coords')
 
 # Generating weights matrices
-trasformed_weights <- matrix(0,nrow=numGroups,ncol=numComponents)
+trasformed_weights <- matrix(0,nrow=numGroups,ncol=numComponents-1)
 weights <- matrix(0,nrow=numGroups,ncol=numComponents)
 for (i in 1:numGroups) {
   center <- coordinates(spatial_grid)[i,]
   trasformed_weights[i,1] <- 3*(center[1]-xbar)+3*(center[2]-ybar)
   trasformed_weights[i,2] <- -3*(center[1]-xbar)-3*(center[2]-ybar)
-  weights[i,] <- inv_alr(trasformed_weights[i,], padded_zero = TRUE)
+  weights[i,] <- invAlr(trasformed_weights[i,])
 }
 rm(list=c('i','center'))
 row.names(trasformed_weights) <- labels
@@ -162,7 +162,6 @@ plot_weightsi1 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i1)) 
   geom_polygon() + scale_fill_continuous(type = "gradient")
 plot_weightsi2 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i2)) +
   geom_polygon() + scale_fill_continuous(type = "gradient")
-title <- grid::textGrob("Weights on spatial grid", gp=grid::gpar(fontsize=14,font=2))
 rm(list='df')
 
 # Posterior of H - Barplot
