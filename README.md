@@ -63,6 +63,13 @@ Once installed, you can include the <code>SPMIX</code> package in your workflow 
 ### R development tools
 <code>SPMIX</code> is an R development package, hence you need to have R installed on your computer as well as all development tools. The [R homepage](https://www.r-project.org/) offers extensive documentation on how to install R on your machine. Moreover, it is also advisable to have an IDE for R installed, in order to simplify future workflow. As a suggestion, [RStudio](https://rstudio.com/) is a pretty complete programme and it is highly advisable to have it installed on your system. Finally, in order to install the R development tools package in Windows systems, all the required compilers needs to be available on your machine. In windows, these are provided in a toolchain bundle called [Rtools](https://cran.r-project.org/bin/windows/Rtools/). At the previous link you can find all the instructions to set up Rtools on your system.
 
+In order to add the Rtools binary path to PATH variable and set compatibility flags for the compiler to avoid unnecessary warnings at compile time, type in the Rtools Bash (available when Rtools is installed) the following commands:
+```shell
+echo 'PATH="${RTOOLS40_HOME}\\usr\\bin;${PATH}"' >> Documents/.Renviron
+mkdir -p Documents/.R
+echo 'CXX17FLAGS = -O2 -mtune=native -mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2' >> Documents/.R/Makevars.win
+```
+
 At the end of this procedure, you will be able to install the <code>devtools</code> package and its dependencies from an R console simply typing
 ```r
 install.packages("devtools")
