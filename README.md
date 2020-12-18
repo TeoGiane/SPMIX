@@ -75,12 +75,12 @@ Open the Rtools Bash terminal (installed along with Rtools) and simply follow th
 
 * **Enable all upstream MSYS2 build tools**: this will allow the installation of further packages required by <code>protobuf</code>. Type:
 ```shell
-sed -i '78,79 s/^# //' /c/rtools40/etc/pacman.conf
-echo 'SigLevel = Never' >> /c/rtools40/etc/pacman.conf
+sed -i '78,79 s/^#//' $RTOOLS40_HOME\\etc\\pacman.conf
+echo 'SigLevel = Never' >> $RTOOLS40_HOME\\etc\\pacman.conf
 ```
-*(Controlla se c'è bisogno di riavviare dopo queste modifiche)*
-* **Clone the Rtools Packages repo**: you can choose whichever location you like to clone the repo. Type:
+* **Clone the Rtools Packages repo**: after git installation, you can choose whichever location you like to clone the repo. Then, type:
 ```shell
+pacman -S git
 git clone https://github.com/r-windows/rtools-packages.git
 cd rtools-packages
 ```
@@ -90,21 +90,18 @@ cd mingw-w64-gsl
 makepkg-mingw --syncdeps --noconfirm
 pacman -U mingw-w64-i686-gsl-2.6-1-any.pkg.tar.xz
 pacman -U mingw-w64-x86_64-gsl-2.6-1-any.pkg.tar.xz
-[rm -f -r ...]
+rm -f -r pkg src *.xz *.gz
 cd ../
 ```
-*(Aggiungere comandi di pulizia)*
-
 * **Build and Install the protobuf library**: the following commands also clean the folder from files created during the build. Type:
 ```shell
 cd mingw-w64-protobuf
 makepkg-mingw --syncdeps --noconfirm
-pacman -U mingw-w64-i686-protobuf-3.12-4-any.pkg.tar.xz
-pacman -U mingw-w64-x86_64-protobuf-3.12-4-any.pkg.tar.xz
-[rm -f -r ...]
+pacman -U mingw-w64-i686-protobuf-3.12.4-1-any.pkg.tar.xz
+pacman -U mingw-w64-x86_64-protobuf-3.12.4-1-any.pkg.tar.xz
+rm -f -r pkg src *.xz *.gz
 cd ../
 ```
-*(Aggiungere comandi di pulizia e controllare il nome del file e aggiungere qualche nota in coda)*
 
 ### R Packages Dependencies
 The DESCRIPTION file lists all the dependencies of this package. Both the <strong>Eigen</strong> and the <strong>Stan Math</strong> headers and libraries are available as R packages, which are, respectively, <code>RcppEigen</code> and <code>StanHeaders</code>, which themselves depend on other libraries (e.g. <code>RcppParallel</code> or <code>rstan</code>) that will be installed automatically. <code>RcppProgress</code>, instead, offers display classes to print samplers' progresses during execution. Finally, since this package manages compiled code through the <code>Rcpp</code> package, this should be installed as well. On the other hand, <code>RProtoBuf</code> is a required package due to the fact that <code>SPMIX</code> relies on Google Protocol Buffers as serialization tool and, hence, an easy-to-use R interface to this API is suggested.
