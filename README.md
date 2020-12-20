@@ -3,8 +3,12 @@
 <strong>Supervisors</strong>: Prof. Alessandra Guglielmi, Dott. Mario Beraha
 
 ## Table of Contents
-1. [Requirements](#requirements)
+1. [Overview](#overview)
+2. [Requirements](#requirements)
+3. [Installation - Unix](#installation---unix)
+4. [Installation - Windows](#installation---windows)
 
+## Overview
 This repo collects the developing of the thesis project on Spatial Mixture models.
 
 ## Requirements
