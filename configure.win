@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# Setting folder
+if test "$R_ARCH" = "/x64" ; then
+  FOLDER=C:/rtools40/mingw64
+else
+  FOLDER=C:/rtools40/mingw32
+fi
+
+# Check if external libraries are installed
+if $FOLDER/bin/pkg-config --exists gsl; then
+  echo "Check if gsl library is installed ... OK"
+else
+  echo "Check if gsl library is installed ... KO"
+  exit 1
+fi
+
+# Check if external libraries are installed
+if $FOLDER/bin/pkg-config --exists protobuf; then
+  echo "Check if protobuf library is installed ... OK"
+else
+  echo "Check if protobuf library is installed ... KO"
+  exit 1
+fi
+
+# Setting Compiler flags for Windows
+mkdir -p $HOME/.R
+echo 'CXX17FLAGS = -O2 -mtune=native -mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2' >> $HOME/.R/Makevars.win
+echo "Setting compiler flags ... OK"
