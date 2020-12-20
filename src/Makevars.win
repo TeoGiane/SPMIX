@@ -36,7 +36,7 @@ OBJECTS = $(addsuffix .o, $(basename $(SOURCES)))
 # Recipes
 .PHONY = all
 
-all: compile_protos $(SHLIB)
+all: compile_protos $(SHLIB) clean
 
 compile_protos:
 	@mkdir -p cpp_proto
@@ -44,3 +44,8 @@ compile_protos:
 		do \
 			$(FOLDER)/bin/protoc -I$(PROTO_DIR) --cpp_out=./cpp_proto $${file}; \
 		done
+
+clean: $(SHLIB)
+	@if test "$(R_ARCH)" = "/x64"; then \
+  	rm -rf $(HOME)/.R; \
+  fi
