@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Deep clean for Unix OS
-rm -f cleanup.win
+rm -f cleanup.win configure.win
 rm -r src/cpp_proto
 rm -f src/Makevars.win
 find src -name '*.o' -exec rm '{}' \;
