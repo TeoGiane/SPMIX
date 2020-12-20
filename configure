@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Check if external libraries are installed
+if $FOLDER/bin/pkg-config --exists gsl; then
+  echo "Check if gsl library is installed ... OK"
+else
+  echo "Check if gsl library is installed ... KO"
+  exit 1
+fi
+
+# Check if external libraries are installed
+if $FOLDER/bin/pkg-config --exists protobuf; then
+  echo "Check if protobuf library is installed ... OK"
+else
+  echo "Check if protobuf library is installed ... KO"
+  exit 1
+fi
