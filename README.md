@@ -2,6 +2,9 @@
 <strong>Author</strong>: Matteo Gianella <br>
 <strong>Supervisors</strong>: Prof. Alessandra Guglielmi, Dott. Mario Beraha
 
+## Table of Contents
+1. [Requirements](#requirements)
+
 This repo collects the developing of the thesis project on Spatial Mixture models.
 
 ## Requirements
