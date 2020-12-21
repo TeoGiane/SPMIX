@@ -59,8 +59,9 @@ Once all dependencies have been installed, the <code>SPMIX</code> is extremely s
 ```r
 devtools::install_github("TeoGiane/SPMIX")
 ```
-This command will automatically download, build and install the <code>SPMIX</code> package in your package library. 
-Once installed, you can import the <code>SPMIX</code> extension in your workflow as a standard package with <code>library("SPMIX")</code>.
+This command will automatically download, build and install the <code>SPMIX</code> package in your package library.
+
+Once installed, you can import the <code>SPMIX<\code> as a standard package with <code>library("SPMIX")</code>.
 
 ## Installation - Windows
 ### R development tools
@@ -128,5 +129,6 @@ Once all dependencies have been installed, the <code>SPMIX</code> is extremely s
 ```r
 devtools::install_github("TeoGiane/SPMIX")
 ```
-This command will automatically download, build and install the <code>SPMIX</code> package in your package library. 
-Once installed, you can import the <code>SPMIX</code> extension in your workflow as a standard package with <code>library("SPMIX")</code>.
+This command will automatically download, build and install the <code>SPMIX</code> package in your package library.
+
+Once installed, you can import the <code>SPMIX<\code> as a standard package with <code>library("SPMIX")</code>.
