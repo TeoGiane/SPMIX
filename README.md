@@ -61,7 +61,7 @@ devtools::install_github("TeoGiane/SPMIX")
 ```
 This command will automatically download, build and install the <code>SPMIX</code> package in your package library.
 
-Once installed, you can import the <code>SPMIX<\code> as a standard package with <code>library("SPMIX")</code>.
+Once installed, you can import the <code>SPMIX</code> as a standard package with <code>library("SPMIX")</code>.
 
 ## Installation - Windows
 ### R development tools
@@ -131,4 +131,4 @@ devtools::install_github("TeoGiane/SPMIX")
 ```
 This command will automatically download, build and install the <code>SPMIX</code> package in your package library.
 
-Once installed, you can import the <code>SPMIX<\code> as a standard package with <code>library("SPMIX")</code>.
+Once installed, you can import the <code>SPMIX</code> as a standard package with <code>library("SPMIX")</code>.
