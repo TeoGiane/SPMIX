@@ -55,16 +55,12 @@ install.packages(c("BH", "Rcpp", "RcppEigen", "RcppParallel", "RcppProgress", "R
 ```
 
 ### SPMIX
-Once all dependencies have been installed, the <code>SPMIX</code> is rather simple to install. To do so, clone this repository via
-```shell
-git clone https://github.com/TeoGiane/SPMIX
-```
-Then, open an R terminal and set as current working directory the SPMIX directory and then install via
+Once all dependencies have been installed, the <code>SPMIX</code> is extremely simple to install. To do so, open R and simply type
 ```r
-setwd("path/to/the/folder")
-devtools::install()
+devtools::install_github("TeoGiane/SPMIX")
 ```
-Once installed, you can include the <code>SPMIX</code> package in your workflow as a standard package with <code>library("SPMIX")</code>.
+This command will automatically download, build and install the <code>SPMIX</code> package in your package library. 
+Once installed, you can import the <code>SPMIX</code> extension in your workflow as a standard package with <code>library("SPMIX")</code>.
 
 ## Installation - Windows
 ### R development tools
@@ -128,13 +124,9 @@ install.packages(c("BH", "Rcpp", "RcppEigen", "RcppParallel", "RcppProgress", "R
 ```
 
 ### SPMIX
-Once all dependencies have been installed, the <code>SPMIX</code> is rather simple to install. To do so, clone this repository via
-```shell
-git clone https://github.com/TeoGiane/SPMIX
-```
-Then, open an R terminal and set as current working directory the SPMIX directory and then install via
+Once all dependencies have been installed, the <code>SPMIX</code> is extremely simple to install. To do so, open R and simply type
 ```r
-setwd("path/to/the/folder")
-devtools::install()
+devtools::install_github("TeoGiane/SPMIX")
 ```
-Once installed, you can include the <code>SPMIX</code> package in your workflow as a standard package with <code>library("SPMIX")</code>.
+This command will automatically download, build and install the <code>SPMIX</code> package in your package library. 
+Once installed, you can import the <code>SPMIX</code> extension in your workflow as a standard package with <code>library("SPMIX")</code>.
