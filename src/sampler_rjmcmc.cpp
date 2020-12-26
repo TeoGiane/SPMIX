@@ -42,10 +42,10 @@ void SpatialMixtureRJSampler::init() {
 }
 
 void SpatialMixtureRJSampler::sample() {
-	if (regression) {
+	/*if (regression) {
     	regress();
     	computeRegressionResiduals();
-	}
+	}*/
 	sampleAtoms();
 	sampleSigma();
 	sampleRho();
