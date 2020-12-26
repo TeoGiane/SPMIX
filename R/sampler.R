@@ -46,12 +46,12 @@ SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(),
     data_in <- readDataFromCSV(data)
     # Return if the input filepath does not exist
     if (all(is.na(data_in)))
-      return()
+      stop("Input file for 'data' does not exist.")
   } else if ( typeof(data)=="list" && sapply(data, function(x) return(typeof(x)=="double" && length(x)>0)) ) {
     cat("Data are provided as a list of numeric vectors\n")
     data_in <- data
   } else {
-    cat("ERROR: input parameter 'data' is of unknown type\n")
+    stop("Input parameter 'data' is of unknown type.")
     return()
   }
 
@@ -61,13 +61,12 @@ SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(),
     W_in <- SPMIX::readMatrixFromCSV(W);
     # Return if the input filepath does not exist
     if (all(is.na(W_in)))
-      return()
+      stop("Input file for 'W' does not exist.")
   } else if ( typeof(W)=="double" && any(is(W)=="matrix") ) {
     cat("Proximity Matrix is provided as a matrix of double\n")
     W_in <- W
   } else {
-    cat("ERROR: input parameter 'W' is of unknown type\n")
-    return()
+    stop("Input parameter 'W' is of unknown type.")
   }
 
   # Checking if params is given or needs to be read from file
@@ -87,8 +86,7 @@ SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(),
     cat("Hyperparameters are provided as an RProtoBuf::Message\n")
     params_in <- RProtoBuf::toString(params)
   } else {
-    cat("ERROR: input parameter 'params' is of unknown type\n")
-    return()
+    stop("Input parameter 'params' is of unknown type.")
   }
 
   # Check the type of sampler needs to be executed
@@ -100,16 +98,17 @@ SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(),
 
   } else if (type == "rjmcmc") {
 
+    if (length(cov)!=0) {
+      stop("Reversible Jump sampler does not support covariates at the moment")
+    }
+
     # Checking if options is NULL, given or needs to be read from file
     if (is.null(options)) {
-
       cat("Optimization Options required but not given: setting default values ... ")
       RProtoBuf::readProtoFiles(file = system.file("proto/optimization_options.proto", package = "SPMIX"))
       options_in <- RProtoBuf::toString(RProtoBuf::new(OptimOptions, max_iter = 1000, tol = 1e-6))
       cat("done!\n")
-
     } else if(typeof(options) == "character") {
-
       cat("Optimization Options are provided as a path to an asciipb file\n")
       # Check if file exists
       if(!file.exists(options)){}
@@ -119,25 +118,18 @@ SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(),
       RProtoBuf::readProtoFiles(file = system.file("proto/optimization_options.proto", package = "SPMIX"))
       options_in <- RProtoBuf::toString(RProtoBuf::readASCII(OptimOptions, file(options)))
       cat("done!\n")
-
     } else if ( is(options)=="Message" && options@type=="OptimOptions" ) {
-
       cat("Optimization Options are provided as an RProtoBuf::Message\n")
       options_in <- RProtoBuf::toString(options)
-
     } else {
-
-      cat("ERROR: input parameter 'options' is of unknown type\n")
-      return()
-
+      stop("Input parameter 'options' is of unknown type.")
     }
 
     # Calling the Sampler
     output <- SPMIX:::runSpatialRJSampler(burnin, niter, thin, data_in, W_in, params_in, cov,
                                           options_in, display_progress)
   } else {
-    cat("ERROR: input parameter 'type' is of unknown type\n")
-    return()
+    stop("ERROR: input parameter 'type' is of unknown type.")
   }
 
  return(output)
