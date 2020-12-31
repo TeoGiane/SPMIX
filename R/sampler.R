@@ -98,10 +98,6 @@ SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(),
 
   } else if (type == "rjmcmc") {
 
-    if (length(cov)!=0) {
-      stop("Reversible Jump sampler does not support covariates at the moment")
-    }
-
     # Checking if options is NULL, given or needs to be read from file
     if (is.null(options)) {
       cat("Optimization Options required but not given: setting default values ... ")
