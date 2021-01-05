@@ -2,7 +2,13 @@
 
 template<typename D>
 GradientAscent<D>::GradientAscent(const D & _target_function, const OptimOptions & _options):
-target_function(_target_function), options(_options) {};
+options(_options) {
+
+	// Check proper function type
+	static_assert(std::is_base_of<function::functorBase<D>, D>::value,
+		"Target function type should be recurively derived from function::functorBase.");
+	target_function_ptr = std::make_unique<D>(_target_function);
+};
 
 template<typename D>
 void GradientAscent<D>::solve(const ArgumentType & x0) {
@@ -24,8 +30,8 @@ void GradientAscent<D>::solve(const ArgumentType & x0) {
 		GradientType grad_fx_curr, grad_fx_old;
 		
 		// Computing gradients and step size gamma
-		stan::math::gradient(target_function, x_curr, fx_curr, grad_fx_curr);
-		stan::math::gradient(target_function, x_old, fx_old, grad_fx_old);
+		stan::math::gradient(*target_function_ptr, x_curr, fx_curr, grad_fx_curr);
+		stan::math::gradient(*target_function_ptr, x_old, fx_old, grad_fx_old);
 		gamma_i = std::abs((x_curr - x_old).dot(grad_fx_curr - grad_fx_old)) / (grad_fx_curr - grad_fx_old).squaredNorm();
 
 		if (isnan(gamma_i)) {
@@ -49,7 +55,7 @@ void GradientAscent<D>::solve(const ArgumentType & x0) {
 			break;
 	}
 
-	stan::math::hessian(target_function, state.current_maximizer,
+	stan::math::hessian(*target_function_ptr, state.current_maximizer,
 						state.current_solution, state.current_gradient, state.current_hessian);
 	return;
 };
