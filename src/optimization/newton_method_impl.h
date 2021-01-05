@@ -2,13 +2,19 @@
 
 template<typename D>
 NewtonMethod<D>::NewtonMethod(const D & _target_function, const OptimOptions & _options):
-target_function(_target_function), options(_options) {};
+options(_options) {
+
+	// Check proper function type
+	static_assert(std::is_base_of<function::functorBase<D>, D>::value,
+		"Target function type should be recurively derived from function::functorBase.");
+	target_function_ptr = std::make_unique<D>(_target_function);
+};
 
 template<typename D>
 void NewtonMethod<D>::solve(const ArgumentType & x0) {
 
 	ArgumentType x_old = x0;
-	auto loss_function = [this](const auto & x){return -target_function(x);};
+	auto loss_function = [this](const auto & x){return -(*target_function_ptr)(x);};
 
 	// Defining aliases
 	state.current_iteration = 0;
