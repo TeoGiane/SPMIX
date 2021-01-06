@@ -82,14 +82,14 @@ install.packages("devtools")
 ### External Libraries Dependencies
 In this package, the <code>gsl</code> and the <code>protobuf</code> libraries are linked to the package as external libraries. While Unix systems are organized in repositories and manages libraries via package managing programmes, on Windows things are more complicated, in general. The general approach adopted here is to exploit the R toolchain provided with Rtools to compile and install the external libraries dependencies emulating a Unix environment. Main reference for this procedure is the [Rtools Packages Repository](https://github.com/r-windows/rtools-packages), which offers an extremely automatized procedure to build and install the required libraries for both 32 and 64 bits architectures. In the following we report the necessary instructions, with the aim of furtherly simplifying the procedure.
 
-Open the Rtools Bash terminal (installed along with Rtools) and simply follow these instructions:
+Open the Rtools Bash terminal (it has been installed with Rtools, you can find it simply searching for "Rtools Bash" on Windows search bar) and simply follow these instructions:
 
 * **Enable all upstream MSYS2 build tools**: this will allow the installation of further packages required by <code>protobuf</code>. Type:
 ```shell
 sed -i '78,79 s/^#//' $RTOOLS40_HOME\\etc\\pacman.conf
 echo 'SigLevel = Never' >> $RTOOLS40_HOME\\etc\\pacman.conf
 ```
-* **Clone the Rtools Packages repo**: after git installation, you can choose whichever location you like to clone the repo. Then, type:
+* **Clone the Rtools Packages repo**: after git installation (you can skip the command on the first line in case you have [Git](https://gitforwindows.org/) already installed on your OS), clone the <code>rtools-packages</code> repository. You can choose whichever location you like to clone the repo. Use the following commands:
 ```shell
 pacman -S git
 git clone https://github.com/r-windows/rtools-packages.git
