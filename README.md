@@ -47,11 +47,12 @@ Be aware that this library is under continuous development, so you may incurr in
 **Note on Memory**: The latest release of protobuf, one of the tests requires a huge amount of memory, so you may see your <code>make check</code> failed due to the fact that your machine or VM has not enough memory. With 8GB of RAM available, there should not be issues. In case you have a lower amount of memory, make sure to provide an adeguate amount of swap memory to you Unix machine (the tests were succesfull on a VM with 4GB of RAM and 8GB of swap, for instance). As an alternative, you can pick an older release, in which the aforemontioned test is missing (e.g. protobuf v. 3.13).
 
 ### R Packages Dependencies
-The DESCRIPTION file lists all the dependencies of this package. Both the <strong>Eigen</strong> and the <strong>Stan Math</strong> headers and libraries are available as R packages, which are, respectively, <code>RcppEigen</code> and <code>StanHeaders</code>, which themselves depend on other libraries (e.g. <code>RcppParallel</code> or <code>rstan</code>) that will be installed automatically. <code>RcppProgress</code>, instead, offers display classes to print samplers' progresses during execution. Finally, since this package manages compiled code through the <code>Rcpp</code> package, this should be installed as well. On the other hand, <code>RProtoBuf</code> is a required package due to the fact that <code>SPMIX</code> relies on Google Protocol Buffers as serialization tool and, hence, an easy-to-use R interface to this API is suggested.
+The DESCRIPTION file lists all the dependencies of this package. Both the <strong>Eigen</strong> and the <strong>Stan Math</strong> headers and libraries are available as R packages, which are, respectively, <code>RcppEigen</code> and <code>StanHeaders</code>, which themselves depend on other libraries (e.g. <code>RcppParallel</code> or <code>rstan</code>) that will be installed automatically. <code>RcppProgress</code>, instead, offers display classes to print samplers' progresses during execution. LaTeX support for documentation in the R helper is offered by <code>mathjaxr</code>. Finally, since this package manages compiled code through the <code>Rcpp</code> package, this should be installed as well. On the other hand, <code>RProtoBuf</code> is a required package due to the fact that <code>SPMIX</code> relies on Google Protocol Buffers as serialization tool and, hence, an easy-to-use R interface to this API is suggested.
 
 The installation of all these packages is trivial, since you only need a single R command to do it.
 ```r
-install.packages(c("BH", "Rcpp", "RcppEigen", "RcppParallel", "RcppProgress", "RProtoBuf", "StanHeaders", "rstan"))
+install.packages(c("BH", "Rcpp", "RcppEigen", "RcppParallel", "RcppProgress",
+                   "RProtoBuf", "StanHeaders", "mathjaxr", "rstan"))
 ```
 
 ### SPMIX
@@ -115,11 +116,12 @@ cd ../
 ```
 
 ### R Packages Dependencies
-The DESCRIPTION file lists all the dependencies of this package. Both the <strong>Eigen</strong> and the <strong>Stan Math</strong> headers and libraries are available as R packages, which are, respectively, <code>RcppEigen</code> and <code>StanHeaders</code>, which themselves depend on other libraries (e.g. <code>RcppParallel</code> or <code>rstan</code>) that will be installed automatically. <code>RcppProgress</code>, instead, offers display classes to print samplers' progresses during execution. Finally, since this package manages compiled code through the <code>Rcpp</code> package, this should be installed as well. On the other hand, <code>RProtoBuf</code> is a required package due to the fact that <code>SPMIX</code> relies on Google Protocol Buffers as serialization tool and, hence, an easy-to-use R interface to this API is suggested.
+The DESCRIPTION file lists all the dependencies of this package. Both the <strong>Eigen</strong> and the <strong>Stan Math</strong> headers and libraries are available as R packages, which are, respectively, <code>RcppEigen</code> and <code>StanHeaders</code>, which themselves depend on other libraries (e.g. <code>RcppParallel</code> or <code>rstan</code>) that will be installed automatically. <code>RcppProgress</code>, instead, offers display classes to print samplers' progresses during execution. LaTeX support for documentation in the R helper is offered by <code>mathjaxr</code>. Finally, since this package manages compiled code through the <code>Rcpp</code> package, this should be installed as well. On the other hand, <code>RProtoBuf</code> is a required package due to the fact that <code>SPMIX</code> relies on Google Protocol Buffers as serialization tool and, hence, an easy-to-use R interface to this API is suggested.
 
 The installation of all these packages is trivial, since you only need a single R command to do it.
 ```r
-install.packages(c("BH", "Rcpp", "RcppEigen", "RcppParallel", "RcppProgress", "RProtoBuf", "StanHeaders", "rstan"))
+install.packages(c("BH", "Rcpp", "RcppEigen", "RcppParallel", "RcppProgress",
+                   "RProtoBuf", "StanHeaders", "mathjaxr", "rstan"))
 ```
 
 ### SPMIX
