@@ -32,29 +32,37 @@
 #include "sampler_rjmcmc.h"
 #include "univariate_mixture_state.pb.h"
 
-/*TODO: finire documentazione*/
 
 //' Additive Log Ratio
 //'
-//' This utility computes the additive log ratio transorm of a given vector. This transformation is
-//' defined as: (METTI DEF)
-//' @param x Vector of double in \ifelse{html}{\out{R<sup>H</sup>}}{\eqn{R^{H}}}.
-//' @return Vector of double in \ifelse{html}{\out{R<sup>H-1</sup>}}{\eqn{R^{H-1}}} i.e. alr(x).
+//' \loadmathjax This utility computes the additive log ratio transorm of a given vector. Given a generic vector of the simplex
+//' \mjseqn{x \in S^{H}}, the transformation is defined as:
+//' \mjsdeqn{ \operatorname{alr}(x)_j = \log \left( \frac{x_j}{x_H} \right) \quad \forall j=1,\dots,H-1 }
+//'
+//' @param x Vector of double in the simplex \mjseqn{S^H}.
+//' @return Vector of double in \mjseqn{\mathbb{R}^{H-1}} i.e. \mjseqn{\operatorname{alr}(x)}.
 //' @export
 // [[Rcpp::export]]
 Eigen::VectorXd alr(Eigen::VectorXd x) {
 	return utils::Alr(x, false);
 }
 
-/*TODO: finire documentazione*/
+/*
+&=& \frac{ \operatorname{e}^{x_j} }{ 1 + \sum_{h=1}^{H-1} \operatorname{e}^{x_h} }
+*/
+
 
 //' Inverse Additive Log Ratio
 //'
-//' This utility computes the inverse additive log ratio transorm of a given vector. This transformation is
-//' defined as: (METTI DEF)
-//' @param x Vector of double in \ifelse{html}{\out{R<sup>H-1</sup>}}{\eqn{R^{H-1}}}.
-//' @return Vector of double in \ifelse{html}{\out{R<sup>H</sup>}}{\eqn{R^{H}}} i.e.
-//' \ifelse{html}{\out{alr <sup>-1</sup>(x)}}{\eqn{alr^{-1}(x)}}.
+//' \loadmathjax This utility computes the inverse additive log ratio transorm of a given vector. Given a generic vector in
+//' \mjseqn{ x \in \mathbb{R}^{H-1} }, the transformation is defined as:
+//' \mjsdeqn{ \begin{eqnarray*}
+//'	\operatorname{alr}^{-1}(x)_{j} &=& \textstyle\frac{\operatorname{e}^{x_j}}{\sum _{h} \operatorname{e}^{x_h}} \quad \forall j=1,\dots,H-1 \cr
+//' \operatorname{alr}^{-1}(x)_H &=& 1 - \textstyle\sum _{h} \operatorname{alr}^{-1}(x)_h
+//' 		 \end{eqnarray*} }
+//'
+//' @param x Vector of double in \mjseqn{ \mathbb{R}^{H-1} }.
+//' @return Vector of double in the simplex \mjseqn{S^H} i.e. \mjseqn{\operatorname{alr}^{-1}(x)}.
 //' @export
 // [[Rcpp::export]]
 Eigen::VectorXd invAlr(Eigen::VectorXd x) {
@@ -118,7 +126,7 @@ std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin
 	// Messages Parsing
 	SamplerParams params; google::protobuf::TextFormat::ParseFromString(params_str, &params);
 	OptimOptions options; google::protobuf::TextFormat::ParseFromString(options_str, &options);
-		
+
 	// Initializarion
 	SpatialMixtureRJSampler spSampler(params, data, W, options, covariates);
 	spSampler.init();
