@@ -15,12 +15,12 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 	// data range --> used in gradient ascent
 	double lowerBound, upperBound;
 
-	// DEBUG
+	// Iteration counter for sample method
 	int iter{1};
 	//int cutoff{10};
 	//int acceptedMoves{0};
 
-	// Options for Newton Method for Optimization
+	// Options for Optimization Algorithm
 	OptimOptions options;
 
   public:
