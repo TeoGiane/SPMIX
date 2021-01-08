@@ -7,13 +7,16 @@
 invAlr(x)
 }
 \arguments{
-\item{x}{Vector of double in \ifelse{html}{\out{R<sup>H-1</sup>}}{\eqn{R^{H-1}}}.}
+\item{x}{Vector of double in \mjseqn{ \mathbb{R}^{H-1} }.}
 }
 \value{
-Vector of double in \ifelse{html}{\out{R<sup>H</sup>}}{\eqn{R^{H}}} i.e.
-\ifelse{html}{\out{alr <sup>-1</sup>(x)}}{\eqn{alr^{-1}(x)}}.
+Vector of double in the simplex \mjseqn{S^H} i.e. \mjseqn{\operatorname{alr}^{-1}(x)}.
 }
 \description{
-This utility computes the inverse additive log ratio transorm of a given vector. This transformation is
-defined as: (METTI DEF)
+\loadmathjax This utility computes the inverse additive log ratio transorm of a given vector. Given a generic vector in
+\mjseqn{ x \in \mathbb{R}^{H-1} }, the transformation is defined as:
+\mjsdeqn{ \begin{eqnarray*}
+\operatorname{alr}^{-1}(x)_{j} &=& \textstyle\frac{\operatorname{e}^{x_j}}{\sum _{h} \operatorname{e}^{x_h}} \quad \forall j=1,\dots,H-1 \cr
+\operatorname{alr}^{-1}(x)_H &=& 1 - \textstyle\sum _{h} \operatorname{alr}^{-1}(x)_h
+\end{eqnarray*} }
 }

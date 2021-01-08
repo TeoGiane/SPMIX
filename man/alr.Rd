@@ -7,12 +7,13 @@
 alr(x)
 }
 \arguments{
-\item{x}{Vector of double in \ifelse{html}{\out{R<sup>H</sup>}}{\eqn{R^{H}}}.}
+\item{x}{Vector of double in the simplex \mjseqn{S^H}.}
 }
 \value{
-Vector of double in \ifelse{html}{\out{R<sup>H-1</sup>}}{\eqn{R^{H-1}}} i.e. alr(x).
+Vector of double in \mjseqn{\mathbb{R}^{H-1}} i.e. \mjseqn{\operatorname{alr}(x)}.
 }
 \description{
-This utility computes the additive log ratio transorm of a given vector. This transformation is
-defined as: (METTI DEF)
+\loadmathjax This utility computes the additive log ratio transorm of a given vector. Given a generic vector of the simplex
+\mjseqn{x \in S^{H}}, the transformation is defined as:
+\mjsdeqn{ \operatorname{alr}(x)_j = \log \left( \frac{x_j}{x_H} \right) \quad \forall j=1,\dots,H-1 }
 }
