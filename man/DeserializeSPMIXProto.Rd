@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{DeserializeSPMIXProto}
 \alias{DeserializeSPMIXProto}
-\title{Deserialize Messages of the \code{SPMIX} Package}
+\title{Deserialize messages of the \code{SPMIX} package}
 \usage{
 DeserializeSPMIXProto(message_type, raw_vector)
 }

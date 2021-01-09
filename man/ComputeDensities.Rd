@@ -4,8 +4,7 @@
 \alias{ComputeDensities}
 \title{Compute the estimated posterior densities}
 \usage{
-ComputeDensities(deserialized_chains, N,
-                 ranges, names = NULL)
+ComputeDensities(deserialized_chains, N, ranges, names = NULL)
 }
 \arguments{
 \item{deserialized_chains}{A list of \code{RProtoBuf::Message} which stores the deserialized output of

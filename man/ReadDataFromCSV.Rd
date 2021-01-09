@@ -11,7 +11,7 @@ A list of dimension I, in which the i-th element is a vector containing all data
 }
 \description{
 This utility reads the input data for the sampler from a \code{.csv} file. This file needs to be provided with column headers.
-The file should be organized in two columns for a correct read:
+Moreover, it should be organized in two columns for the correct parsing:
 \itemize{
 \item{\strong{group}, an integer (from 0 to I-1) describing the area to which the datum belongs to;}
 \item{\strong{data}, the actual datum, which will be assigned to area indicated by "group" column.}
