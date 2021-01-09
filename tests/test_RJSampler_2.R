@@ -92,7 +92,7 @@ for (i in 1:numGroups) {
   center <- coordinates(spatial_grid)[i,]
   trasformed_weights[i,1] <- 3*(center[1]-xbar)+3*(center[2]-ybar)
   trasformed_weights[i,2] <- -3*(center[1]-xbar)-3*(center[2]-ybar)
-  weights[i,] <- invAlr(trasformed_weights[i,])
+  weights[i,] <- InvAlr(trasformed_weights[i,])
 }
 rm(list=c('i','center'))
 row.names(trasformed_weights) <- labels
@@ -124,10 +124,10 @@ params_filename = system.file("input_files/rjsampler_params.asciipb", package = 
 # options_filename = system.file("input_files/optimization_options.asciipb", package = "SPMIX")
 
 # Run Spatial sampler
-out <- SPMIX_sampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
+out <- SPMIXSampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
 
 # Data analysis on chains (ONGOING)
-chains <- sapply(out, function(x) unserializeSPMIXProto("UnivariateState",x))
+chains <- sapply(out, function(x) UnserializeSPMIXProto("UnivariateState",x))
 H_chain <- sapply(chains, function(x) x$num_components)
 means_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$mean))
 stdev_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$stdev))
