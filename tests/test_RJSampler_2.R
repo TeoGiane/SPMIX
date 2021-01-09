@@ -27,39 +27,6 @@ buildLattice <- function(coords) {
   names(out) <- c("spatialGrid", "proxMatrix")
   return(out)
 }
-posteriorDensities <- function(unserialized_chains, ranges, names = NULL) {
-
-  # Elicit numGroups
-  numGroups <- length(unserialized_chains[[1]]$groupParams)
-
-  # Extract necessary chains
-  H_chain <- sapply(unserialized_chains, function(x) x$num_components)
-  means_chain <- lapply(unserialized_chains, function(x) sapply(x$atoms, function(x) x$mean))
-  stdev_chain <- lapply(unserialized_chains, function(x) sapply(x$atoms, function(x) x$stdev))
-
-  # Compute Estimated densities
-  estimated_densities <- list()
-  for (i in 1:numGroups) {
-    weights_chain <- lapply(unserialized_chains, function(x) x$groupParams[[i]]$weights)
-    x_grid <- seq(ranges[1,i], ranges[2,i], length.out = 500)
-    est_dens <- rep(0,length(x_grid))
-    for (j in 1:length(unserialized_chains)) {
-      xgrid_expand <- t(rbind(replicate(H_chain[j], x_grid, simplify = "matrix")))
-      est_dens <- est_dens + t(as.matrix(weights_chain[[j]])) %*% dnorm(xgrid_expand,
-                                                                        means_chain[[j]],stdev_chain[[j]])
-    }
-    est_dens <- est_dens/length(chains)
-    estimated_densities[[i]] <- est_dens
-  }
-
-  # Set names if passed
-  if (!is.null(names)) {
-    names(estimated_densities) <- labels
-  }
-
-  # Return list
-  return(estimated_densities)
-}
 dataRecast <- function(x, y, labels = row.names(y)) {
   rows <- dim(y)[1]; cols <- dim(y)[2]
   out <- data.frame()
@@ -133,7 +100,7 @@ stdev_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$stdev))
 
 # Computing estimated densities
 data_ranges <- sapply(data, range)
-estimated_densities <- posteriorDensities(chains, ranges = data_ranges, names = labels)
+estimated_densities <- ComputeDensities(chains, 500, data_ranges, labels)
 
 # Computing true densities for comparison
 true_densities <- list()

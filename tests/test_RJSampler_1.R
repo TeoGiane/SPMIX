@@ -7,7 +7,6 @@ library("SPMIX")
 set.seed(230196)
 ngroups <- 1; ncomponents <- 3; N <- 1000
 means <- c(-4,1,5); std_devs <- c(1,1,1); weights <- c(1/6,3/6,2/6)
-# means <- c(-4,1,5,3); std_devs <- c(1,0.5,1,0.5); weights <- c(1/4,1/4,1/4,1/4)
 cluster_alloc <- sample(1:ncomponents, prob = weights, size = N, replace = T)
 data <- list(); data[[1]] <- rnorm(N, mean = means[cluster_alloc], sd = std_devs[cluster_alloc])
 
@@ -38,24 +37,18 @@ x11(height = 4, width = 8.27); barplot(table(H_chain)/length(chains))
 title("Posterior of H")
 
 # Plotting the average density over iterations and compare with true curve
-# Computing average density
-data_range <- range(data[[1]])
-x_grid <- seq(data_range[1], data_range[2], length.out = 500)
-est_dens <- rep(0,length(x_grid))
-for (i in 1:length(chains)) {
-  xgrid_expand <- t(rbind(replicate(H_chain[i], x_grid, simplify = "matrix")))
-  est_dens <- est_dens + t(as.matrix(weights_chain[[i]])) %*% dnorm(xgrid_expand,
-                                                                    means_chain[[i]],stdev_chain[[i]])
-}
-est_dens <- est_dens/length(chains)
+# Computing estimated density
+data_range <- sapply(data, range)
+est_dens <- ComputeDensities(chains, 500, data_range)
 
 # Computing true density
+x_grid <- seq(data_range[1,1], data_range[2,1], length.out = 500)
 xgrid_expand <- t(rbind(replicate(ncomponents, x_grid, simplify = "matrix")))
 true_dens <- t(as.matrix(weights)) %*% dnorm(xgrid_expand,means,std_devs)
 
 # Visualization (first sketch)
 x11(height = 4, width = 8.27)
 plot(x_grid, true_dens, type = 'l', col='blue', lwd=2, lty=1,xlab = "Grid", ylab = "Density")
-lines(x_grid, est_dens, col='darkorange', lwd=2, lty=1)
+lines(x_grid, est_dens[[1]], col='darkorange', lwd=2, lty=1)
 legend("topleft", legend = c("True", "Estimated"), col=c("blue","darkorange"), lty = 1, lwd = 2)
 title("Area 1 - Density estimation")
