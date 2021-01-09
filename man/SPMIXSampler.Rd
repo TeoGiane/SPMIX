@@ -46,7 +46,7 @@ and sampling phase. As default value, is set to TRUE.}
 \value{
 A list of raw vectors where the i-th element is the i-th saved draw In order to reduce the space
 occupied by these draws, data are serialized through Google Protocol Buffers serialization procedure.
-Each state can be easily deserialized in R using the \code{\link{unserializeSPMIXProto}} function in this package.
+Each state can be easily deserialized in R using the \code{\link{DeserializeSPMIXProto}} function in this package.
 }
 \description{
 Runs the Gibbs samplers for the SPMIX model for a total of burnin + niter iterations,
