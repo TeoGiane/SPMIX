@@ -3,7 +3,7 @@
 
 #' Additive Log Ratio
 #'
-#' \loadmathjax This utility computes the additive log ratio transorm of a given vector. Given a generic vector of the simplex
+#' \loadmathjax This utility computes the additive log ratio transform of a given vector. Given a generic vector of the simplex
 #' \mjseqn{x \in S^{H}}, the transformation is defined as:
 #' \mjsdeqn{ \operatorname{alr}(x)_j = \log \left( \frac{x_j}{x_H} \right) \quad \forall j=1,\dots,H-1 }
 #'
@@ -16,7 +16,7 @@ Alr <- function(x) {
 
 #' Inverse Additive Log Ratio
 #'
-#' \loadmathjax This utility computes the inverse additive log ratio transorm of a given vector. Given a generic vector in
+#' \loadmathjax This utility computes the inverse additive log ratio transform of a given vector. Given a generic vector 
 #' \mjseqn{ x \in \mathbb{R}^{H-1} }, the transformation is defined as:
 #' \mjsdeqn{ \begin{eqnarray*}
 #'	\operatorname{alr}^{-1}(x)_{j} &=& \textstyle\frac{\operatorname{e}^{x_j}}{\sum _{h} \operatorname{e}^{x_h}} \quad \forall j=1,\dots,H-1 \cr
@@ -41,7 +41,7 @@ runSpatialRJSampler <- function(burnin, niter, thin, data, W, params_str, covari
 #' Import Proximity Matrix from File
 #'
 #' This function simply reads the proximity matrix G of the Spatial Mixture Model from a \code{.csv} file. This file
-#' needs to be provided with no columns or row headers and in the visual form of a matrix only composed by 0 or 1.
+#' should not have columns or row headers and written in the visual form of a matrix only composed by 0 or 1.
 #' As assumption, the diagonal of this matrix should be 0.
 #' @param filename A string identifying the path to a \code{.csv} file from which the matrix will be read.
 #' @return The proximity matrix as a usual \code{R matrix} object.
@@ -53,7 +53,7 @@ ReadMatrixFromCSV <- function(filename) {
 #' Import Data from File
 #'
 #' This utility reads the input data for the sampler from a \code{.csv} file. This file needs to be provided with column headers.
-#' The file should be organized in two columns for a correct read:
+#' Moreover, it should be organized in two columns for the correct parsing:
 #' \itemize{
 #' \item{\strong{group}, an integer (from 0 to I-1) describing the area to which the datum belongs to;}
 #' \item{\strong{data}, the actual datum, which will be assigned to area indicated by "group" column.}
