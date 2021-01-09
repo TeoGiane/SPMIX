@@ -10,8 +10,8 @@
 #' @param x Vector of double in the simplex \mjseqn{S^H}.
 #' @return Vector of double in \mjseqn{\mathbb{R}^{H-1}} i.e. \mjseqn{\operatorname{alr}(x)}.
 #' @export
-alr <- function(x) {
-    .Call(`_SPMIX_alr`, x)
+Alr <- function(x) {
+    .Call(`_SPMIX_Alr`, x)
 }
 
 #' Inverse Additive Log Ratio
@@ -26,8 +26,8 @@ alr <- function(x) {
 #' @param x Vector of double in \mjseqn{ \mathbb{R}^{H-1} }.
 #' @return Vector of double in the simplex \mjseqn{S^H} i.e. \mjseqn{\operatorname{alr}^{-1}(x)}.
 #' @export
-invAlr <- function(x) {
-    .Call(`_SPMIX_invAlr`, x)
+InvAlr <- function(x) {
+    .Call(`_SPMIX_InvAlr`, x)
 }
 
 runSpatialSampler <- function(burnin, niter, thin, data, W, params_str, covariates, display_progress) {
@@ -46,8 +46,8 @@ runSpatialRJSampler <- function(burnin, niter, thin, data, W, params_str, covari
 #' @param filename A string identifying the path to a \code{.csv} file from which the matrix will be read.
 #' @return The proximity matrix as a usual \code{R matrix} object.
 #' @export
-readMatrixFromCSV <- function(filename) {
-    .Call(`_SPMIX_readMatrixFromCSV`, filename)
+ReadMatrixFromCSV <- function(filename) {
+    .Call(`_SPMIX_ReadMatrixFromCSV`, filename)
 }
 
 #' Import Data from File
@@ -60,7 +60,7 @@ readMatrixFromCSV <- function(filename) {
 #' }
 #' @return A list of dimension I, in which the i-th element is a vector containing all data that have been assigned to location i.
 #' @export
-readDataFromCSV <- function(filename) {
-    .Call(`_SPMIX_readDataFromCSV`, filename)
+ReadDataFromCSV <- function(filename) {
+    .Call(`_SPMIX_ReadDataFromCSV`, filename)
 }
 

@@ -43,7 +43,7 @@
 //' @return Vector of double in \mjseqn{\mathbb{R}^{H-1}} i.e. \mjseqn{\operatorname{alr}(x)}.
 //' @export
 // [[Rcpp::export]]
-Eigen::VectorXd alr(Eigen::VectorXd x) {
+Eigen::VectorXd Alr(Eigen::VectorXd x) {
 	return utils::Alr(x, false);
 }
 
@@ -65,7 +65,7 @@ Eigen::VectorXd alr(Eigen::VectorXd x) {
 //' @return Vector of double in the simplex \mjseqn{S^H} i.e. \mjseqn{\operatorname{alr}^{-1}(x)}.
 //' @export
 // [[Rcpp::export]]
-Eigen::VectorXd invAlr(Eigen::VectorXd x) {
+Eigen::VectorXd InvAlr(Eigen::VectorXd x) {
   return utils::InvAlr(x, false);
 }
 
@@ -174,7 +174,7 @@ std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin
 //' @return The proximity matrix as a usual \code{R matrix} object.
 //' @export
 // [[Rcpp::export]]
-Eigen::MatrixXd readMatrixFromCSV(std::string filename) {
+Eigen::MatrixXd ReadMatrixFromCSV(std::string filename) {
     return utils::readMatrixFromCSV(filename);
 }
 
@@ -189,7 +189,7 @@ Eigen::MatrixXd readMatrixFromCSV(std::string filename) {
 //' @return A list of dimension I, in which the i-th element is a vector containing all data that have been assigned to location i.
 //' @export
 // [[Rcpp::export]]
-std::vector<std::vector<double>> readDataFromCSV(std::string filename) {
+std::vector<std::vector<double>> ReadDataFromCSV(std::string filename) {
     return utils::readDataFromCSV(filename);
 }
 

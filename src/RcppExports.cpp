@@ -6,25 +6,25 @@
 
 using namespace Rcpp;
 
-// alr
-Eigen::VectorXd alr(Eigen::VectorXd x);
-RcppExport SEXP _SPMIX_alr(SEXP xSEXP) {
+// Alr
+Eigen::VectorXd Alr(Eigen::VectorXd x);
+RcppExport SEXP _SPMIX_Alr(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Eigen::VectorXd >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(alr(x));
+    rcpp_result_gen = Rcpp::wrap(Alr(x));
     return rcpp_result_gen;
 END_RCPP
 }
-// invAlr
-Eigen::VectorXd invAlr(Eigen::VectorXd x);
-RcppExport SEXP _SPMIX_invAlr(SEXP xSEXP) {
+// InvAlr
+Eigen::VectorXd InvAlr(Eigen::VectorXd x);
+RcppExport SEXP _SPMIX_InvAlr(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Eigen::VectorXd >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(invAlr(x));
+    rcpp_result_gen = Rcpp::wrap(InvAlr(x));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -65,36 +65,36 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// readMatrixFromCSV
-Eigen::MatrixXd readMatrixFromCSV(std::string filename);
-RcppExport SEXP _SPMIX_readMatrixFromCSV(SEXP filenameSEXP) {
+// ReadMatrixFromCSV
+Eigen::MatrixXd ReadMatrixFromCSV(std::string filename);
+RcppExport SEXP _SPMIX_ReadMatrixFromCSV(SEXP filenameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
-    rcpp_result_gen = Rcpp::wrap(readMatrixFromCSV(filename));
+    rcpp_result_gen = Rcpp::wrap(ReadMatrixFromCSV(filename));
     return rcpp_result_gen;
 END_RCPP
 }
-// readDataFromCSV
-std::vector<std::vector<double>> readDataFromCSV(std::string filename);
-RcppExport SEXP _SPMIX_readDataFromCSV(SEXP filenameSEXP) {
+// ReadDataFromCSV
+std::vector<std::vector<double>> ReadDataFromCSV(std::string filename);
+RcppExport SEXP _SPMIX_ReadDataFromCSV(SEXP filenameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
-    rcpp_result_gen = Rcpp::wrap(readDataFromCSV(filename));
+    rcpp_result_gen = Rcpp::wrap(ReadDataFromCSV(filename));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_SPMIX_alr", (DL_FUNC) &_SPMIX_alr, 1},
-    {"_SPMIX_invAlr", (DL_FUNC) &_SPMIX_invAlr, 1},
+    {"_SPMIX_Alr", (DL_FUNC) &_SPMIX_Alr, 1},
+    {"_SPMIX_InvAlr", (DL_FUNC) &_SPMIX_InvAlr, 1},
     {"_SPMIX_runSpatialSampler", (DL_FUNC) &_SPMIX_runSpatialSampler, 8},
     {"_SPMIX_runSpatialRJSampler", (DL_FUNC) &_SPMIX_runSpatialRJSampler, 9},
-    {"_SPMIX_readMatrixFromCSV", (DL_FUNC) &_SPMIX_readMatrixFromCSV, 1},
-    {"_SPMIX_readDataFromCSV", (DL_FUNC) &_SPMIX_readDataFromCSV, 1},
+    {"_SPMIX_ReadMatrixFromCSV", (DL_FUNC) &_SPMIX_ReadMatrixFromCSV, 1},
+    {"_SPMIX_ReadDataFromCSV", (DL_FUNC) &_SPMIX_ReadDataFromCSV, 1},
     {NULL, NULL, 0}
 };
 
