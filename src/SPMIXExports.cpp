@@ -35,7 +35,7 @@
 
 //' Additive Log Ratio
 //'
-//' \loadmathjax This utility computes the additive log ratio transorm of a given vector. Given a generic vector of the simplex
+//' \loadmathjax This utility computes the additive log ratio transform of a given vector. Given a generic vector of the simplex
 //' \mjseqn{x \in S^{H}}, the transformation is defined as:
 //' \mjsdeqn{ \operatorname{alr}(x)_j = \log \left( \frac{x_j}{x_H} \right) \quad \forall j=1,\dots,H-1 }
 //'
@@ -54,7 +54,7 @@ Eigen::VectorXd Alr(Eigen::VectorXd x) {
 
 //' Inverse Additive Log Ratio
 //'
-//' \loadmathjax This utility computes the inverse additive log ratio transorm of a given vector. Given a generic vector in
+//' \loadmathjax This utility computes the inverse additive log ratio transform of a given vector. Given a generic vector in
 //' \mjseqn{ x \in \mathbb{R}^{H-1} }, the transformation is defined as:
 //' \mjsdeqn{ \begin{eqnarray*}
 //'	\operatorname{alr}^{-1}(x)_{j} &=& \textstyle\frac{\operatorname{e}^{x_j}}{\sum _{h} \operatorname{e}^{x_h}} \quad \forall j=1,\dots,H-1 \cr
