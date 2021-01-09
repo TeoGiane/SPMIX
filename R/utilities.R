@@ -10,7 +10,7 @@
 #' using \link{RProtoBuf} package.
 #'
 #' @export
-unserializeSPMIXProto <- function(message_type, raw_vector) {
+UnserializeSPMIXProto <- function(message_type, raw_vector) {
 
   # Check Message Descriptor
   if (message_type == "EigenMatrix") {
@@ -19,6 +19,8 @@ unserializeSPMIXProto <- function(message_type, raw_vector) {
     RProtoBuf::readProtoFiles(system.file("/proto/sampler_params.proto", package = "SPMIX"))
   } else if (message_type == "UnivariateState") {
     RProtoBuf::readProtoFiles(system.file("/proto/univariate_mixture_state.proto", package = "SPMIX"))
+  } else if (message_type == "OptimOptions") {
+    RProtoBuf::readProtoFiles(system.file("/proto/optimization_options.proto", package = "SPMIX"))
   } else {
     stop("Input 'message_type' is of uknown type")
   }
@@ -27,3 +29,5 @@ unserializeSPMIXProto <- function(message_type, raw_vector) {
   state <- RProtoBuf::read(get(message_type), raw_vector)
   return(state)
 }
+
+# TODO: Aggiungere il compute posterior density del test 2
