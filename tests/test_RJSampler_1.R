@@ -1,3 +1,5 @@
+## First test for the Reversible Jump Sampler ##
+
 # Required libraries
 library("SPMIX")
 
@@ -22,19 +24,14 @@ thin = 2
 params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
 
 # Run Spatial sampler
-out <- SPMIXSampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")# display_progress = F)
-# save(out, file="output.txt")
-# save(out, file = "RJTest1_output_20k.dat")
-# save(out, file = "RJTest1_output_10k_noswitch.dat")
+out <- SPMIXSampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
 
 # Analyses
-# load("./tests/output.txt")
-chains <- sapply(out, function(x) UnserializeSPMIXProto("UnivariateState",x))
+chains <- sapply(out, function(x) DeserializeSPMIXProto("UnivariateState",x))
 H_chain <- sapply(chains, function(x) x$num_components)
 means_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$mean))
 stdev_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$stdev))
 weights_chain <- lapply(chains, function(x) x$groupParams[[1]]$weights)
-# allocs_chain <- sapply(chains, function(x) table(x$groupParams[[1]]$cluster_allocs))
 
 # Barplot for the number of components
 x11(height = 4, width = 8.27); barplot(table(H_chain)/length(chains))

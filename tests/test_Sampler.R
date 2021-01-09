@@ -1,10 +1,11 @@
-# First attempt of simulation
+## Test on sampler with fixed number of components ##
+
 library("SPMIX")
 
 # Setting MCMC parameters
-burnin = 10000
-niter = 10000
-thin = 5
+burnin = 5000
+niter = 5000
+thin = 2
 
 # Setting input filenames (ALSO FAKE TO CHECK EXCETIONS HANDLING)
 data_filename = system.file("input_files/datasets/scenario0/rep0.csv", package = "SPMIX")
