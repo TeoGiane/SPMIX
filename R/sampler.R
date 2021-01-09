@@ -3,7 +3,7 @@
 #' Runs the Gibbs samplers for the SPMIX model for a total of burnin + niter iterations,
 #' discarding the first 'burnin' ones and keeping in memory only one every 'thin' iterations.
 #'
-#' @usage SPMIX_sampler(burnin, niter, thin, data, W, params,
+#' @usage SPMIXSampler(burnin, niter, thin, data, W, params,
 #'      cov = list(), type = "no_rjmcmc",
 #'      options = NULL, display_progress = TRUE)
 #'
@@ -37,13 +37,13 @@
 #' Each state can be easily deserialized in R using the \code{\link{unserializeSPMIXProto}} function in this package.
 #'
 #' @export
-SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(),
+SPMIXSampler <- function(burnin, niter, thin, data, W, params, cov = list(),
                           type = "no_rjmcmc", options = NULL, display_progress = TRUE) {
 
   # Checking if data is given or needs to be read from file
   if(typeof(data) == "character") {
     cat("Data are provided as a path to a csv file\n")
-    data_in <- readDataFromCSV(data)
+    data_in <- ReadDataFromCSV(data)
     # Return if the input filepath does not exist
     if (all(is.na(data_in)))
       stop("Input file for 'data' does not exist.")
@@ -58,7 +58,7 @@ SPMIX_sampler <- function(burnin, niter, thin, data, W, params, cov = list(),
   # Checking if W is given or needs to be read from file
   if(typeof(W) == "character") {
     cat("Proximity Matrix is provided as a path to a csv file\n")
-    W_in <- SPMIX::readMatrixFromCSV(W);
+    W_in <- SPMIX::ReadMatrixFromCSV(W);
     # Return if the input filepath does not exist
     if (all(is.na(W_in)))
       stop("Input file for 'W' does not exist.")
