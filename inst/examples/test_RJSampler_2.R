@@ -125,15 +125,15 @@ for (i in 1:length(labels)) {
   df[which(df$id==labels[i]),'w_i2'] <- weights[i,2]
 }
 plot_weightsi1 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i1)) +
-  geom_polygon() + scale_fill_continuous(type = "gradient")
+  geom_polygon() + scale_fill_continuous(type = "gradient") + theme(legend.position = "none")
 plot_weightsi2 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i2)) +
-  geom_polygon() + scale_fill_continuous(type = "gradient")
+  geom_polygon() + scale_fill_continuous(type = "gradient") + theme(legend.position = "none")
 rm(list='df')
 
 # Posterior of H - Barplot
 df <- as.data.frame(table(H_chain)/length(H_chain)); names(df) <- c("NumComponents", "Prob.")
 plot_postH <- ggplot(data = df, aes(x=NumComponents, y=Prob.)) +
-  geom_bar(stat="identity", color="steelblue", fill="lightblue") +#"white") +
+  geom_bar(stat="identity", color="steelblue", fill="lightblue") +
   theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
   ggtitle("Posterior of H")
 rm(list='df')
@@ -153,14 +153,16 @@ for (i in 1:numGroups) {
   y <- rbind(estimated_densities[[i]], true_densities[[i]]); row.names(y) <- c("Estimated", "True")
   tmp <- ggplot(data = dataRecast(x,y), aes(x=Grid, y=Value, group=Density, col=Density)) +
     geom_line(lwd=1) + theme(plot.title = element_text(face="bold", hjust = 0.5)) +
-    ggtitle(paste0("Area ", i))
+    ggtitle(paste0("Area ", i)) + theme(legend.position = "none")
   plots_area[[i]] <- tmp; rm(list=c('x','y','tmp'))
 }
 names(plots_area) <- labels
 
 # Printing plots
-x11(height = 2, width = 8.27); gridExtra::grid.arrange(plot_weightsi1, plot_weightsi2, plot_postH, ncol=3)
+x11(height = 2.75, width = 2.75); plot_weightsi1
+x11(height = 2.75, width = 2.75); plot_weightsi2
+x11(height = 4, width = 4); plot_postH
+x11(height = 4, width = 4); plot_traceH
 x11(height = 8.27, width = 8.27); gridExtra::grid.arrange(grobs=plots_area, nrow=3, ncol=3)
-x11(height = 4, width = 8.27); plot_traceH
 
 ###########################################################################
