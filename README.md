@@ -5,7 +5,7 @@
 ## Table of Contents
 1. [Overview](#overview)
 2. [Requirements](#requirements)
-3. [Installation - Unix](#installation---linux)
+3. [Installation - Linux](#installation---linux)
 4. [Installation - Windows](#installation---windows)
 
 ## Overview
