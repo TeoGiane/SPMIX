@@ -9,7 +9,7 @@
 4. [Installation - Windows](#installation---windows)
 
 ## Overview
-This repo collects the developing of the thesis project on Spatial Mixture models.
+SPMIX collects sampling schemes that performs density estimation for spatially dependent areal data, in a Bayesian Non-Parametric setting. Data on each area are modelled as a finite mixture of Gaussian kernels and the weights provides the spatial dependence among neighbours via the logistic multivariate CAR prior. The number of components of the mixture can be either fixed or variable: in the second case, a prior on such quantity is added and a reversible jump scheme is adopted to estimate the posterior distribution of the model.
 
 ## Requirements
 This package relies, for various purposes, on the following libraries:
