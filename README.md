@@ -5,11 +5,11 @@
 ## Table of Contents
 1. [Overview](#overview)
 2. [Requirements](#requirements)
-3. [Installation - Unix](#installation---unix)
+3. [Installation - Linux](#installation---linux)
 4. [Installation - Windows](#installation---windows)
 
 ## Overview
-This repo collects the developing of the thesis project on Spatial Mixture models.
+SPMIX collects sampling schemes that performs density estimation for spatially dependent areal data, in a Bayesian Non-Parametric setting. Data on each area are modelled as a finite mixture of Gaussian kernels and the weights provides the spatial dependence among neighbours via the logistic multivariate CAR prior. The number of components of the mixture can be either fixed or variable: in the second case, a prior on such quantity is added and a reversible jump scheme is adopted to estimate the posterior distribution of the model.
 
 ## Requirements
 This package relies, for various purposes, on the following libraries:
@@ -21,7 +21,7 @@ This package relies, for various purposes, on the following libraries:
 
 In order for this package to be available both for Windows and Unix systems, headers and libraries are provided, whenever possible, through already existing R packages. Nevertheless, some aforementioned dependencies require some extra effort to make them available on your operating system (expecially for Windows users).
 
-## Installation - Unix
+## Installation - Linux
 ### R development tools
 <code>SPMIX</code> is an R development package, hence you need to have R installed on your computer as well as all development tools. The [R homepage](https://www.r-project.org/) offers extensive documentation on how to install R on your machine. Moreover, it is also advisable to have an IDE for R installed, in order to simplify future workflow. As a suggestion, [RStudio](https://rstudio.com/) is a pretty complete programme and it is highly advisable to have it installed on your system.
 
