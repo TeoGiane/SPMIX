@@ -6,8 +6,8 @@ library("SPMIX")
 library("ggplot2")
 library("sp") # also rgdal, rgeos, maptools have been installed
 
-# Helper functions (INSERT INTO SPMIX PACKAGE??)
-buildLattice <- function(coords) {
+# Helper functions
+BuildLattice <- function(coords) {
   numGroups <- dim(coords)[1]
 
   # Build spatial grid from coordinates
@@ -27,7 +27,7 @@ buildLattice <- function(coords) {
   names(out) <- c("spatialGrid", "proxMatrix")
   return(out)
 }
-dataRecast <- function(x, y, labels = row.names(y)) {
+DataRecast <- function(x, y, labels = row.names(y)) {
   rows <- dim(y)[1]; cols <- dim(y)[2]
   out <- data.frame()
   for (i in 1:rows) {
@@ -47,8 +47,8 @@ coords <- expand.grid(x = seq(0,1,length.out = sqrt(numGroups)),
                       y = seq(0,1,length.out = sqrt(numGroups)))
 xbar <- ybar <- 0.5
 
-spatial_grid <- buildLattice(coords)$spatialGrid
-W <- buildLattice(coords)$proxMatrix
+spatial_grid <- BuildLattice(coords)$spatialGrid
+W <- BuildLattice(coords)$proxMatrix
 labels <- row.names(coordinates(spatial_grid))
 rm(list='coords')
 
@@ -92,7 +92,28 @@ params_filename = system.file("input_files/rjsampler_params.asciipb", package = 
 # Run Spatial sampler
 out <- SPMIXSampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
 
-# Data analysis on chains (ONGOING)
+###########################################################################
+
+###########################################################################
+# Sampler Execution (full run, NO burnin, no Thinning) --------------------
+
+# Setting MCMC parameters
+burnin = 0
+niter = 10000
+thin = 1
+
+# Grab input filenames
+params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
+
+# Run Spatial sampler
+out <- SPMIXSampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
+
+###########################################################################
+
+###########################################################################
+# Posterior analysis ------------------------------------------------------
+
+# Deserialization
 chains <- sapply(out, function(x) DeserializeSPMIXProto("UnivariateState",x))
 H_chain <- sapply(chains, function(x) x$num_components)
 means_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$mean))
@@ -151,7 +172,7 @@ plots_area <- list()
 for (i in 1:numGroups) {
   x <- seq(data_ranges[1,i], data_ranges[2,i], length.out = 500)
   y <- rbind(estimated_densities[[i]], true_densities[[i]]); row.names(y) <- c("Estimated", "True")
-  tmp <- ggplot(data = dataRecast(x,y), aes(x=Grid, y=Value, group=Density, col=Density)) +
+  tmp <- ggplot(data = DataRecast(x,y), aes(x=Grid, y=Value, group=Density, col=Density)) +
     geom_line(lwd=1) + theme(plot.title = element_text(face="bold", hjust = 0.5)) +
     ggtitle(paste0("Area ", i)) + theme(legend.position = "none")
   plots_area[[i]] <- tmp; rm(list=c('x','y','tmp'))
