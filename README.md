@@ -89,6 +89,7 @@ Open the Rtools Bash terminal (it has been installed with Rtools, you can find i
 ```shell
 sed -i '78,79 s/^#//' $RTOOLS40_HOME\\etc\\pacman.conf
 echo 'SigLevel = Never' >> $RTOOLS40_HOME\\etc\\pacman.conf
+pacman -Sy
 ```
 * **Clone the Rtools Packages repo**: after git installation (you can skip the command on the first line in case you have [Git](https://gitforwindows.org/) already installed on your OS), clone the <code>rtools-packages</code> repository. You can choose whichever location you like to clone the repo. Use the following commands:
 ```shell
