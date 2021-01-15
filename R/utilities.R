@@ -1,13 +1,13 @@
 #' Deserialize messages of the \code{SPMIX} package
 #'
-#' This funciton is a wrapper to unserialize raw vectors using the \code{.proto} files available in this package.
-#' We rely on Google Protocol Buffer for the serialization procedure and on \code{\link{RProtoBuf}} package to
+#' This funciton is a wrapper to deserialize raw vectors using the \code{.proto} files available in this package.
+#' We rely on Google Protocol Buffers for the serialization procedure and on \code{\link{RProtoBuf}} package to
 #' provide and easy-to-use interface for \code{R} users
 #'
 #' @param message_type A string containing the name of the Message in which the serialized message will be converted
 #' @param raw_vector A vector of type \code{raw}. The message to be unserialized
 #' @return An object of class \code{RProtoBuf::Message}, which stores the unserialized message and can be manipulated
-#' using \link{RProtoBuf} package.
+#' using the \link{RProtoBuf} package.
 #'
 #' @export
 DeserializeSPMIXProto <- function(message_type, raw_vector) {
@@ -37,13 +37,13 @@ DeserializeSPMIXProto <- function(message_type, raw_vector) {
 #' areal location \mjseqn{i=1,\dots,I}.
 #'
 #' @param deserialized_chains A list of \code{RProtoBuf::Message} which stores the deserialized output of
-#' the sampler (either with fuxed or variable number of components).
+#' the sampler (either with a fixed or a variable number of components).
 #' @param N An integer representing the number of points of the grid on which the estimated density will be computed.
 #' @param ranges A matrix of dimesions \mjseqn{2 \times I}, where \mjseqn{I} is the number of areal locations. This
 #' matrix represents the extrema of the grid on which the density estimation will be performed.
 #' @param names A vector of strings of length \mjseqn{I}, optional input that sets the names of the output elements.
 #' Default value is set to \code{NULL}, thus no name will be attributed.
-#' @return A list of \mjseqn{I} elements, where the \mjseqn{i}.th element represent the estimated density over a fixed
+#' @return A list of \mjseqn{I} elements, where the \mjseqn{i}-th element represent the estimated density over a fixed
 #' grid of \code{N} points between \code{ranges[1,i]} and \code{ranges[2,i]}.
 #'
 #' @export

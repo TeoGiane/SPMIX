@@ -7,7 +7,7 @@
 A Protobuf::Message with the following fields:
 \describe{
 \item{max_iter}{An integer storing the maximum number of iterations that the optimization algorithm
-have to perform.}
+has to perform.}
 \item{tol}{A double storing the minimum tolerance used to evaluate if the optimization algorithm
 has reached convergence.}
 }

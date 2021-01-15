@@ -8,7 +8,7 @@ ComputeDensities(deserialized_chains, N, ranges, names = NULL)
 }
 \arguments{
 \item{deserialized_chains}{A list of \code{RProtoBuf::Message} which stores the deserialized output of
-the sampler (either with fuxed or variable number of components).}
+the sampler (either with a fixed or a variable number of components).}
 
 \item{N}{An integer representing the number of points of the grid on which the estimated density will be computed.}
 
@@ -19,7 +19,7 @@ matrix represents the extrema of the grid on which the density estimation will b
 Default value is set to \code{NULL}, thus no name will be attributed.}
 }
 \value{
-A list of \mjseqn{I} elements, where the \mjseqn{i}.th element represent the estimated density over a fixed
+A list of \mjseqn{I} elements, where the \mjseqn{i}-th element represent the estimated density over a fixed
 grid of \code{N} points between \code{ranges[1,i]} and \code{ranges[2,i]}.
 }
 \description{

@@ -7,7 +7,10 @@
 A Protobuf::Message with the following fields:
 \describe{
 \item{num_components}{An integer setting the number of components of the mixture.}
-\item{atoms}{A repeated field of type \code{GroupParams}, a message that stores, for each areal location
+\item{atoms}{A repeated field of type \code{UnivariateMixtureAtom}, a message that simply stores the mean
+and standard deviation of an atom of the mixture. Since it is a repeated field, its size will be equal
+to the number of components}
+\item{groupParams}{A repeated field of type \code{GroupParams}, a message that stores, for each areal location
 \mjseqn{i=1,\dots,I}, the vector of weights \mjseqn{w_i} and the allocation variables \mjseqn{s_{ij}},
 \mjseqn{j=1,\dots,N_{i}}.}
 \item{rho}{A double storing the current value of \mjseqn{\rho}.}

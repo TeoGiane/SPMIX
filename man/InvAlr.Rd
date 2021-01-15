@@ -13,7 +13,7 @@ InvAlr(x)
 Vector of double in the simplex \mjseqn{S^H} i.e. \mjseqn{\operatorname{alr}^{-1}(x)}.
 }
 \description{
-\loadmathjax This utility computes the inverse additive log ratio transform of a given vector. Given a generic vector
+\loadmathjax This utility computes the inverse additive log-ratio transform of a given vector. Given a generic vector
 \mjseqn{ x \in \mathbb{R}^{H-1} }, the transformation is defined as:
 \mjsdeqn{ \begin{eqnarray*}
 \operatorname{alr}^{-1}(x)_{j} &=& \textstyle\frac{\operatorname{e}^{x_j}}{\sum _{h} \operatorname{e}^{x_h}} \quad \forall j=1,\dots,H-1 \cr

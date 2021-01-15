@@ -13,7 +13,7 @@ Alr(x)
 Vector of double in \mjseqn{\mathbb{R}^{H-1}} i.e. \mjseqn{\operatorname{alr}(x)}.
 }
 \description{
-\loadmathjax This utility computes the additive log ratio transform of a given vector. Given a generic vector of the simplex
+\loadmathjax This utility computes the additive log-ratio transform of a given vector. Given a generic vector of the simplex
 \mjseqn{x \in S^{H}}, the transformation is defined as:
 \mjsdeqn{ \operatorname{alr}(x)_j = \log \left( \frac{x_j}{x_H} \right) \quad \forall j=1,\dots,H-1 }
 }

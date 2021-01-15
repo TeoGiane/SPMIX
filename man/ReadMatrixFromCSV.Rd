@@ -13,7 +13,7 @@ ReadMatrixFromCSV(filename)
 The proximity matrix as a usual \code{R matrix} object.
 }
 \description{
-This function simply reads the proximity matrix G of the Spatial Mixture Model from a \code{.csv} file. This file
-should not have columns or row headers and written in the visual form of a matrix only composed by 0 or 1.
-As assumption, the diagonal of this matrix should be 0.
+\loadmathjax This function simply reads the proximity matrix \mjseqn{G} of the Spatial Mixture Model from a \code{.csv} file.
+This file should not have columns or row headers and it must be written in the visual form of a matrix
+only composed by either \mjseqn{0} or \mjseqn{1}. As assumption, the diagonal of this matrix should be \mjseqn{0}.
 }

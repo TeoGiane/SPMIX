@@ -12,7 +12,7 @@
 #'   measure defined as \mjseqn{P_{0}( \mu , \sigma ^2) \sim \mathcal{N}( \mu \lvert \sigma ^2; \mu_{0}, \lambda^{-1}
 #'   \sigma ^2) \times \operatorname{IG}(\sigma^2; a, b) }. Hence, this message stores four double, i.e.
 #'   \mjseqn{(\mu_{0}, a, b, \lambda)}.}
-#'   \item{rho_params}{A \code{BetaParams} message that stores the prior parameters for \mjseqn{\rho},
+#'   \item{rho_params}{A \code{BetaParams} message that stores the distribution parameters for \mjseqn{\rho},
 #'   whose prior is a Beta distribution of parameters \mjseqn{(\alpha,\beta)}.}
 #'   \item{sigma_params}{a \code{VarianceParams} message that stores the prior parameters for the variance
 #'   of the transformed weights. Note that at different models correspond different definitions of such parameter.
@@ -46,7 +46,7 @@ NULL
 #' @format A Protobuf::Message with the following fields:
 #' \describe{
 #'   \item{max_iter}{An integer storing the maximum number of iterations that the optimization algorithm
-#'   have to perform.}
+#'   has to perform.}
 #'   \item{tol}{A double storing the minimum tolerance used to evaluate if the optimization algorithm
 #'   has reached convergence.}
 #' }
@@ -74,7 +74,10 @@ NULL
 #' @format A Protobuf::Message with the following fields:
 #' \describe{
 #'   \item{num_components}{An integer setting the number of components of the mixture.}
-#'   \item{atoms}{A repeated field of type \code{GroupParams}, a message that stores, for each areal location
+#'   \item{atoms}{A repeated field of type \code{UnivariateMixtureAtom}, a message that simply stores the mean
+#'   and standard deviation of an atom of the mixture. Since it is a repeated field, its size will be equal
+#'   to the number of components}
+#'   \item{groupParams}{A repeated field of type \code{GroupParams}, a message that stores, for each areal location
 #'   \mjseqn{i=1,\dots,I}, the vector of weights \mjseqn{w_i} and the allocation variables \mjseqn{s_{ij}},
 #'   \mjseqn{j=1,\dots,N_{i}}.}
 #'   \item{rho}{A double storing the current value of \mjseqn{\rho}.}
