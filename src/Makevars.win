@@ -1,11 +1,12 @@
 # Setting compiler standard
 CXX_STD = CXX17
 NOCRANFLAGS = -Wno-attributes -Wno-ignored-attributes -Wno-deprecated-declarations
+RTOOLS = $(shell $(echo '$(RTOOLS40_HOME)' | sed 's/\\/\//g'))
 
 ifeq ($(R_ARCH), /x64)
-FOLDER = C:/rtools40/mingw64
+FOLDER = $(RTOOLS)/mingw64
 else
-FOLDER = C:/rtools40/mingw32
+FOLDER = $(RTOOLS)/mingw32
 endif
 
 # GSL library flags
@@ -13,12 +14,12 @@ GSL_INC = $(shell $(FOLDER)/bin/gsl-config --cflags)
 GSL_LIBS = $(shell $(FOLDER)/bin/gsl-config --libs)
 
 # Google protocol buffers flags
-PROTOBUF_INC = $(shell $(FOLDER)/bin/pkg-config --cflags protobuf) #-I$(FOLDER)/include
-PROTOBUF_LIBS = $(shell $(FOLDER)/bin/pkg-config --libs protobuf) #-L$(FOLDER)/lib -lprotobuf
+PROTOBUF_INC = $(shell $(FOLDER)/bin/pkg-config --cflags protobuf)
+PROTOBUF_LIBS = $(shell $(FOLDER)/bin/pkg-config --libs protobuf)
 
 # Setting Package Flags
 PKG_CXXFLAGS += $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::CxxFlags()") \
-                -D_REENTRANT -DSTAN_THREADS $(GSL_INC) $(PROTOBUF_INC) \
+                -D_REENTRANT -DSTAN_THREADS -DBOOST_MATH_DISABLE_DEPRECATED_03_WARNING $(GSL_INC) $(PROTOBUF_INC) \
                 -I'.' -I'./optimization' -I'./polyagamma' -I'./cpp_proto' \
                 -fopenmp $(NOCRANFLAGS)
 PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::LdFlags()") \
