@@ -19,7 +19,7 @@ This package relies, for various purposes, on the following libraries:
 * [Stan Math](https://mc-stan.org/math/): this library provides both probability distributions utilities and the reverse mode automatic differentiation module, required in the samplers. Using this library, also its dependencies are necessairly required.
 * [Google Protocol Buffers](https://developers.google.com/protocol-buffers): this library provides tools for quick serialization of structured data. This protocol is used as serialization tool for samplers inputs and outputs.
 
-In order for this package to be available both for Windows and Unix systems, headers and libraries are provided, whenever possible, through already existing R packages. Nevertheless, some aforementioned dependencies require some extra effort to make them available on your operating system (expecially for Windows users).
+In order for this package to be available both for Windows and Linux systems, headers and libraries are provided, whenever possible, through already existing R packages. Nevertheless, some aforementioned dependencies require some extra effort to make them available on your operating system (expecially for Windows users).
 
 ## Installation - Linux
 ### R development tools
@@ -35,7 +35,7 @@ At the end of this procedure, you will be able to install the <code>devtools</co
 install.packages("devtools")
 ```
 ### External Libraries Dependencies
-In this package, the <code>gsl</code> and the <code>protobuf</code> libraries are linked to the package as external libraries. As far as the GNU Scientific Library is concerned, it can be easily installed, in most Unix operating systems, through the package manager with commands like
+In this package, the <code>gsl</code> and the <code>protobuf</code> libraries are linked to the package as external libraries. As far as the GNU Scientific Library is concerned, it can be easily installed, in most Linux operating systems, through the package manager with commands like
 ```shell
 sudo apt-get install libgsl-dev
 ```
@@ -44,7 +44,7 @@ Be aware that this library is under continuous development, so you may incurr in
 
 **Note on Compiler**: If you are using GNU compiler version 10.2 (available, for instance, in Ubuntu 20.10), you will have issues at compile time if you download the release of protobuf. So it is advisable to use more stable versions of the compiler (no problems have been reported with g++ version 9.3.0)
 
-**Note on Memory**: The latest release of protobuf, one of the tests requires a huge amount of memory, so you may see your <code>make check</code> failed due to the fact that your machine or VM has not enough memory. With 8GB of RAM available, there should not be issues. In case you have a lower amount of memory, make sure to provide an adeguate amount of swap memory to you Unix machine (the tests were succesfull on a VM with 4GB of RAM and 8GB of swap, for instance). As an alternative, you can pick an older release, in which the aforemontioned test is missing (e.g. protobuf v. 3.13).
+**Note on Memory**: In the latest release of protobuf, one of the tests requires a huge amount of memory, so you may see your <code>make check</code> failed due to the fact that your machine or VM has not enough memory. With 8GB of RAM available, there should not be issues. In case you have a lower amount of memory, make sure to provide an adeguate amount of swap memory to your Linux machine (the tests were succesfull on a VM with 4GB of RAM and 8GB of swap, for instance). As an alternative, you can pick an older release, in which the aforemontioned test is missing (e.g. protobuf v. 3.13).
 
 ### R Packages Dependencies
 The DESCRIPTION file lists all the dependencies of this package. Both the <strong>Eigen</strong> and the <strong>Stan Math</strong> headers and libraries are available as R packages, which are, respectively, <code>RcppEigen</code> and <code>StanHeaders</code>, which themselves depend on other libraries (e.g. <code>RcppParallel</code> or <code>rstan</code>) that will be installed automatically. <code>RcppProgress</code>, instead, offers display classes to print samplers' progresses during execution. LaTeX support for documentation in the R helper is offered by <code>mathjaxr</code>. Finally, since this package manages compiled code through the <code>Rcpp</code> package, this should be installed as well. On the other hand, <code>RProtoBuf</code> is a required package due to the fact that <code>SPMIX</code> relies on Google Protocol Buffers as serialization tool and, hence, an easy-to-use R interface to this API is suggested.
@@ -56,7 +56,7 @@ install.packages(c("BH", "Rcpp", "RcppEigen", "RcppParallel", "RcppProgress",
 ```
 
 ### SPMIX
-Once all dependencies have been installed, the <code>SPMIX</code> is extremely simple to install. To do so, open R and simply type
+Once all dependencies have been installed, <code>SPMIX</code> is extremely simple to install. To do so, open R and simply type
 ```r
 devtools::install_github("TeoGiane/SPMIX")
 ```
@@ -125,7 +125,7 @@ install.packages(c("BH", "Rcpp", "RcppEigen", "RcppParallel", "RcppProgress",
 ```
 
 ### SPMIX
-Once all dependencies have been installed, the <code>SPMIX</code> is extremely simple to install. To do so, open R and simply type
+Once all dependencies have been installed, <code>SPMIX</code> is extremely simple to install. To do so, open R and simply type
 ```r
 devtools::install_github("TeoGiane/SPMIX")
 ```
