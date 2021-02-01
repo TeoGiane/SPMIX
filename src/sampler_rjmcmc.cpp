@@ -37,6 +37,17 @@ void SpatialMixtureRJSampler::init() {
 	// Setting data range
 	std::tie(lowerBound, upperBound) = utils::range(data);
 
+	// Setting variables for W sampling
+	W = W_init;
+	for (int i = 0; i < numGroups; ++i) {
+			std::vector<int> tmp;
+		for (int j = i+1; i < numGroups; ++j) {
+			if (W_init(i,j))
+				tmp.emplace_back(j);
+		}
+		neighbors.emplace_back(tmp);
+	}
+
 	// Confirm
 	Rcpp::Rcout << "Init done." << std::endl;
 }
@@ -77,6 +88,34 @@ void SpatialMixtureRJSampler::sampleSigma() {
 	double sigma_new = stan::math::inv_gamma_rng(alpha_n/2, beta_n/2, rng);
 	Sigma = sigma_new * Eigen::MatrixXd::Identity(numComponents-1, numComponents-1);
 	_computeInvSigmaH();
+	return;
+}
+
+void SpatialMixtureRJSampler::sampleW() {
+
+	// Initial quantities
+	Eigen::MatrixXd W_uppertri = Eigen::MatrixXd::Zero(numGroups,numGroups);
+	Eigen::VectorXd logProbas(2);
+
+	for (int i = 0; i < neighbors.size(); ++i) {
+		Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents-1);
+		Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents-1);
+		for (int j = 0; j < neighbors[i].size(); ++j) {
+			Eigen::VectorXd wtilde_j = transformed_weights.row(j).head(numComponents - 1);
+			Eigen::VectorXd mtilde_j = mtildes.row(node2comp[j]).head(numComponents - 1);
+
+			// Computing probabilities
+			double addendum_ij = rho/(2*Sigma(0,0)) * ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j));
+			logProbas(0) = std::log(1-p); logProbas(1) = std::log(p) + addendum_ij;
+			Eigen::VectorXd probas = logProbas.array().exp(); probas /= probas.sum();
+
+			// Sampling new edge
+			W_uppertri(i,neighbors[i][j]) = stan::math::categorical_rng(probas, rng)-1;
+		}
+	}
+
+	// Computing whole W
+	W = W_uppertri + W_uppertri.transpose();
 	return;
 }
 
