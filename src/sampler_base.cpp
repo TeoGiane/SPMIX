@@ -1,8 +1,5 @@
 #include "sampler_base.h"
 
-#define STRICT_R_HEADERS
-#include <Rcpp.h>
-
 using namespace stan::math;
 
 SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(const SamplerParams &_params,
