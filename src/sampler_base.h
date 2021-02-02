@@ -54,7 +54,7 @@ class SpatialMixtureSamplerBase {
 	// MCAR
 	double rho;
 	Eigen::MatrixXd Sigma;
-	Eigen::MatrixXd W;
+	//Eigen::MatrixXd W;
 	Eigen::MatrixXd SigmaInv;
 	Eigen::MatrixXd F;
 	std::vector<int> node2comp;
@@ -75,6 +75,10 @@ class SpatialMixtureSamplerBase {
 	Eigen::DiagonalMatrix<double, Eigen::Dynamic, Eigen::Dynamic> V;
 
 	// prior for Sigma --> depends on the derivation
+
+	// prior for W --> No boundary detection in the base class
+	bool boundary_detection = false;
+	Eigen::MatrixXd W;
 
 	// prior for Rho
 	double alpha;
