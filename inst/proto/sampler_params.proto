@@ -48,3 +48,4 @@ message SamplerParams {
 	double mtilde_sigmasq = 5;
 	GraphParams graph_params = 6;
 }
+
