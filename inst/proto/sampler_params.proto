@@ -3,6 +3,7 @@ syntax = "proto3";
 import "eigen.proto";
 
 message SamplerParams {
+
 	message NormalGammaParams {
 		double mu0 = 1;
 		double a = 2;
@@ -31,13 +32,19 @@ message SamplerParams {
 			InverseWishartParams inv_wishart = 1;
 			InverseGammaParams inv_gamma = 2;
 		};
-	}	
+	}
+	
+	message GraphParams {
+		oneof graphparams_type {
+			double link_prob_fixed = 1;
+			BetaParams link_prob_params = 2;
+		};
+	}
 	
 	int32 num_components = 1;
 	NormalGammaParams p0_params = 2;
 	BetaParams rho_params = 3;
 	VarianceParams sigma_params = 4;
-	//InverseWishartParams sigma_params = 4;
-
 	double mtilde_sigmasq = 5;
+	GraphParams graph_params = 6;
 }
