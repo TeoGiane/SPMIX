@@ -3,37 +3,34 @@ syntax = "proto3";
 import "eigen.proto";
 
 message UnivariateMixtureAtom {
-  double mean = 1;
-  double stdev = 2;
+	double mean = 1;
+	double stdev = 2;
 }
 
-message UnivariateMixtureState {
+/*message UnivariateMixtureState {
     int32 num_components = 1;
     repeated double weights = 2 [packed=true];
     repeated UnivariateMixtureAtom atoms = 3;
-}
+}*/
 
 message UnivariateState {
-  message GroupParams {
-    repeated double weights = 1 [packed=true];
-    repeated int32 cluster_allocs = 2 [packed=true];
-  }
 
-  int32 num_components = 1;
+	message GroupParams {
+		repeated double weights = 1 [packed=true];
+		repeated int32 cluster_allocs = 2 [packed=true];
+	}
 
-  repeated UnivariateMixtureAtom atoms = 2;
-
-  repeated GroupParams groupParams = 3;
-
-  double rho = 4;
-
-  EigenMatrix Sigma = 5;
-
-  repeated double regression_coefficients = 6 [packed=true];
+	int32 num_components = 1;
+	repeated UnivariateMixtureAtom atoms = 2;
+	repeated GroupParams groupParams = 3;
+	double rho = 4;
+	EigenMatrix Sigma = 5;
+	EigenMatrix G = 6;
+	repeated double regression_coefficients = 7 [packed=true];
 }
 
 
-message HdpState {
+/*message HdpState {
   message GroupParams {
     repeated int32 cluster_size = 1 [packed=true];
     repeated int32 cluster_allocs = 2 [packed=true];
@@ -54,4 +51,5 @@ message HdpState {
   HyperParams hyper_params = 5;
   double alpha = 6;
   double gamma = 7;
-}
+}*/
+
