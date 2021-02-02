@@ -13,7 +13,6 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 	double beta_Sigma;
 
 	// prior for W --> Fixed Bernoulli param
-	Eigen::MatrixXd W;
 	std::vector<std::vector<int>> neighbors;
 	double p = 0.5;
 
