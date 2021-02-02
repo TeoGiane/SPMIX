@@ -101,11 +101,11 @@ void SpatialMixtureSamplerBase::init() {
             cluster_allocs[i][j] = categorical_rng(weights.row(i), rng) - 1;
     }
 
-  // W = W_init;
-  // // normalize W
-  // for (int i=0; i < W.rows(); ++i){
-  //   W.row(i) *= rho/W.row(i).sum();
-  // }
+	// W = W_init;
+	// // normalize W
+	// for (int i=0; i < W.rows(); ++i){
+	//   W.row(i) *= rho/W.row(i).sum();
+	// }
 
     F = Eigen::MatrixXd::Zero(numGroups, numGroups);
     for (int i = 0; i < numGroups; i++)
@@ -407,35 +407,42 @@ void SpatialMixtureSamplerBase::saveState(Collector<UnivariateState> *collector)
 }
 
 UnivariateState SpatialMixtureSamplerBase::getStateAsProto() {
-  UnivariateState state;
-  state.set_num_components(numComponents);
-  for (int i = 0; i < numGroups; i++) {
-    UnivariateState::GroupParams *p;
-    p = state.add_groupparams();
-    Eigen::VectorXd w = weights.row(i);
+	
+	UnivariateState state;
+	
+	state.set_num_components(numComponents);
+	for (int i = 0; i < numGroups; i++) {
+		UnivariateState::GroupParams *p;
+		p = state.add_groupparams();
+		Eigen::VectorXd w = weights.row(i);
 
-    *p->mutable_weights() = {w.data(), w.data() + numComponents};
-    *p->mutable_cluster_allocs() = {cluster_allocs[i].begin(),
-                                    cluster_allocs[i].end()};
-  }
+		*p->mutable_weights() = {w.data(), w.data() + numComponents};
+		*p->mutable_cluster_allocs() = {cluster_allocs[i].begin(),
+										cluster_allocs[i].end()};
+	}
 
-  for (int h = 0; h < numComponents; h++) {
-    UnivariateMixtureAtom *atom;
-    atom = state.add_atoms();
-    atom->set_mean(means[h]);
-    atom->set_stdev(stddevs[h]);
-  }
+	for (int h = 0; h < numComponents; h++) {
+		UnivariateMixtureAtom *atom;
+		atom = state.add_atoms();
+		atom->set_mean(means[h]);
+		atom->set_stdev(stddevs[h]);
+	}
 
-  state.set_rho(rho);
-  state.mutable_sigma()->set_rows(Sigma.rows());
-  state.mutable_sigma()->set_cols(Sigma.cols());
-  *state.mutable_sigma()->mutable_data() = {Sigma.data(),
-                                            Sigma.data() + Sigma.size()};
+	state.set_rho(rho);
+	state.mutable_sigma()->set_rows(Sigma.rows());
+	state.mutable_sigma()->set_cols(Sigma.cols());
+	*state.mutable_sigma()->mutable_data() = {Sigma.data(), Sigma.data()+Sigma.size()};
 
-  if (regression)
-    *state.mutable_regression_coefficients() = {reg_coeff.data(),
-                                                reg_coeff.data() + p_size};
-  return state;
+	if (boundary_detection) {
+		state.mutable_g()->set_rows(W.rows());
+		state.mutable_g()->set_cols(W.cols());
+		*state.mutable_g()->mutable_data() = {W.data(), W.data()+W.size()};
+	}
+
+	if (regression)
+		*state.mutable_regression_coefficients() = {reg_coeff.data(), reg_coeff.data()+p_size};
+	
+	return state;
 }
 
 void SpatialMixtureSamplerBase::printDebugString() {
