@@ -22,7 +22,11 @@ SpatialMixtureSamplerBase(_params, _data, W, X) {
 };
 
 void SpatialMixtureSampler::init() {
-    SpatialMixtureSamplerBase::init();
+	
+	// Base class init
+	SpatialMixtureSamplerBase::init();
+
+    // Setting InvWishart Params
     nu = params.sigma_params().inv_wishart().nu();
     if (params.sigma_params().inv_wishart().identity()){
         V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
@@ -31,6 +35,11 @@ void SpatialMixtureSampler::init() {
         V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
         Rcpp::Rcout << "Case not implemented yet, settig V0 to identity" << std::endl;
     }
+
+    // Setting variables for W sampling
+    boundary_detection = false;
+
+    // Confirm
     Rcpp::Rcout << "Init done." << std::endl;
 }
 
