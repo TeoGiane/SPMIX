@@ -38,15 +38,22 @@ void SpatialMixtureRJSampler::init() {
 	std::tie(lowerBound, upperBound) = utils::range(data);
 
 	// Setting variables for W sampling
+	boundary_detection = true;
 	W = W_init;
+	//Rcpp::Rcout << "W:\n" << W << std::endl;
 	for (int i = 0; i < numGroups; ++i) {
-			std::vector<int> tmp;
-		for (int j = i+1; i < numGroups; ++j) {
+		std::vector<int> tmp;
+		for (int j = i+1; j < numGroups; ++j) {
 			if (W_init(i,j))
 				tmp.emplace_back(j);
 		}
 		neighbors.emplace_back(tmp);
 	}
+
+	/*for (int i = 0; i < numGroups; ++i) {
+		Rcpp::Rcout << "Area: " << i << ", Neighbors: "
+		<< Eigen::Map<Eigen::Matrix<int,Eigen::Dynamic,1>>(neighbors[i].data(),neighbors[i].size()).transpose() << std::endl;
+	}*/
 
 	// Confirm
 	Rcpp::Rcout << "Init done." << std::endl;
