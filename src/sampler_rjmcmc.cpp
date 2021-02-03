@@ -29,7 +29,7 @@ void SpatialMixtureRJSampler::init() {
 
 	// Base class init
 	SpatialMixtureSamplerBase::init();
-	
+
 	// Setting InvGamma Params
 	alpha_Sigma = params.sigma_params().inv_gamma().alpha();
 	beta_Sigma = params.sigma_params().inv_gamma().beta();
@@ -42,12 +42,16 @@ void SpatialMixtureRJSampler::init() {
 	W = W_init;
 	//Rcpp::Rcout << "W:\n" << W << std::endl;
 	for (int i = 0; i < numGroups; ++i) {
+		//Rcpp::Rcout << "i: " << i;
 		std::vector<int> tmp;
 		for (int j = i+1; j < numGroups; ++j) {
 			if (W_init(i,j))
 				tmp.emplace_back(j);
 		}
 		neighbors.emplace_back(tmp);
+		/*Rcpp::Rcout << ", neighbors: "
+			<< Eigen::Map<Eigen::Matrix<int,Eigen::Dynamic,1>>(neighbors[i].data(),neighbors[i].size()).transpose()
+			<< std::endl;*/
 	}
 
 	/*for (int i = 0; i < numGroups; ++i) {
@@ -100,29 +104,46 @@ void SpatialMixtureRJSampler::sampleSigma() {
 
 void SpatialMixtureRJSampler::sampleW() {
 
+	Rcpp::Rcout << "START:\n"
+	<< "W:\n" << W << std::endl;
+
+	//Rcpp::Rcout << "transformed_weights:\n" << transformed_weights << std::endl;
+
 	// Initial quantities
 	Eigen::MatrixXd W_uppertri = Eigen::MatrixXd::Zero(numGroups,numGroups);
 	Eigen::VectorXd logProbas(2);
 
 	for (int i = 0; i < neighbors.size(); ++i) {
-		Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents-1);
-		Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents-1);
-		for (int j = 0; j < neighbors[i].size(); ++j) {
-			Eigen::VectorXd wtilde_j = transformed_weights.row(j).head(numComponents - 1);
-			Eigen::VectorXd mtilde_j = mtildes.row(node2comp[j]).head(numComponents - 1);
+		if (neighbors[i].size() > 0) {
+			Rcpp::Rcout << "i: " << i;// << std::endl;
+			Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents-1);
+			//Rcpp::Rcout << "wtilde_i: " << wtilde_i.transpose() << std::endl;
+			Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents-1);
+			for (int j = 0; j < neighbors[i].size(); ++j) {
+				Rcpp::Rcout << " j: " << neighbors[i][j];// << std::endl;
+				Eigen::VectorXd wtilde_j = transformed_weights.row(neighbors[i][j]).head(numComponents - 1);
+				//Rcpp::Rcout << "wtilde_j: " << wtilde_j.transpose() << std::endl;
+				Eigen::VectorXd mtilde_j = mtildes.row(node2comp[neighbors[i][j]]).head(numComponents - 1);
 
-			// Computing probabilities
-			double addendum_ij = rho/(2*Sigma(0,0)) * ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j));
-			logProbas(0) = std::log(1-p); logProbas(1) = std::log(p) + addendum_ij;
-			Eigen::VectorXd probas = logProbas.array().exp(); probas /= probas.sum();
+				// Computing probabilities
+				double addendum_ij = rho/(2*Sigma(0,0)) * ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j));
+				logProbas(0) = std::log(1-p); logProbas(1) = std::log(p) + addendum_ij;
+				Eigen::VectorXd probas = logProbas.array().exp(); probas /= probas.sum();
+				Rcpp::Rcout << " new_probs: " << probas.transpose() << std::endl;
 
-			// Sampling new edge
-			W_uppertri(i,neighbors[i][j]) = stan::math::categorical_rng(probas, rng)-1;
+				// Sampling new edge
+				W_uppertri(i,neighbors[i][j]) = stan::math::categorical_rng(probas, rng)-1;
+				//Rcpp::Rcout << "W(" << i << "," << neighbors[i][j] << ") = " << W_uppertri(i,neighbors[i][j]) << std::endl;
+			}
+			Rcpp::Rcout << std::endl;
 		}
 	}
 
 	// Computing whole W
 	W = W_uppertri + W_uppertri.transpose();
+	Rcpp::Rcout << "END:\n"
+	<< "W:\n" << W << std::endl;
+
 	return;
 }
 
