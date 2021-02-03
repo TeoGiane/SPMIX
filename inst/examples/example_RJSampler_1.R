@@ -32,39 +32,24 @@ W <- matrix(0, nrow = 1, ncol = 1, byrow = T)
 
 ###########################################################################
 # Sampler Run -------------------------------------------------------------
+
 # Setting MCMC parameters
-burninfull = 0;     burnin = 5000
-niterfull = 10000;  niter = 5000
-thinfull = 1;       thin = 2
+burnin = 5000
+niter = 5000
+thin = 2
 
 # Grab input filenames
 params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
 
 # Run Spatial sampler
-out <- SPMIXSampler(burninfull, niterfull, thinfull, data, W, params_filename, type = "rjmcmc")
+out <- SPMIXSampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
 
 ###########################################################################
 
 ###########################################################################
-# Analyses and Visualization ----------------------------------------------
+# Analysis and Visualization ----------------------------------------------
 
 # Deserialization
-chains <- sapply(out, function(x) DeserializeSPMIXProto("UnivariateState",x))
-H_chain <- sapply(chains, function(x) x$num_components)
-
-# Traceplot for the whole chain (no burnin, no thinning)
-df <- data.frame("Iteration"=1:niterfull, "LowPoints"=H_chain-0.3, "UpPoints"=H_chain+0.3)
-plot_traceH <- ggplot(data=df, aes(x=Iteration, y=LowPoints, xend=Iteration, yend=UpPoints)) +
-  ylim(range(df[,-1])) + ylab("NumComponents") + geom_segment(lwd=0.1) +
-  theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
-  ggtitle("Traceplot of H")
-rm(list='df')
-
-x11(height = 3, width = 3); plot_traceH
-
-# Reducing chain according to burnin, niter and thin params
-fullout <- out
-out <- fullout[burnin+1:length(fullout)]; out<-out[!sapply(out,is.null)]; out <- out[which((1:length(out)) %% thin == 1)]
 chains <- sapply(out, function(x) DeserializeSPMIXProto("UnivariateState",x))
 H_chain <- sapply(chains, function(x) x$num_components)
 
@@ -95,6 +80,41 @@ plot_densCompare <- ggplot(data = DataRecast(x_grid,y), aes(x=Grid, y=Value, gro
   ggtitle("Area 1")
 
 x11(width = 5.8, height = 3); plot_densCompare
+
+###########################################################################
+
+###########################################################################
+# Sampler Execution (full run, NO burnin, no Thinning) --------------------
+
+# Setting MCMC parameters
+burnin = 0
+niter = 10000
+thin = 1
+
+# Grab input filenames
+params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
+
+# Run Spatial sampler
+out <- SPMIXSampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
+
+###########################################################################
+
+###########################################################################
+# Analyses and Visualization (full run) -----------------------------------
+
+# Deserialization
+chains <- sapply(out, function(x) DeserializeSPMIXProto("UnivariateState",x))
+H_chain <- sapply(chains, function(x) x$num_components)
+
+# Traceplot for the whole chain (no burnin, no thinning)
+df <- data.frame("Iteration"=1:niterfull, "LowPoints"=H_chain-0.3, "UpPoints"=H_chain+0.3)
+plot_traceH <- ggplot(data=df, aes(x=Iteration, y=LowPoints, xend=Iteration, yend=UpPoints)) +
+  ylim(range(df[,-1])) + ylab("NumComponents") + geom_segment(lwd=0.1) +
+  theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
+  ggtitle("Traceplot of H")
+rm(list='df')
+
+x11(height = 3, width = 3); plot_traceH
 
 ###########################################################################
 
