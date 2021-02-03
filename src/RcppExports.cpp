@@ -87,6 +87,92 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// stan_HelloWorld
+void stan_HelloWorld();
+RcppExport SEXP _SPMIX_stan_HelloWorld() {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    stan_HelloWorld();
+    return R_NilValue;
+END_RCPP
+}
+// newton_opt_test
+void newton_opt_test(const Rcpp::S4& state, const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const Rcpp::S4& params, const Rcpp::S4& options);
+RcppExport SEXP _SPMIX_newton_opt_test(SEXP stateSEXP, SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP, SEXP optionsSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type params(paramsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type options(optionsSEXP);
+    newton_opt_test(state, data, W, params, options);
+    return R_NilValue;
+END_RCPP
+}
+// grad_ascent_test
+void grad_ascent_test(const Rcpp::S4& state, const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const Rcpp::S4& params, const Rcpp::S4& options);
+RcppExport SEXP _SPMIX_grad_ascent_test(SEXP stateSEXP, SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP, SEXP optionsSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type params(paramsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type options(optionsSEXP);
+    grad_ascent_test(state, data, W, params, options);
+    return R_NilValue;
+END_RCPP
+}
+// test_spmixloglikelihood
+void test_spmixloglikelihood(const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const std::string& params_str, const std::string& state_str);
+RcppExport SEXP _SPMIX_test_spmixloglikelihood(SEXP dataSEXP, SEXP WSEXP, SEXP params_strSEXP, SEXP state_strSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type params_str(params_strSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type state_str(state_strSEXP);
+    test_spmixloglikelihood(data, W, params_str, state_str);
+    return R_NilValue;
+END_RCPP
+}
+// RJsampler_test
+void RJsampler_test(const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const Rcpp::S4& params, const Rcpp::S4& options);
+RcppExport SEXP _SPMIX_RJsampler_test(SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP, SEXP optionsSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type params(paramsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type options(optionsSEXP);
+    RJsampler_test(data, W, params, options);
+    return R_NilValue;
+END_RCPP
+}
+// poisson_lpmf
+void poisson_lpmf(size_t seed);
+RcppExport SEXP _SPMIX_poisson_lpmf(SEXP seedSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< size_t >::type seed(seedSEXP);
+    poisson_lpmf(seed);
+    return R_NilValue;
+END_RCPP
+}
+// swapCols
+Eigen::MatrixXd swapCols(Eigen::MatrixXd mat, unsigned int index1, unsigned int index2);
+RcppExport SEXP _SPMIX_swapCols(SEXP matSEXP, SEXP index1SEXP, SEXP index2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Eigen::MatrixXd >::type mat(matSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type index1(index1SEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type index2(index2SEXP);
+    rcpp_result_gen = Rcpp::wrap(swapCols(mat, index1, index2));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_Alr", (DL_FUNC) &_SPMIX_Alr, 1},
@@ -95,6 +181,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_runSpatialRJSampler", (DL_FUNC) &_SPMIX_runSpatialRJSampler, 9},
     {"_SPMIX_ReadMatrixFromCSV", (DL_FUNC) &_SPMIX_ReadMatrixFromCSV, 1},
     {"_SPMIX_ReadDataFromCSV", (DL_FUNC) &_SPMIX_ReadDataFromCSV, 1},
+    {"_SPMIX_stan_HelloWorld", (DL_FUNC) &_SPMIX_stan_HelloWorld, 0},
+    {"_SPMIX_newton_opt_test", (DL_FUNC) &_SPMIX_newton_opt_test, 5},
+    {"_SPMIX_grad_ascent_test", (DL_FUNC) &_SPMIX_grad_ascent_test, 5},
+    {"_SPMIX_test_spmixloglikelihood", (DL_FUNC) &_SPMIX_test_spmixloglikelihood, 4},
+    {"_SPMIX_RJsampler_test", (DL_FUNC) &_SPMIX_RJsampler_test, 4},
+    {"_SPMIX_poisson_lpmf", (DL_FUNC) &_SPMIX_poisson_lpmf, 1},
+    {"_SPMIX_swapCols", (DL_FUNC) &_SPMIX_swapCols, 3},
     {NULL, NULL, 0}
 };
 
