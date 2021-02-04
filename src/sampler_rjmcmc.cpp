@@ -37,12 +37,12 @@ void SpatialMixtureRJSampler::init() {
 	// Setting data range
 	std::tie(lowerBound, upperBound) = utils::range(data);
 
-	// Setting variables for W sampling
+	// Setting sampler for Boundary detection
 	boundary_detection = true;
 	W = W_init;
-	Rcpp::Rcout << "W:\n" << W << std::endl;
+	//Rcpp::Rcout << "W:\n" << W << std::endl;
 	for (int i = 0; i < numGroups; ++i) {
-		Rcpp::Rcout << "i: " << i << std::endl;
+		//Rcpp::Rcout << "i: " << i << std::endl;
 		std::vector<int> tmp;
 		std::vector<double> tmp_p;
 		for (int j = i+1; j < numGroups; ++j) {
@@ -57,15 +57,10 @@ void SpatialMixtureRJSampler::init() {
 		}
 		neighbors.emplace_back(tmp);
 		p.emplace_back(tmp_p);
-		Rcpp::Rcout << "neighbors: "
+		/*Rcpp::Rcout << "neighbors: "
 			<< Eigen::Map<Eigen::Matrix<int,Eigen::Dynamic,1>>(neighbors[i].data(),neighbors[i].size()).transpose() << std::endl
-			<< "initial probs: " << Eigen::Map<Eigen::VectorXd>(p[i].data(), p[i].size()).transpose() << std::endl;
+			<< "initial probs: " << Eigen::Map<Eigen::VectorXd>(p[i].data(), p[i].size()).transpose() << std::endl;*/
 	}
-
-	/*for (int i = 0; i < numGroups; ++i) {
-		Rcpp::Rcout << "Area: " << i << ", Neighbors: "
-		<< Eigen::Map<Eigen::Matrix<int,Eigen::Dynamic,1>>(neighbors[i].data(),neighbors[i].size()).transpose() << std::endl;
-	}*/
 
 	// Confirm
 	Rcpp::Rcout << "Init done." << std::endl;
@@ -73,23 +68,40 @@ void SpatialMixtureRJSampler::init() {
 
 void SpatialMixtureRJSampler::sample() {
 	if (regression) {
+		Rcpp::Rcout << "regression, ";
     	regress();
     	computeRegressionResiduals();
 	}
+	Rcpp::Rcout << "atoms, ";
 	sampleAtoms();
+	Rcpp::Rcout << "sigma, ";
 	sampleSigma();
+	Rcpp::Rcout << "rho, ";
 	sampleRho();
+	Rcpp::Rcout << "label, ";
 	labelSwitch();
-	if (iter % 5 == 0)
+	if (iter % 5 == 0){
+		Rcpp::Rcout << "jump, ";
 		betweenModelMove();
+	}
 	for (int i = 0; i < 2; ++i) {
+		Rcpp::Rcout << "allocs, ";
 		sampleAllocations();
+		Rcpp::Rcout << "weights, ";
 		sampleWeights();
+	}
+
+	//Rcpp::Rcout << std::endl;
+	if (boundary_detection) {
+		Rcpp::Rcout << "boundary" << std::endl;
+		sampleP();
+		sampleW();
 	}
 	++iter;
 }
 
 void SpatialMixtureRJSampler::sampleSigma() {
+	
 	double alpha_n = alpha_Sigma + numGroups*(numComponents-1);
 	double beta_n = beta_Sigma;
 	Eigen::MatrixXd F_m_rhoG = F - W_init * rho;
@@ -110,7 +122,7 @@ void SpatialMixtureRJSampler::sampleSigma() {
 	return;
 }
 
-void SpatialMixtureRJSampler::sampleW() {
+/*void SpatialMixtureRJSampler::sampleW() {
 
 	Rcpp::Rcout << "START:\n"
 	<< "W:\n" << W << std::endl << std::endl;
@@ -153,9 +165,9 @@ void SpatialMixtureRJSampler::sampleW() {
 	Rcpp::Rcout << "W:\n" << W << std::endl << "END:\n" << std::endl;
 
 	return;
-}
+}*/
 
-void SpatialMixtureRJSampler::sampleP() {
+/*void SpatialMixtureRJSampler::sampleP() {
 
 	if (params.graph_params().has_beta()) {
 		double alpha_p = params.graph_params().beta().a();
@@ -168,7 +180,7 @@ void SpatialMixtureRJSampler::sampleP() {
 		}
 	}
 	return;
-}
+}*/
 
 void SpatialMixtureRJSampler::labelSwitch() {
 

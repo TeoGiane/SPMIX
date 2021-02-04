@@ -13,8 +13,8 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 	double beta_Sigma;
 
 	// prior for W --> Beta-Bernoulli prior
-	std::vector<std::vector<int>> neighbors;
-	std::vector<std::vector<double>> p;
+	//std::vector<std::vector<int>> neighbors;
+	//std::vector<std::vector<double>> p;
 	//double alpha_p; double beta_p;
 	//double p = 0.5;
 
@@ -49,9 +49,9 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 
 	void sampleSigma() override;
 
-	void sampleW();
+	//void sampleW();
 
-	void sampleP();
+	//void sampleP();
 
 	void labelSwitch();
 
