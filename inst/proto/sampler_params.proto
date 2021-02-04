@@ -36,8 +36,8 @@ message SamplerParams {
 	
 	message GraphParams {
 		oneof graphparams_type {
-			double link_prob_fixed = 1;
-			BetaParams link_prob_params = 2;
+			double fixed = 1;
+			BetaParams beta = 2;
 		};
 	}
 	
