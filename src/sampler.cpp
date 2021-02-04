@@ -45,17 +45,30 @@ void SpatialMixtureSampler::init() {
 
 void SpatialMixtureSampler::sample() {
   if (regression) {
+    Rcpp::Rcout << "regression, ";
     regress();
     computeRegressionResiduals();
   }
+  Rcpp::Rcout << "atoms, ";
   sampleAtoms();
   for (int i = 0; i < 2; ++i) {
+    Rcpp::Rcout << "allocation, ";
     sampleAllocations();
+    Rcpp::Rcout << "weights, ";
     sampleWeights();
   }
+  Rcpp::Rcout << "sigma, ";
   sampleSigma();
+  Rcpp::Rcout << "rho, ";
   sampleRho();
+  Rcpp::Rcout << "mtilde, ";
   sample_mtilde();
+  if (boundary_detection) {
+    Rcpp::Rcout << "boundary";
+    sampleP();
+    sampleW();
+  }
+  Rcpp::Rcout << std::endl;
 }
 
 void SpatialMixtureSampler::sampleSigma() {
