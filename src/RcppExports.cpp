@@ -137,16 +137,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// RJsampler_test
-void RJsampler_test(const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const Rcpp::S4& params, const Rcpp::S4& options);
-RcppExport SEXP _SPMIX_RJsampler_test(SEXP dataSEXP, SEXP WSEXP, SEXP paramsSEXP, SEXP optionsSEXP) {
+// Samplers_test
+void Samplers_test(const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, const Rcpp::S4& params_rj, const Rcpp::S4& params_fix, const Rcpp::S4& options);
+RcppExport SEXP _SPMIX_Samplers_test(SEXP dataSEXP, SEXP WSEXP, SEXP params_rjSEXP, SEXP params_fixSEXP, SEXP optionsSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
     Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
-    Rcpp::traits::input_parameter< const Rcpp::S4& >::type params(paramsSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type params_rj(params_rjSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::S4& >::type params_fix(params_fixSEXP);
     Rcpp::traits::input_parameter< const Rcpp::S4& >::type options(optionsSEXP);
-    RJsampler_test(data, W, params, options);
+    Samplers_test(data, W, params_rj, params_fix, options);
     return R_NilValue;
 END_RCPP
 }
@@ -185,7 +186,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_newton_opt_test", (DL_FUNC) &_SPMIX_newton_opt_test, 5},
     {"_SPMIX_grad_ascent_test", (DL_FUNC) &_SPMIX_grad_ascent_test, 5},
     {"_SPMIX_test_spmixloglikelihood", (DL_FUNC) &_SPMIX_test_spmixloglikelihood, 4},
-    {"_SPMIX_RJsampler_test", (DL_FUNC) &_SPMIX_RJsampler_test, 4},
+    {"_SPMIX_Samplers_test", (DL_FUNC) &_SPMIX_Samplers_test, 5},
     {"_SPMIX_poisson_lpmf", (DL_FUNC) &_SPMIX_poisson_lpmf, 1},
     {"_SPMIX_swapCols", (DL_FUNC) &_SPMIX_swapCols, 3},
     {NULL, NULL, 0}

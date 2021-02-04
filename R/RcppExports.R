@@ -93,8 +93,8 @@ test_spmixloglikelihood <- function(data, W, params_str, state_str) {
 
 #' Test fot the RJSampler
 #' @export
-RJsampler_test <- function(data, W, params, options) {
-    invisible(.Call(`_SPMIX_RJsampler_test`, data, W, params, options))
+Samplers_test <- function(data, W, params_rj, params_fix, options) {
+    invisible(.Call(`_SPMIX_Samplers_test`, data, W, params_rj, params_fix, options))
 }
 
 #' Test for poisson_lpmf output in stan

@@ -26,6 +26,7 @@
 #include "newton_method.h"
 #include "gradient_ascent.h"
 #include "functors.h"
+#include "sampler.h"
 #include "sampler_rjmcmc.h"
 
 //' Simple test with stan/math C++ library
@@ -608,11 +609,16 @@ void ReduceMove_test(const std::vector<std::vector<double>> & data,
 //' Test fot the RJSampler
 //' @export
 // [[Rcpp::export]]
-void RJsampler_test(const std::vector<std::vector<double>> & data,
-                    const Eigen::MatrixXd & W, const Rcpp::S4 & params, const Rcpp::S4 & options) {
+void Samplers_test(const std::vector<std::vector<double>> & data, const Eigen::MatrixXd & W,
+                   const Rcpp::S4 & params_rj, const Rcpp::S4 & params_fix,
+                   const Rcpp::S4 & options) {
 
     // Check S4 class for params
-    if (not(params.is("Message") and Rcpp::as<std::string>(params.slot("type")) == "SamplerParams")) {
+    if (not(params_rj.is("Message") and Rcpp::as<std::string>(params_rj.slot("type")) == "SamplerParams")) {
+        throw std::runtime_error("Input 'params' is not of type Message::SamplerParams.");
+    }
+
+    if (not(params_fix.is("Message") and Rcpp::as<std::string>(params_fix.slot("type")) == "SamplerParams")) {
         throw std::runtime_error("Input 'params' is not of type Message::SamplerParams.");
     }
 
@@ -625,9 +631,13 @@ void RJsampler_test(const std::vector<std::vector<double>> & data,
     std::string tmp;
 
     // Params copy
-    SamplerParams params_cp;
-    Rcpp::XPtr<SamplerParams>(Rcpp::as<Rcpp::XPtr<SamplerParams>>(params.slot("pointer")))
-        ->SerializeToString(&tmp); params_cp.ParseFromString(tmp);
+    SamplerParams params_rj_cp;
+    Rcpp::XPtr<SamplerParams>(Rcpp::as<Rcpp::XPtr<SamplerParams>>(params_rj.slot("pointer")))
+        ->SerializeToString(&tmp); params_rj_cp.ParseFromString(tmp);
+
+    SamplerParams params_fix_cp;
+    Rcpp::XPtr<SamplerParams>(Rcpp::as<Rcpp::XPtr<SamplerParams>>(params_fix.slot("pointer")))
+        ->SerializeToString(&tmp); params_fix_cp.ParseFromString(tmp);
 
     // Options copy
     OptimOptions options_cp;
@@ -635,17 +645,30 @@ void RJsampler_test(const std::vector<std::vector<double>> & data,
         ->SerializeToString(&tmp); options_cp.ParseFromString(tmp);
 
     // Tests
-    SpatialMixtureRJSampler sampler(params_cp, data, W, options_cp);
+    Rcpp::Rcout << "Initializing RJSampler..." << std::endl;
+    SpatialMixtureRJSampler rjsampler(params_rj_cp, data, W, options_cp);
+    rjsampler.init();
+    Rcpp::Rcout << std::endl;
+    Rcpp::Rcout << "Initializing Sampler..." << std::endl;
+    SpatialMixtureSampler sampler(params_fix_cp, data, W);
     sampler.init();
-    
+    Rcpp::Rcout << std::endl;
+
     //sampler.sampleSigma();
     //sampler.sampleW();
     //sampler.betweenModelMove();
     
+    Rcpp::Rcout << "SPMIX RJ SAMPLER" << std::endl;
     Rcpp::Rcout << "Testing sample()..." << std::endl;
     for (int i = 0; i < 20; ++i)
-    	sampler.sample();
-    Rcpp::Rcout << "OK HERE!" << std::endl;
+    	rjsampler.sample();
+    Rcpp::Rcout << "OK HERE!" << std::endl << std::endl;
+
+    Rcpp::Rcout << "SPMIX SAMPLER" << std::endl;
+    Rcpp::Rcout << "Testing sample()..." << std::endl;
+    for (int i = 0; i < 20; ++i)
+        sampler.sample();
+    Rcpp::Rcout << "OK HERE!" << std::endl << std::endl;
 
     return;
 }
