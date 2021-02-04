@@ -12,9 +12,11 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 	double alpha_Sigma;
 	double beta_Sigma;
 
-	// prior for W --> Fixed Bernoulli param
+	// prior for W --> Beta-Bernoulli prior
 	std::vector<std::vector<int>> neighbors;
-	double p = 0.5;
+	std::vector<std::vector<double>> p;
+	//double alpha_p; double beta_p;
+	//double p = 0.5;
 
 	// data range --> used in gradient ascent
 	double lowerBound, upperBound;
@@ -48,6 +50,8 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 	void sampleSigma() override;
 
 	void sampleW();
+
+	void sampleP();
 
 	void labelSwitch();
 
