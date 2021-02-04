@@ -637,14 +637,15 @@ void RJsampler_test(const std::vector<std::vector<double>> & data,
     // Tests
     SpatialMixtureRJSampler sampler(params_cp, data, W, options_cp);
     sampler.init();
-    //sampler.sampleSigma();
-    for (int i = 0; i < 20; ++i){
-    	sampler.sampleW();
-    	Rcpp::Rcout << std::endl;
-    }
     
-    Rcpp::Rcout << "OK HERE!" << std::endl;
+    //sampler.sampleSigma();
+    //sampler.sampleW();
     //sampler.betweenModelMove();
+    
+    Rcpp::Rcout << "Testing sample()..." << std::endl;
+    for (int i = 0; i < 20; ++i)
+    	sampler.sample();
+    Rcpp::Rcout << "OK HERE!" << std::endl;
 
     return;
 }
