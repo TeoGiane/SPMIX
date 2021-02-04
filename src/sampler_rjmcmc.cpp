@@ -40,18 +40,26 @@ void SpatialMixtureRJSampler::init() {
 	// Setting variables for W sampling
 	boundary_detection = true;
 	W = W_init;
-	//Rcpp::Rcout << "W:\n" << W << std::endl;
+	Rcpp::Rcout << "W:\n" << W << std::endl;
 	for (int i = 0; i < numGroups; ++i) {
-		//Rcpp::Rcout << "i: " << i;
+		Rcpp::Rcout << "i: " << i << std::endl;
 		std::vector<int> tmp;
+		std::vector<double> tmp_p;
 		for (int j = i+1; j < numGroups; ++j) {
-			if (W_init(i,j))
+			if (W_init(i,j)){
 				tmp.emplace_back(j);
+				if (params.graph_params().has_beta())
+					tmp_p.emplace_back(stan::math::beta_rng(params.graph_params().beta().a(),
+															params.graph_params().beta().b(), rng));
+				else
+					tmp_p.emplace_back(params.graph_params().fixed());
+			}
 		}
 		neighbors.emplace_back(tmp);
-		/*Rcpp::Rcout << ", neighbors: "
-			<< Eigen::Map<Eigen::Matrix<int,Eigen::Dynamic,1>>(neighbors[i].data(),neighbors[i].size()).transpose()
-			<< std::endl;*/
+		p.emplace_back(tmp_p);
+		Rcpp::Rcout << "neighbors: "
+			<< Eigen::Map<Eigen::Matrix<int,Eigen::Dynamic,1>>(neighbors[i].data(),neighbors[i].size()).transpose() << std::endl
+			<< "initial probs: " << Eigen::Map<Eigen::VectorXd>(p[i].data(), p[i].size()).transpose() << std::endl;
 	}
 
 	/*for (int i = 0; i < numGroups; ++i) {
@@ -105,7 +113,7 @@ void SpatialMixtureRJSampler::sampleSigma() {
 void SpatialMixtureRJSampler::sampleW() {
 
 	Rcpp::Rcout << "START:\n"
-	<< "W:\n" << W << std::endl;
+	<< "W:\n" << W << std::endl << std::endl;
 
 	//Rcpp::Rcout << "transformed_weights:\n" << transformed_weights << std::endl;
 
@@ -127,7 +135,7 @@ void SpatialMixtureRJSampler::sampleW() {
 
 				// Computing probabilities
 				double addendum_ij = rho/(2*Sigma(0,0)) * ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j));
-				logProbas(0) = std::log(1-p); logProbas(1) = std::log(p) + addendum_ij;
+				logProbas(0) = std::log(1-p[i][j]); logProbas(1) = std::log(p[i][j]) + addendum_ij;
 				Eigen::VectorXd probas = logProbas.array().exp(); probas /= probas.sum();
 				Rcpp::Rcout << " new_probs: " << probas.transpose() << std::endl;
 
@@ -135,15 +143,30 @@ void SpatialMixtureRJSampler::sampleW() {
 				W_uppertri(i,neighbors[i][j]) = stan::math::categorical_rng(probas, rng)-1;
 				//Rcpp::Rcout << "W(" << i << "," << neighbors[i][j] << ") = " << W_uppertri(i,neighbors[i][j]) << std::endl;
 			}
-			Rcpp::Rcout << std::endl;
+			//Rcpp::Rcout << std::endl;
 		}
 	}
 
 	// Computing whole W
 	W = W_uppertri + W_uppertri.transpose();
-	Rcpp::Rcout << "END:\n"
-	<< "W:\n" << W << std::endl;
+	Rcpp::Rcout << std::endl;
+	Rcpp::Rcout << "W:\n" << W << std::endl << "END:\n" << std::endl;
 
+	return;
+}
+
+void SpatialMixtureRJSampler::sampleP() {
+
+	if (params.graph_params().has_beta()) {
+		double alpha_p = params.graph_params().beta().a();
+		double beta_p = params.graph_params().beta().b();
+
+		for (int i = 0; i < neighbors.size(); ++i) {
+			for (int j = 0; j < neighbors[i].size(); ++j) {
+				p[i][j] = stan::math::beta_rng(alpha_p+W(i,neighbors[i][j]), beta_p+1-W(i,neighbors[i][j]), rng);
+			}
+		}
+	}
 	return;
 }
 
