@@ -20,3 +20,7 @@ sigma_params {
 }
 
 mtilde_sigmasq: 5
+
+graph_params {
+	fixed: 0.5
+}
