@@ -29,17 +29,18 @@
 
 class SpatialMixtureSamplerBase {
   protected:
+
 	// Params
 	SamplerParams params;
 
-	// data
+	// Data
 	int numGroups;
 	std::vector<int> samplesPerGroup;
 	std::vector<std::vector<double>> data;
 	int numdata;
 	Eigen::MatrixXd W_init;
 
-	// mixtures
+	// Mixtures
 	int numComponents;
 	std::vector<double> means;
 	std::vector<double> stddevs;
@@ -74,11 +75,13 @@ class SpatialMixtureSamplerBase {
 	Eigen::VectorXd mu;
 	Eigen::DiagonalMatrix<double, Eigen::Dynamic, Eigen::Dynamic> V;
 
-	// prior for Sigma --> depends on the derivation
-
-	// prior for W --> No boundary detection in the base class
+	// Boundary detection
 	bool boundary_detection = false;
+	std::vector<std::vector<int>> neighbors;
+	std::vector<std::vector<double>> p;
 	Eigen::MatrixXd W;
+
+	// prior for Sigma --> depends on the derivation
 
 	// prior for Rho
 	double alpha;
@@ -158,6 +161,10 @@ class SpatialMixtureSamplerBase {
 	void regress();
 
 	void computeRegressionResiduals();
+
+	void sampleW();
+
+	void sampleP();
 
 	void _computeInvSigmaH();
 

@@ -346,6 +346,70 @@ void SpatialMixtureSamplerBase::computeRegressionResiduals() {
   }
 }
 
+void SpatialMixtureSamplerBase::sampleW() {
+
+  /*Rcpp::Rcout << "START:\n"
+  << "W:\n" << W << std::endl << std::endl;*/
+
+  //Rcpp::Rcout << "transformed_weights:\n" << transformed_weights << std::endl;
+
+  // Initial quantities
+  Eigen::MatrixXd W_uppertri = Eigen::MatrixXd::Zero(numGroups,numGroups);
+  Eigen::VectorXd logProbas(2);
+
+  for (int i = 0; i < neighbors.size(); ++i) {
+    if (neighbors[i].size() > 0) {
+      //Rcpp::Rcout << "i: " << i;// << std::endl;
+      Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents-1);
+      //Rcpp::Rcout << "wtilde_i: " << wtilde_i.transpose() << std::endl;
+      Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents-1);
+      for (int j = 0; j < neighbors[i].size(); ++j) {
+        //Rcpp::Rcout << " j: " << neighbors[i][j];// << std::endl;
+        Eigen::VectorXd wtilde_j = transformed_weights.row(neighbors[i][j]).head(numComponents - 1);
+        //Rcpp::Rcout << "wtilde_j: " << wtilde_j.transpose() << std::endl;
+        Eigen::VectorXd mtilde_j = mtildes.row(node2comp[neighbors[i][j]]).head(numComponents - 1);
+
+        // Computing probabilities
+        double addendum_ij = rho/(2*Sigma(0,0)) * ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j));
+        logProbas(0) = std::log(1-p[i][j]); logProbas(1) = std::log(p[i][j]) + addendum_ij;
+        Eigen::VectorXd probas = logProbas.array().exp(); probas /= probas.sum();
+        //Rcpp::Rcout << " new_probs: " << probas.transpose() << std::endl;
+
+        // Sampling new edge
+        W_uppertri(i,neighbors[i][j]) = stan::math::categorical_rng(probas, rng)-1;
+        //Rcpp::Rcout << "W(" << i << "," << neighbors[i][j] << ") = " << W_uppertri(i,neighbors[i][j]) << std::endl;
+      }
+      //Rcpp::Rcout << std::endl;
+    }
+  }
+
+  // Computing whole W
+  W = W_uppertri + W_uppertri.transpose();
+  //Rcpp::Rcout << std::endl;
+  //Rcpp::Rcout << "W:\n" << W << std::endl << "END:\n" << std::endl;
+
+  return;
+}
+
+void SpatialMixtureSamplerBase::sampleP() {
+
+	if (params.graph_params().has_beta()) {
+
+		// Prior parameters
+		double alpha_p = params.graph_params().beta().a();
+		double beta_p = params.graph_params().beta().b();
+
+		// Computing new p_{ij}
+		for (int i = 0; i < neighbors.size(); ++i) {
+			for (int j = 0; j < neighbors[i].size(); ++j) {
+				p[i][j] = stan::math::beta_rng(alpha_p+W(i,neighbors[i][j]), beta_p+1-W(i,neighbors[i][j]), rng);
+			}
+		}
+	}
+
+	return;
+}
+
 void SpatialMixtureSamplerBase::_computeInvSigmaH() {
   SigmaInv = Sigma.llt().solve(
       Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1));
