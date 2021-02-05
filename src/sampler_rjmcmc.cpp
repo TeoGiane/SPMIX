@@ -68,32 +68,32 @@ void SpatialMixtureRJSampler::init() {
 
 void SpatialMixtureRJSampler::sample() {
 	if (regression) {
-		Rcpp::Rcout << "regression, ";
+		//Rcpp::Rcout << "regression, ";
     	regress();
     	computeRegressionResiduals();
 	}
-	Rcpp::Rcout << "atoms, ";
+	//Rcpp::Rcout << "atoms, ";
 	sampleAtoms();
-	Rcpp::Rcout << "sigma, ";
+	//Rcpp::Rcout << "sigma, ";
 	sampleSigma();
-	Rcpp::Rcout << "rho, ";
+	//Rcpp::Rcout << "rho, ";
 	sampleRho();
-	Rcpp::Rcout << "label, ";
+	//Rcpp::Rcout << "label, ";
 	labelSwitch();
 	if (iter % 5 == 0){
-		Rcpp::Rcout << "jump, ";
+		//Rcpp::Rcout << "jump, ";
 		betweenModelMove();
 	}
 	for (int i = 0; i < 2; ++i) {
-		Rcpp::Rcout << "allocs, ";
+		//Rcpp::Rcout << "allocs, ";
 		sampleAllocations();
-		Rcpp::Rcout << "weights, ";
+		//Rcpp::Rcout << "weights, ";
 		sampleWeights();
 	}
 
 	//Rcpp::Rcout << std::endl;
 	if (boundary_detection) {
-		Rcpp::Rcout << "boundary" << std::endl;
+		//Rcpp::Rcout << "boundary" << std::endl;
 		sampleP();
 		sampleW();
 	}
