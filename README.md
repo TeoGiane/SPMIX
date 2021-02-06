@@ -123,16 +123,18 @@ cd ../
 -->
 
 ### R Packages Dependencies
-The DESCRIPTION file lists all the dependencies of this package. Both the <strong>Eigen</strong> and the <strong>Stan Math</strong> headers and libraries are available as R packages, which are, respectively, <code>RcppEigen</code> and <code>StanHeaders</code>, which themselves depend on other libraries (e.g. <code>RcppParallel</code> or <code>rstan</code>) that will be installed automatically. <code>RcppProgress</code>, instead, offers display classes to print samplers' progresses during execution. LaTeX support for documentation in the R helper is offered by <code>mathjaxr</code>. Finally, since this package manages compiled code through the <code>Rcpp</code> package, this should be installed as well. On the other hand, <code>RProtoBuf</code> is a required package due to the fact that <code>SPMIX</code> relies on Google Protocol Buffers as serialization tool and, hence, an easy-to-use R interface to this API is suggested.
+The DESCRIPTION file lists all the dependencies of this package. Both the <strong>Eigen</strong> and the <strong>Stan Math</strong> headers and libraries are available as R packages, which are, respectively, <code>RcppEigen</code> and <code>StanHeaders</code>, which themselves depend on other libraries (e.g. <code>RcppParallel</code> or <code>rstan</code>) that will be installed automatically. <code>RcppProgress</code>, instead, offers display classes to print samplers' progresses during execution. LaTeX support for documentation in the R helper is offered by <code>mathjaxr</code>. Finally, since this package manages compiled code through the <code>Rcpp</code> package, this should be installed as well. On the other hand, <code>RProtoBuf</code> is a required package due to the fact that <code>SPMIX</code> relies on Google Protocol Buffers as serialization tool and, hence, an easy-to-use R interface to this API is suggested. The installation commands available with <code>devtools</code> will automatically install these dependencies together with this package.
 
+<!---
 The installation of all these packages is trivial, since you only need a single R command to do it.
 ```r
 install.packages(c("BH", "Rcpp", "RcppEigen", "RcppParallel", "RcppProgress",
                    "RProtoBuf", "StanHeaders", "mathjaxr", "rstan"))
 ```
+-->
 
 ### SPMIX
-Once all dependencies have been installed, <code>SPMIX</code> is extremely simple to install. To do so, open R and simply type
+<code>SPMIX</code> is extremely simple to install. To do so, open R and simply type
 ```r
 devtools::install_github("TeoGiane/SPMIX")
 ```
