@@ -60,7 +60,7 @@ install.packages(c("BH", "Rcpp", "RcppEigen", "RcppParallel", "RcppProgress",
 -->
 
 ### SPMIX
-Once all dependencies have been installed, <code>SPMIX</code> is extremely simple to install. To do so, open R and simply type
+<code>SPMIX</code> is extremely simple to install. To do so, open R and simply type
 ```r
 devtools::install_github("TeoGiane/SPMIX")
 ```
