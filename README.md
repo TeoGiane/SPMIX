@@ -19,7 +19,9 @@ This package relies, for various purposes, on the following libraries:
 * [Stan Math](https://mc-stan.org/math/): this library provides both probability distributions utilities and the reverse mode automatic differentiation module, required in the samplers. Using this library, also its dependencies are necessairly required.
 * [Google Protocol Buffers](https://developers.google.com/protocol-buffers): this library provides tools for quick serialization of structured data. This protocol is used as serialization tool for samplers inputs and outputs.
 
+<!---
 In order for this package to be available both for Windows and Linux systems, headers and libraries are provided, whenever possible, through already existing R packages. Nevertheless, some aforementioned dependencies require some extra effort to make them available on your operating system (expecially for Windows users).
+-->
 
 ## Installation - Linux
 ### R development tools
