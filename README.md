@@ -19,7 +19,9 @@ This package relies, for various purposes, on the following libraries:
 * [Stan Math](https://mc-stan.org/math/): this library provides both probability distributions utilities and the reverse mode automatic differentiation module, required in the samplers. Using this library, also its dependencies are necessairly required.
 * [Google Protocol Buffers](https://developers.google.com/protocol-buffers): this library provides tools for quick serialization of structured data. This protocol is used as serialization tool for samplers inputs and outputs.
 
+<!---
 In order for this package to be available both for Windows and Linux systems, headers and libraries are provided, whenever possible, through already existing R packages. Nevertheless, some aforementioned dependencies require some extra effort to make them available on your operating system (expecially for Windows users).
+-->
 
 ## Installation - Linux
 ### R development tools
@@ -81,7 +83,10 @@ install.packages("devtools")
 ```
 
 ### External Libraries Dependencies
-In this package, the <code>gsl</code> and the <code>protobuf</code> libraries are linked to the package as external libraries. While Unix systems are organized in repositories and manages libraries via package managing programmes, on Windows things are more complicated, in general. The general approach adopted here is to exploit the R toolchain provided with Rtools to compile and install the external libraries dependencies emulating a Unix environment. Main reference for this procedure is the [Rtools Packages Repository](https://github.com/r-windows/rtools-packages), which offers an extremely automatized procedure to build and install the required libraries for both 32 and 64 bits architectures. In the following we report the necessary instructions, with the aim of furtherly simplifying the procedure.
+In this package, the <code>gsl</code> and the <code>protobuf</code> libraries are linked to the package as external libraries. While in Linux systems is simple to link libraries dynamically (so it is convenient to install them from the package manager), in Windows external libraries are statically linked, since the management of dynamic libraries is very different from Linux. To provide the aforementioned libraries, we rely on the [rwinlib](https://github.com/rwinlib) project, which offers several pre-build static headers and libraries to build R packages in Windows. The procedure is fully automatized, so these external libraries will be available during installation.
+
+<!---
+While Unix systems are organized in repositories and manages libraries via package managing programmes, on Windows things are more complicated, in general. The general approach adopted here is to exploit the R toolchain provided with Rtools to compile and install the external libraries dependencies emulating a Unix environment. Main reference for this procedure is the [Rtools Packages Repository](https://github.com/r-windows/rtools-packages), which offers an extremely automatized procedure to build and install the required libraries for both 32 and 64 bits architectures. In the following we report the necessary instructions, with the aim of furtherly simplifying the procedure.
 
 Open the Rtools Bash terminal (it has been installed with Rtools, you can find it simply searching for "Rtools Bash" on Windows search bar) and simply follow these instructions:
 
@@ -115,6 +120,7 @@ pacman -U mingw-w64-x86_64-protobuf-3.12.4-1-any.pkg.tar.xz
 rm -f -r pkg src *.xz *.gz
 cd ../
 ```
+-->
 
 ### R Packages Dependencies
 The DESCRIPTION file lists all the dependencies of this package. Both the <strong>Eigen</strong> and the <strong>Stan Math</strong> headers and libraries are available as R packages, which are, respectively, <code>RcppEigen</code> and <code>StanHeaders</code>, which themselves depend on other libraries (e.g. <code>RcppParallel</code> or <code>rstan</code>) that will be installed automatically. <code>RcppProgress</code>, instead, offers display classes to print samplers' progresses during execution. LaTeX support for documentation in the R helper is offered by <code>mathjaxr</code>. Finally, since this package manages compiled code through the <code>Rcpp</code> package, this should be installed as well. On the other hand, <code>RProtoBuf</code> is a required package due to the fact that <code>SPMIX</code> relies on Google Protocol Buffers as serialization tool and, hence, an easy-to-use R interface to this API is suggested.

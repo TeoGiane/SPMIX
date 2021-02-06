@@ -1,26 +1,41 @@
+# Standalone build with RTOOLS - gsl
+GSL_VERSION = 2.4
+GSL_WINLIB = ../windows/gsl-${GSL_VERSION}
+
+# Standaline build with RTOOLS - protobuf
+PROTOBUF_VERSION = 3.8.0
+PROTOBUF_WINLIB = ../windows/protobuf-${PROTOBUF_VERSION}
+PROTOC = $(PROTOBUF_WINLIB)/bin$(if ${R_ARCH}==/x64,64,32)/protoc
+
 # Setting compiler standard
 CXX_STD = CXX17
 NOCRANFLAGS = -Wno-attributes -Wno-ignored-attributes -Wno-deprecated-declarations
 RTOOLS = $(shell $(echo '$(RTOOLS40_HOME)' | sed 's/\\/\//g'))
 
-ifeq ($(R_ARCH), /x64)
-FOLDER = $(RTOOLS)/mingw64
-else
-FOLDER = $(RTOOLS)/mingw32
-endif
+#ifeq ($(R_ARCH), /x64)
+#FOLDER = $(RTOOLS)/mingw64
+#else
+#FOLDER = $(RTOOLS)/mingw32
+#endif
 
 # GSL library flags
-GSL_INC = $(shell $(FOLDER)/bin/gsl-config --cflags)
-GSL_LIBS = $(shell $(FOLDER)/bin/gsl-config --libs)
+GSL_INC = -I$(GSL_WINLIB)/include
+GSL_LIBS = -L$(GSL_WINLIB)/lib${R_ARCH} -lgsl -lgslcblas
+#GSL_INC = $(shell $(FOLDER)/bin/gsl-config --cflags)
+#GSL_LIBS = $(shell $(FOLDER)/bin/gsl-config --libs)
 
 # Google protocol buffers flags
-PROTOBUF_INC = $(shell $(FOLDER)/bin/pkg-config --cflags protobuf)
-PROTOBUF_LIBS = $(shell $(FOLDER)/bin/pkg-config --libs protobuf)
+PROTOBUF_INC = -I$(PROTOBUF_WINLIB)/include
+PROTOBUF_LIBS = -L$(PROTOBUF_WINLIB)/lib${subst gcc,,${COMPILED_BY}}${R_ARCH} \
+								-L$(PROTOBUF_WINLIB)/lib${R_ARCH} -lprotobuf
+#PROTOBUF_LIBS = -L$(PROTOBUF_WINLIB)/lib${R_ARCH} -lprotobuf
+#PROTOBUF_INC = $(shell $(FOLDER)/bin/pkg-config --cflags protobuf)
+#PROTOBUF_LIBS = $(shell $(FOLDER)/bin/pkg-config --libs protobuf)
 
 # Setting Package Flags
-PKG_CXXFLAGS += $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::CxxFlags()") \
-                -D_REENTRANT -DSTAN_THREADS -DBOOST_MATH_DISABLE_DEPRECATED_03_WARNING $(GSL_INC) $(PROTOBUF_INC) \
-                -I'.' -I'./optimization' -I'./polyagamma' -I'./cpp_proto' \
+PKG_CXXFLAGS += $(GSL_INC) $(PROTOBUF_INC) -I'.' -I'./optimization' -I'./polyagamma' -I'./cpp_proto' \
+								$(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::CxxFlags()") \
+                -D_REENTRANT -DSTAN_THREADS -DBOOST_MATH_DISABLE_DEPRECATED_03_WARNING \
                 -fopenmp $(NOCRANFLAGS)
 PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::LdFlags()") \
            $(GSL_LIBS) $(PROTOBUF_LIBS) -lstdc++fs -fopenmp
@@ -37,16 +52,22 @@ OBJECTS = $(addsuffix .o, $(basename $(SOURCES)))
 # Recipes
 .PHONY = all
 
-all: compile_protos $(SHLIB) clean
+all: winlibs compile_protos $(SHLIB) clean_flags
 
 compile_protos:
 	@mkdir -p cpp_proto
 	@for file in $(PROTO_SRC); \
 		do \
-			$(FOLDER)/bin/protoc -I$(PROTO_DIR) --cpp_out=./cpp_proto $${file}; \
+			$(PROTOC) -I$(PROTO_DIR) --cpp_out=./cpp_proto $${file}; \
 		done
 
-clean: $(SHLIB)
+clean_flags: $(SHLIB)
 	@if test "$(R_ARCH)" = "/x64"; then \
   	rm -rf $(HOME)/.R; \
   fi
+
+winlibs:
+	@"${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" "../tools/gsl-winlib.R" $(GSL_VERSION)
+	@"${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" "../tools/protobuf-winlib.R" $(PROTOBUF_VERSION)
+
+# $(FOLDER)/bin/protoc -I$(PROTO_DIR) --cpp_out=./cpp_proto $${file}; \
