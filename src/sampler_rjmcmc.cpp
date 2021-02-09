@@ -77,7 +77,7 @@ void SpatialMixtureRJSampler::sample() {
 	//Rcpp::Rcout << "sigma, ";
 	sampleSigma();
 	//Rcpp::Rcout << "rho, ";
-	sampleRho();
+	//sampleRho();
 	//Rcpp::Rcout << "label, ";
 	labelSwitch();
 	if (iter % 5 == 0){

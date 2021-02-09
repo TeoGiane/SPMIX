@@ -70,7 +70,7 @@ void SpatialMixtureSamplerBase::init() {
     }
 
     // Now proper initialization
-    rho = 0.9;
+    rho = 0.99;
     rho_sum = 0;
     rho_sum_sq = 0;
     Sigma = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
