@@ -2,9 +2,9 @@
 
 SpatialMixtureRJSampler::SpatialMixtureRJSampler(const SamplerParams &_params,
 												 const std::vector<std::vector<double>> &_data,
-												 const Eigen::MatrixXd &W,
+												 const Eigen::MatrixXd &_W,
 												 const OptimOptions &_options):
-SpatialMixtureSamplerBase(_params, _data, W), options(_options) {
+SpatialMixtureSamplerBase(_params, _data, _W), options(_options) {
 	if (!_params.sigma_params().has_inv_gamma()) {
 		std::string message = "Cannot build object of class 'SpatialMixtureRJSampler': "
 							  "expected parameters for an Inverse Gamma distribution.";
@@ -14,10 +14,10 @@ SpatialMixtureSamplerBase(_params, _data, W), options(_options) {
 
 SpatialMixtureRJSampler::SpatialMixtureRJSampler(const SamplerParams &_params,
 												 const std::vector<std::vector<double>> &_data,
-												 const Eigen::MatrixXd &W,
+												 const Eigen::MatrixXd &_W,
 												 const OptimOptions &_options,
 												 const std::vector<Eigen::MatrixXd> &X):
-SpatialMixtureSamplerBase(_params, _data, W, X), options(_options) {
+SpatialMixtureSamplerBase(_params, _data, _W, X), options(_options) {
 	if (!_params.sigma_params().has_inv_gamma()) {
 		std::string message = "Cannot build object of class 'SpatialMixtureRJSampler': "
 							  "expected parameters for an Inverse Gamma distribution.";
@@ -26,6 +26,9 @@ SpatialMixtureSamplerBase(_params, _data, W, X), options(_options) {
 }
 
 void SpatialMixtureRJSampler::init() {
+
+	// Switch on boundary detection
+	boundary_detection = true;
 
 	// Base class init
 	SpatialMixtureSamplerBase::init();
@@ -38,10 +41,10 @@ void SpatialMixtureRJSampler::init() {
 	std::tie(lowerBound, upperBound) = utils::range(data);
 
 	// Setting sampler for Boundary detection
-	boundary_detection = true;
-	W = W_init;//Eigen::MatrixXd::Zero(numGroups,numGroups);//W_init;
+	//boundary_detection = true;
+	//W = W_init;//Eigen::MatrixXd::Zero(numGroups,numGroups);//W_init;
 	//Rcpp::Rcout << "W:\n" << W << std::endl;
-	for (int i = 0; i < numGroups; ++i) {
+	/*for (int i = 0; i < numGroups; ++i) {
 		//Rcpp::Rcout << "i: " << i << std::endl;
 		std::vector<int> tmp;
 		std::vector<double> tmp_p;
@@ -57,21 +60,29 @@ void SpatialMixtureRJSampler::init() {
 		}
 		neighbors.emplace_back(tmp);
 		p.emplace_back(tmp_p);
-		/*Rcpp::Rcout << "neighbors: "
+		Rcpp::Rcout << "neighbors: "
 			<< Eigen::Map<Eigen::Matrix<int,Eigen::Dynamic,1>>(neighbors[i].data(),neighbors[i].size()).transpose() << std::endl
-			<< "initial probs: " << Eigen::Map<Eigen::VectorXd>(p[i].data(), p[i].size()).transpose() << std::endl;*/
-	}
+			<< "initial probs: " << Eigen::Map<Eigen::VectorXd>(p[i].data(), p[i].size()).transpose() << std::endl;
+	}*/
 
 	// Confirm
 	Rcpp::Rcout << "Init done." << std::endl;
 }
 
 void SpatialMixtureRJSampler::sample() {
+	
 	if (regression) {
 		//Rcpp::Rcout << "regression, ";
     	regress();
     	computeRegressionResiduals();
 	}
+
+	if (boundary_detection) {
+		//Rcpp::Rcout << "boundary, ";
+		sampleP();
+		sampleW();
+	}
+
 	//Rcpp::Rcout << "atoms, ";
 	sampleAtoms();
 	//Rcpp::Rcout << "sigma, ";
@@ -92,13 +103,6 @@ void SpatialMixtureRJSampler::sample() {
 	}
 
 	//Rcpp::Rcout << std::endl;
-	/*if(iter == 1000) {
-		W = W_init;
-	}*/
-	if (/*iter > 1000 and */boundary_detection) {
-		sampleP();
-		sampleW();
-	}
 	++iter;
 }
 
@@ -106,7 +110,7 @@ void SpatialMixtureRJSampler::sampleSigma() {
 	
 	double alpha_n = alpha_Sigma + numGroups*(numComponents-1);
 	double beta_n = beta_Sigma;
-	Eigen::MatrixXd F_m_rhoG = F - W_init * rho;
+	Eigen::MatrixXd F_m_rhoG = F - W * rho;
 
 	for (int i = 0; i < numGroups; i++) {
 		Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents - 1);
@@ -231,7 +235,7 @@ void SpatialMixtureRJSampler::increaseMove() {
 	for (int i = 0; i < numComponents; ++i)
 		sqrt_stddevs(i) = std::sqrt(stddevs[i]);
 
-	function::spmixLogLikelihood loglik_extended(data, W_init, params, numGroups, numComponents, rho,
+	function::spmixLogLikelihood loglik_extended(data, W, params, numGroups, numComponents, rho,
 				   								 means_map, sqrt_stddevs, trans_weights, Sigma);
 
 	// Eliciting the approximated optimal proposal parameters
@@ -295,7 +299,7 @@ void SpatialMixtureRJSampler::reduceMove() {
 	for (int i = 0; i < numComponents; ++i)
 		sqrt_stddevs(i) = std::sqrt(stddevs[i]);
 
-	function::spmixLogLikelihood loglik_reduced(data, W_init, params, numGroups, numComponents-1, rho,
+	function::spmixLogLikelihood loglik_reduced(data, W, params, numGroups, numComponents-1, rho,
 				   								utils::removeElem(means_map,to_drop), utils::removeElem(sqrt_stddevs,to_drop),
 				   								utils::removeColumn(trans_weights, to_drop),
 				   								utils::removeRowColumn(Sigma,to_drop),to_drop);

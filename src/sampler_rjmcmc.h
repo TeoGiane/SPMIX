@@ -34,12 +34,12 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 
 	SpatialMixtureRJSampler(const SamplerParams &_params,
 							const std::vector<std::vector<double>> &_data,
-							const Eigen::MatrixXd &W,
+							const Eigen::MatrixXd &_W,
 							const OptimOptions &_options);
 
 	SpatialMixtureRJSampler(const SamplerParams &_params,
 							const std::vector<std::vector<double>> &_data,
-							const Eigen::MatrixXd &W,
+							const Eigen::MatrixXd &_W,
 							const OptimOptions &_options,
 							const std::vector<Eigen::MatrixXd> &X);
 
