@@ -39,7 +39,7 @@ void SpatialMixtureRJSampler::init() {
 
 	// Setting sampler for Boundary detection
 	boundary_detection = true;
-	W = W_init;
+	W = W_init;//Eigen::MatrixXd::Zero(numGroups,numGroups);//W_init;
 	//Rcpp::Rcout << "W:\n" << W << std::endl;
 	for (int i = 0; i < numGroups; ++i) {
 		//Rcpp::Rcout << "i: " << i << std::endl;
@@ -92,8 +92,10 @@ void SpatialMixtureRJSampler::sample() {
 	}
 
 	//Rcpp::Rcout << std::endl;
-	if (boundary_detection) {
-		//Rcpp::Rcout << "boundary" << std::endl;
+	/*if(iter == 1000) {
+		W = W_init;
+	}*/
+	if (/*iter > 1000 and */boundary_detection) {
 		sampleP();
 		sampleW();
 	}
