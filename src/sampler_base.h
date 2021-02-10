@@ -55,7 +55,6 @@ class SpatialMixtureSamplerBase {
 	// MCAR
 	double rho;
 	Eigen::MatrixXd Sigma;
-	//Eigen::MatrixXd W;
 	Eigen::MatrixXd SigmaInv;
 	Eigen::MatrixXd F;
 	std::vector<int> node2comp;
@@ -112,12 +111,12 @@ class SpatialMixtureSamplerBase {
 	SpatialMixtureSamplerBase(
 		const SamplerParams &_params,
 		const std::vector<std::vector<double>> &_data,
-		const Eigen::MatrixXd &W);
+		const Eigen::MatrixXd &_W);
 
 	SpatialMixtureSamplerBase(
 		const SamplerParams &_params,
 		const std::vector<std::vector<double>> &_data,
-		const Eigen::MatrixXd &W, const std::vector<Eigen::MatrixXd> &X);
+		const Eigen::MatrixXd &_W, const std::vector<Eigen::MatrixXd> &X);
 
 	virtual ~SpatialMixtureSamplerBase() {
 		//Rcpp::Rcout << "SamplerBase destructor!" << std::endl;
@@ -167,6 +166,8 @@ class SpatialMixtureSamplerBase {
 	void sampleP();
 
 	void _computeInvSigmaH();
+
+	void _computeWrelatedQuantities(bool W_has_changed);
 
 	/*
 	 * Sampler the hyperparameters in the base measure P_0

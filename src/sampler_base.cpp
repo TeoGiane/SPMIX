@@ -4,7 +4,7 @@ using namespace stan::math;
 
 SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(const SamplerParams &_params,
     const std::vector<std::vector<double>> &_data,
-    const Eigen::MatrixXd &W): params(_params), data(_data), W_init(W)
+    const Eigen::MatrixXd &_W): params(_params), data(_data), W_init(_W)
 {
     numGroups = data.size();
     samplesPerGroup.resize(numGroups);
@@ -14,11 +14,10 @@ SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(const SamplerParams &_param
     numdata = std::accumulate(samplesPerGroup.begin(), samplesPerGroup.end(), 0);
 }
 
-SpatialMixtureSamplerBase::SpatialMixtureSamplerBase( const SamplerParams &_params,
-    const std::vector<std::vector<double>> &_data,
-    const Eigen::MatrixXd &W, const std::vector<Eigen::MatrixXd> &X)
-    : params(_params), data(_data), W_init(W)
-{
+SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(const SamplerParams &_params,
+	const std::vector<std::vector<double>> &_data,
+	const Eigen::MatrixXd &_W, const std::vector<Eigen::MatrixXd> &X): params(_params), data(_data), W_init(_W) {
+
     numGroups = data.size();
     samplesPerGroup.resize(numGroups);
     for (int i = 0; i < numGroups; i++) {
@@ -60,14 +59,14 @@ void SpatialMixtureSamplerBase::init() {
     alpha = params.rho_params().a();
     beta = params.rho_params().b();
 
-    node2comp = utils::findConnectedComponents(W_init);
+    /*node2comp = utils::findConnectedComponents(W_init);
     auto it = std::max_element(node2comp.begin(), node2comp.end());
     num_connected_comps = *it + 1;
 
     comp2node.resize(num_connected_comps);
     for (int i = 0; i < numGroups; i++) {
         comp2node[node2comp[i]].push_back(i);
-    }
+    }*/
 
     // Now proper initialization
     rho = 0.99;
@@ -101,13 +100,30 @@ void SpatialMixtureSamplerBase::init() {
             cluster_allocs[i][j] = categorical_rng(weights.row(i), rng) - 1;
     }
 
-	// W = W_init;
-	// // normalize W
-	// for (int i=0; i < W.rows(); ++i){
-	//   W.row(i) *= rho/W.row(i).sum();
-	// }
+    // Setting W to the initial matrix and (eventually) initialize boundary detection members
+    W = W_init;
+    //Rcpp::Rcout << "W:\n" << W << std::endl;
+    if (boundary_detection) {
+    	for (int i = 0; i < numGroups; ++i) {
+			std::vector<int> tmp;
+			std::vector<double> tmp_p;
+			for (int j = i+1; j < numGroups; ++j) {
+				if (W_init(i,j)){
+					tmp.emplace_back(j);
+					if (params.graph_params().has_beta())
+						tmp_p.emplace_back(stan::math::beta_rng(params.graph_params().beta().a(),
+																params.graph_params().beta().b(), rng));
+					else
+						tmp_p.emplace_back(params.graph_params().fixed());
+				}
+			}
+			neighbors.emplace_back(tmp);
+			p.emplace_back(tmp_p);
+    	}
+    }
+    _computeWrelatedQuantities(true);
 
-    F = Eigen::MatrixXd::Zero(numGroups, numGroups);
+    /*F = Eigen::MatrixXd::Zero(numGroups, numGroups);
     for (int i = 0; i < numGroups; i++)
         F(i, i) = rho * W_init.row(i).sum() + (1 - rho);
 
@@ -128,21 +144,19 @@ void SpatialMixtureSamplerBase::init() {
 
         F_by_comp[k] = curr_f;
         G_by_comp[k] = curr_g;
-    }
+    }*/
 
     // last component is not used!
     mtildes = Eigen::MatrixXd::Zero(num_connected_comps, numComponents);
-
     pippo.resize(numComponents - 1);
     sigma_star_h = Eigen::MatrixXd::Zero(numGroups, numComponents-1);
-
     _computeInvSigmaH();
 }
 
 void SpatialMixtureSamplerBase::sampleAtoms() {
 
 	// Resize storage for posterior parameters
-	postNormalGammaParams.resize(numComponents,4);
+	postNormalGammaParams.resize(numComponents, 4);
 
 	std::vector<std::vector<double>> datavec(numComponents);
 	for (int h = 0; h < numComponents; h++)
@@ -207,9 +221,9 @@ void SpatialMixtureSamplerBase::sampleWeights() {
           pg_rng->draw(samplesPerGroup[i], transformed_weights(i, h) - C_ih);
 
       Eigen::VectorXd mu_i =
-          (W_init.row(i) * transformed_weights).array() * rho +
+          (W.row(i) * transformed_weights).array() * rho +
           mtildes.row(node2comp[i]).array() * (1 - rho);
-      mu_i = mu_i.array() / (W_init.row(i).sum() * rho + 1 - rho);
+      mu_i = mu_i.array() / (W.row(i).sum() * rho + 1 - rho);
       mu_i = mu_i.head(numComponents - 1);
       Eigen::VectorXd wtilde =
           transformed_weights.row(i).head(numComponents - 1);
@@ -236,75 +250,79 @@ void SpatialMixtureSamplerBase::sampleWeights() {
 
 // We use a MH step with a truncated normal proposal
 void SpatialMixtureSamplerBase::sampleRho() {
-  iter += 1;
-  double curr = rho;
-  double sigma;
-  if (iter < 3) {
-    sigma = 0.01;
-  } else {
-    if (sigma_n_rho == 0)
-      sigma = 0.01;
-    else {
-      if (stan::math::uniform_rng(0.0, 1.0, rng) < 0.05)
-        sigma = 0.01;
-      else
-        sigma = 2.38 * sigma_n_rho;
-    }
-  }
-  double proposed = utils::trunc_normal_rng(curr, sigma, 0.0, 0.9999, rng);
+	iter += 1;
+	double curr = rho;
+	double sigma;
+	if (iter < 3) {
+		sigma = 0.01;
+	} else {
 
-  // compute acceptance ratio
-  Eigen::MatrixXd row_prec = F - proposed * W_init;
+		if (sigma_n_rho == 0)
+			sigma = 0.01;
+		else {
+			if (stan::math::uniform_rng(0.0, 1.0, rng) < 0.05)
+				sigma = 0.01;
+			else
+				sigma = 2.38 * sigma_n_rho;
+		}
+	}
+	double proposed = utils::trunc_normal_rng(curr, sigma, 0.0, 0.9999, rng);
 
-  Eigen::MatrixXd temp =
-      utils::removeColumn(transformed_weights, numComponents - 1);
-  Eigen::MatrixXd meanmat = Eigen::MatrixXd::Zero(numGroups, numComponents - 1);
-  for (int i = 0; i < numGroups; i++)
-    meanmat.row(i) = mtildes.row(node2comp[i]).head(numComponents - 1);
+	// compute acceptance ratio
+	Eigen::MatrixXd row_prec = F - proposed * W;
 
-  double num =
-      stan::math::beta_lpdf(proposed, alpha, beta) +
-      utils::matrix_normal_prec_lpdf(temp, meanmat, row_prec, SigmaInv) +
-      utils::trunc_normal_lpdf(proposed, curr, sigma, 0.0, 1);
+	Eigen::MatrixXd temp = utils::removeColumn(transformed_weights, numComponents - 1);
+	Eigen::MatrixXd meanmat = Eigen::MatrixXd::Zero(numGroups, numComponents - 1);
+	for (int i = 0; i < numGroups; i++)
+		meanmat.row(i) = mtildes.row(node2comp[i]).head(numComponents - 1);
 
-  row_prec = F - curr * W_init;
-  double den =
-      stan::math::beta_lpdf(curr, alpha, beta) +
-      utils::matrix_normal_prec_lpdf(temp, meanmat, row_prec, SigmaInv) +
-      utils::trunc_normal_lpdf(curr, proposed, sigma, 0.0, 1);
+	double num =
+		stan::math::beta_lpdf(proposed, alpha, beta) +
+		utils::matrix_normal_prec_lpdf(temp, meanmat, row_prec, SigmaInv) +
+		utils::trunc_normal_lpdf(proposed, curr, sigma, 0.0, 1);
 
-  double arate = std::min(1.0, std::exp(num - den));
-  if (stan::math::uniform_rng(0.0, 1.0, rng) < arate) {
-    rho = proposed;
-    numAccepted += 1;
+	row_prec = F - curr * W;
+	double den =
+		stan::math::beta_lpdf(curr, alpha, beta) +
+		utils::matrix_normal_prec_lpdf(temp, meanmat, row_prec, SigmaInv) +
+		utils::trunc_normal_lpdf(curr, proposed, sigma, 0.0, 1);
 
-    F = Eigen::MatrixXd::Zero(numGroups, numGroups);
-    for (int i = 0; i < numGroups; i++)
-      F(i, i) = rho * W_init.row(i).sum() + (1 - rho);
+	double arate = std::min(1.0, std::exp(num - den));
 
-    F_by_comp.resize(num_connected_comps);
-    G_by_comp.resize(num_connected_comps);
-    for (int k = 0; k < num_connected_comps; k++) {
-      Eigen::MatrixXd curr_f =
-          Eigen::MatrixXd::Zero(comp2node[k].size(), comp2node[k].size());
-      Eigen::MatrixXd curr_g =
-          Eigen::MatrixXd::Zero(comp2node[k].size(), comp2node[k].size());
-      for (int i = 0; i < comp2node[k].size(); i++) {
-        curr_f(i, i) = F(comp2node[k][i], comp2node[k][i]);
-        for (int j = 0; j < comp2node[k].size(); j++) {
-          curr_g(i, j) = W_init(comp2node[k][i], comp2node[k][j]);
-        }
-      }
-      F_by_comp[k] = curr_f;
-      G_by_comp[k] = curr_g;
-    }
-  }
+	if (stan::math::uniform_rng(0.0, 1.0, rng) < arate) {
+		//Rcpp::Rcout << std::endl;
+		//Rcpp::Rcout << "Accept!" << std::endl;
+		rho = proposed;
+		numAccepted += 1;
+		_computeWrelatedQuantities(false);
 
-  // update adaptive MCMC params
-  rho_sum += rho;
-  rho_sum_sq += rho * rho;
-  double rho_mean = rho_sum / iter;
-  sigma_n_rho = rho_sum_sq / iter - rho_mean * rho_mean;
+    	/*F = Eigen::MatrixXd::Zero(numGroups, numGroups);
+	    for (int i = 0; i < numGroups; i++)
+	      F(i, i) = rho * W_init.row(i).sum() + (1 - rho);
+
+	    F_by_comp.resize(num_connected_comps);
+	    G_by_comp.resize(num_connected_comps);
+	    for (int k = 0; k < num_connected_comps; k++) {
+	      Eigen::MatrixXd curr_f =
+	          Eigen::MatrixXd::Zero(comp2node[k].size(), comp2node[k].size());
+	      Eigen::MatrixXd curr_g =
+	          Eigen::MatrixXd::Zero(comp2node[k].size(), comp2node[k].size());
+	      for (int i = 0; i < comp2node[k].size(); i++) {
+	        curr_f(i, i) = F(comp2node[k][i], comp2node[k][i]);
+	        for (int j = 0; j < comp2node[k].size(); j++) {
+	          curr_g(i, j) = W_init(comp2node[k][i], comp2node[k][j]);
+	        }
+	      }
+	      F_by_comp[k] = curr_f;
+    	  G_by_comp[k] = curr_g;
+	    }*/
+	}
+
+	// update adaptive MCMC params
+	rho_sum += rho;
+	rho_sum_sq += rho * rho;
+	double rho_mean = rho_sum / iter;
+	sigma_n_rho = rho_sum_sq / iter - rho_mean * rho_mean;
 }
 
 void SpatialMixtureSamplerBase::regress() {
@@ -354,41 +372,41 @@ void SpatialMixtureSamplerBase::sampleW() {
   //Rcpp::Rcout << "transformed_weights:\n" << transformed_weights << std::endl;
 
   // Initial quantities
-  Eigen::MatrixXd W_uppertri = Eigen::MatrixXd::Zero(numGroups,numGroups);
-  Eigen::VectorXd logProbas(2);
+	Eigen::MatrixXd W_uppertri = Eigen::MatrixXd::Zero(numGroups,numGroups);
+	Eigen::VectorXd logProbas(2);
 
-  for (int i = 0; i < neighbors.size(); ++i) {
-    if (neighbors[i].size() > 0) {
-      //Rcpp::Rcout << "i: " << i;// << std::endl;
-      Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents-1);
-      //Rcpp::Rcout << "wtilde_i: " << wtilde_i.transpose() << std::endl;
-      Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents-1);
-      for (int j = 0; j < neighbors[i].size(); ++j) {
-        //Rcpp::Rcout << " j: " << neighbors[i][j];// << std::endl;
-        Eigen::VectorXd wtilde_j = transformed_weights.row(neighbors[i][j]).head(numComponents - 1);
-        //Rcpp::Rcout << "wtilde_j: " << wtilde_j.transpose() << std::endl;
-        Eigen::VectorXd mtilde_j = mtildes.row(node2comp[neighbors[i][j]]).head(numComponents - 1);
+	for (int i = 0; i < neighbors.size(); ++i) {
+		if (neighbors[i].size() > 0) {
+			//Rcpp::Rcout << "i: " << i;// << std::endl;
+			Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents-1);
+			//Rcpp::Rcout << "wtilde_i: " << wtilde_i.transpose() << std::endl;
+			Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents-1);
+			for (int j = 0; j < neighbors[i].size(); ++j) {
+				//Rcpp::Rcout << " j: " << neighbors[i][j];// << std::endl;
+				Eigen::VectorXd wtilde_j = transformed_weights.row(neighbors[i][j]).head(numComponents - 1);
+				//Rcpp::Rcout << "wtilde_j: " << wtilde_j.transpose() << std::endl;
+				Eigen::VectorXd mtilde_j = mtildes.row(node2comp[neighbors[i][j]]).head(numComponents - 1);
 
-        // Computing probabilities
-        double addendum_ij = rho/(2*Sigma(0,0)) * ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j));
-        logProbas(0) = std::log(1-p[i][j]); logProbas(1) = std::log(p[i][j]) + addendum_ij;
-        Eigen::VectorXd probas = logProbas.array().exp(); probas /= probas.sum();
-        //Rcpp::Rcout << " new_probs: " << probas.transpose() << std::endl;
+				// Computing probabilities
+				double addendum_ij = rho/(2*Sigma(0,0)) * ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j));
+				logProbas(0) = std::log(1-p[i][j]); logProbas(1) = std::log(p[i][j]) + addendum_ij;
+				Eigen::VectorXd probas = logProbas.array().exp(); probas /= probas.sum();
+				//Rcpp::Rcout << " new_probs: " << probas.transpose() << std::endl;
 
-        // Sampling new edge
-        W_uppertri(i,neighbors[i][j]) = stan::math::categorical_rng(probas, rng)-1;
-        //Rcpp::Rcout << "W(" << i << "," << neighbors[i][j] << ") = " << W_uppertri(i,neighbors[i][j]) << std::endl;
-      }
-      //Rcpp::Rcout << std::endl;
-    }
-  }
+				// Sampling new edge
+				W_uppertri(i,neighbors[i][j]) = stan::math::categorical_rng(probas, rng)-1;
+				//Rcpp::Rcout << "W(" << i << "," << neighbors[i][j] << ") = " << W_uppertri(i,neighbors[i][j]) << std::endl;
+			}
+			//Rcpp::Rcout << std::endl;
+		}
+	}
 
-  // Computing whole W
-  W = W_uppertri + W_uppertri.transpose();
-  //Rcpp::Rcout << std::endl;
-  //Rcpp::Rcout << "W:\n" << W << std::endl << "END:\n" << std::endl;
-
-  return;
+	// Computing whole W
+	W = W_uppertri + W_uppertri.transpose();
+	_computeWrelatedQuantities(true);
+	//Rcpp::Rcout << std::endl;
+	//Rcpp::Rcout << "W:\n" << W << std::endl << "END:\n" << std::endl;
+	return;
 }
 
 void SpatialMixtureSamplerBase::sampleP() {
@@ -430,6 +448,48 @@ void SpatialMixtureSamplerBase::_computeInvSigmaH() {
       sigma_star_h(i, h) = (Sigma(h, h) - aux) / F(i, i);
     }
   }
+}
+
+void SpatialMixtureSamplerBase::_computeWrelatedQuantities(bool W_has_changed) {
+
+	// Computing connected components if W has changed
+	if (W_has_changed) {
+		node2comp = utils::findConnectedComponents(W);
+	    auto it = std::max_element(node2comp.begin(), node2comp.end());
+	    num_connected_comps = *it + 1;
+	    
+	    comp2node.clear();
+	    comp2node.resize(num_connected_comps);
+	    for (int i = 0; i < numGroups; i++) {
+			comp2node[node2comp[i]].push_back(i);
+		}
+	}
+
+    // Computing F, F_by_comp, G_by_comp
+	F = Eigen::MatrixXd::Zero(numGroups, numGroups);
+    for (int i = 0; i < numGroups; i++)
+        F(i, i) = rho * W.row(i).sum() + (1 - rho);
+
+    F_by_comp.resize(num_connected_comps);
+    G_by_comp.resize(num_connected_comps);
+    for (int k = 0; k < num_connected_comps; k++) {
+        Eigen::MatrixXd curr_f =
+            Eigen::MatrixXd::Zero(comp2node[k].size(), comp2node[k].size());
+        Eigen::MatrixXd curr_g =
+            Eigen::MatrixXd::Zero(comp2node[k].size(), comp2node[k].size());
+
+        for (int i = 0; i < comp2node[k].size(); i++) {
+            curr_f(i, i) = F(comp2node[k][i], comp2node[k][i]);
+            for (int j = 0; j < comp2node[k].size(); j++) {
+                curr_g(i, j) = W(comp2node[k][i], comp2node[k][j]);
+            }
+        }
+
+        F_by_comp[k] = curr_f;
+        G_by_comp[k] = curr_g;
+    }
+
+    return;
 }
 
 /*void SpatialMixtureSamplerBase::sample_mtilde() {
