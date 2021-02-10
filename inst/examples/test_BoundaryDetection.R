@@ -17,6 +17,16 @@ DataRecast <- function(x, y, labels = row.names(y)) {
   return(out)
 }
 
+AUC <- function(plinks, W_true, thresholds = seq(min(plinks[upper.tri(plinks)]),max(plinks[upper.tri(plinks)]),by = 0.01)) {
+  aucs <- vector()
+  for (i in 1:length(thresholds)) {
+    Wtmp <- ifelse(plinks > thresholds[i], 1, 0)
+    aucs[i] <- suppressMessages(as.numeric(pROC::auc(pROC::roc(as.vector(W_true), as.vector(Wtmp)))))
+  }
+  result <- data.frame("Threshold" = thresholds, "AUC"=aucs)
+  return(result)
+}
+
 ###########################################################################
 # Data Generation ---------------------------------------------------------
 
@@ -36,6 +46,7 @@ names(data) <- labels
 
 # Setting initial W
 W <- matrix(1,I,I); #W[1,2] <- W[3,4] <- W[5,6] <- 1; W <- W + t(W)
+W_true <- matrix(0,I,I); W_true[1,2] <- W_true[3,4] <- W_true[5,6] <- 1;  W_true <- W_true + t(W_true)
 
 ###########################################################################
 
@@ -62,15 +73,16 @@ G_chain <- lapply(chains, function(x) matrix(x$G$data,x$G$rows,x$G$cols))
 rho_chain <- sapply(chains, function(x) x$rho)
 
 # reducing visited graphs with how many times they have been visited
-Gunique <- unique(G_chain)
-freq <- vector()
-for (i in 1:length(Gunique)) {
-  tmp <- sapply(G_chain, function(x) prod(x == Gunique[[i]]))
-  freq[i] <- sum(tmp)
-}
+# Gunique <- unique(G_chain)
+# freq <- vector()
+# for (i in 1:length(Gunique)) {
+#   tmp <- sapply(G_chain, function(x) prod(x == Gunique[[i]]))
+#   freq[i] <- sum(tmp)
+# }
 
-# plinks according to mean
+# plinks according to mean and estimated graph
 plinks <- Reduce('+', G_chain)/length(G_chain)
+G_est <- ifelse(plinks > 0.5, 1, 0)
 
 # Computing estimated densities
 data_ranges <- sapply(data, range)
