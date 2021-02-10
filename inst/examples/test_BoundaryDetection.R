@@ -32,16 +32,16 @@ AUC <- function(plinks, W_true, thresholds = seq(min(plinks[upper.tri(plinks)]),
 
 # Generating data
 I <- 6; Ns <- rep(100,I); set.seed(230196)
-data <- list(); labels <- sprintf("g%d", 1:I); means <- c(-5,-5,0,0,5,5)
-for (i in 1:I) {
-  data[[i]] <- rnorm(Ns[i], mean = means[i], 1)
-}
-# data[[1]] <- metRology::rt.scaled(n=Ns[1], df=6, mean=-4, sd=1)
-# data[[2]] <- metRology::rt.scaled(n=Ns[2], df=6, mean=-4, sd=1)
-# data[[3]] <- sn::rsn(n=Ns[3], xi=4, omega=4, alpha=1); attributes(data[[3]]) <- NULL
-# data[[4]] <- sn::rsn(n=Ns[4], xi=4, omega=4, alpha=1); attributes(data[[4]]) <- NULL
-# data[[5]] <- rchisq(n=Ns[5], df=3)
-# data[[6]] <- rchisq(n=Ns[6], df=3)
+data <- list(); labels <- sprintf("g%d", 1:I); #means <- c(-5,-5,0,0,5,5)
+# for (i in 1:I) {
+#   data[[i]] <- rnorm(Ns[i], mean = means[i], 1)
+# }
+data[[1]] <- metRology::rt.scaled(n=Ns[1], df=6, mean=-4, sd=1)
+data[[2]] <- metRology::rt.scaled(n=Ns[2], df=6, mean=-4, sd=1)
+data[[3]] <- sn::rsn(n=Ns[3], xi=4, omega=4, alpha=1); attributes(data[[3]]) <- NULL
+data[[4]] <- sn::rsn(n=Ns[4], xi=4, omega=4, alpha=1); attributes(data[[4]]) <- NULL
+data[[5]] <- rchisq(n=Ns[5], df=3)
+data[[6]] <- rchisq(n=Ns[6], df=3)
 names(data) <- labels
 
 # Setting initial W
@@ -90,15 +90,15 @@ estimated_densities <- ComputeDensities(chains, 500, data_ranges, labels)
 
 # Computing true densities for comparison
 true_densities <- list()
-for (i in 1:I) {
-  true_densities[[i]] <- dnorm(seq(data_ranges[1,i], data_ranges[2,i], length.out = 500), mean = means[i], sd = 1)
-}
-# true_densities[[1]] <- metRology::dt.scaled(seq(data_ranges[1,1],data_ranges[2,1],length.out = 500), df=6, mean=-4, sd=1)
-# true_densities[[2]] <- metRology::dt.scaled(seq(data_ranges[1,2],data_ranges[2,2],length.out = 500), df=6, mean=-4, sd=1)
-# true_densities[[3]] <- sn::dsn(seq(data_ranges[1,3],data_ranges[2,3],length.out = 500), xi=4, omega=4, alpha=1); attributes(true_densities[[3]]) <- NULL
-# true_densities[[4]] <- sn::dsn(seq(data_ranges[1,4],data_ranges[2,4],length.out = 500), xi=4, omega=4, alpha=1); attributes(true_densities[[4]]) <- NULL
-# true_densities[[5]] <- dchisq(seq(data_ranges[1,5],data_ranges[2,5],length.out = 500), df=3)
-# true_densities[[6]] <- dchisq(seq(data_ranges[1,6],data_ranges[2,6],length.out = 500), df=3)
+# for (i in 1:I) {
+#   true_densities[[i]] <- dnorm(seq(data_ranges[1,i], data_ranges[2,i], length.out = 500), mean = means[i], sd = 1)
+# }
+true_densities[[1]] <- metRology::dt.scaled(seq(data_ranges[1,1],data_ranges[2,1],length.out = 500), df=6, mean=-4, sd=1)
+true_densities[[2]] <- metRology::dt.scaled(seq(data_ranges[1,2],data_ranges[2,2],length.out = 500), df=6, mean=-4, sd=1)
+true_densities[[3]] <- sn::dsn(seq(data_ranges[1,3],data_ranges[2,3],length.out = 500), xi=4, omega=4, alpha=1); attributes(true_densities[[3]]) <- NULL
+true_densities[[4]] <- sn::dsn(seq(data_ranges[1,4],data_ranges[2,4],length.out = 500), xi=4, omega=4, alpha=1); attributes(true_densities[[4]]) <- NULL
+true_densities[[5]] <- dchisq(seq(data_ranges[1,5],data_ranges[2,5],length.out = 500), df=3)
+true_densities[[6]] <- dchisq(seq(data_ranges[1,6],data_ranges[2,6],length.out = 500), df=3)
 names(true_densities) <- labels
 
 
