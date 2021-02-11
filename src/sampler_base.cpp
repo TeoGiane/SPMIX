@@ -147,8 +147,8 @@ void SpatialMixtureSamplerBase::init() {
     }*/
 
     // last component is not used!
-    mtildes = Eigen::MatrixXd::Zero(num_connected_comps, numComponents);
-    pippo.resize(numComponents - 1);
+    // mtildes = Eigen::MatrixXd::Zero(num_connected_comps, numComponents);
+    pippo.resize(numComponents-1);
     sigma_star_h = Eigen::MatrixXd::Zero(numGroups, numComponents-1);
     _computeInvSigmaH();
 }
@@ -429,25 +429,25 @@ void SpatialMixtureSamplerBase::sampleP() {
 }
 
 void SpatialMixtureSamplerBase::_computeInvSigmaH() {
-  SigmaInv = Sigma.llt().solve(
-      Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1));
 
-  Eigen::MatrixXd I =
-      Eigen::MatrixXd::Identity(numComponents - 2, numComponents - 2);
+	SigmaInv = Sigma.llt().solve(Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1));
+	Eigen::MatrixXd I = Eigen::MatrixXd::Identity(numComponents - 2, numComponents - 2);
 
-  // #pragma omp parallel for
-  for (int h = 0; h < numComponents - 1; ++h) {
-    pippo[h] = utils::removeColumn(Sigma, h).row(h) *
-               utils::removeRowColumn(Sigma, h).llt().solve(I);
-  }
+	// #pragma omp parallel for
+	for (int h = 0; h < numComponents - 1; ++h) {
+		pippo[h] = utils::removeColumn(Sigma, h).row(h) *
+		utils::removeRowColumn(Sigma, h).llt().solve(I);
+	}
 
-  // #pragma omp parallel for
-  for (int h = 0; h < numComponents-1; ++h) {
-    double aux = pippo[h].dot(utils::removeRow(Sigma, h).col(h));
-    for (int i = 0; i < numGroups; i++) {
-      sigma_star_h(i, h) = (Sigma(h, h) - aux) / F(i, i);
-    }
-  }
+	// #pragma omp parallel for
+	for (int h = 0; h < numComponents-1; ++h) {
+		double aux = pippo[h].dot(utils::removeRow(Sigma, h).col(h));
+		for (int i = 0; i < numGroups; i++) {
+			sigma_star_h(i, h) = (Sigma(h, h) - aux) / F(i, i);
+		}
+	}
+
+	return;
 }
 
 void SpatialMixtureSamplerBase::_computeWrelatedQuantities(bool W_has_changed) {
@@ -455,17 +455,18 @@ void SpatialMixtureSamplerBase::_computeWrelatedQuantities(bool W_has_changed) {
 	// Computing connected components if W has changed
 	if (W_has_changed) {
 		node2comp = utils::findConnectedComponents(W);
-	    auto it = std::max_element(node2comp.begin(), node2comp.end());
-	    num_connected_comps = *it + 1;
-	    
-	    comp2node.clear();
-	    comp2node.resize(num_connected_comps);
-	    for (int i = 0; i < numGroups; i++) {
+		auto it = std::max_element(node2comp.begin(), node2comp.end());
+		num_connected_comps = *it + 1;
+		comp2node.clear();
+		comp2node.resize(num_connected_comps);
+		for (int i = 0; i < numGroups; i++)
 			comp2node[node2comp[i]].push_back(i);
-		}
 	}
 
-    // Computing F, F_by_comp, G_by_comp
+	// Resize m_tildes
+	mtildes = Eigen::MatrixXd::Zero(num_connected_comps, numComponents);
+
+	// Computing F, F_by_comp, G_by_comp
 	F = Eigen::MatrixXd::Zero(numGroups, numGroups);
     for (int i = 0; i < numGroups; i++)
         F(i, i) = rho * W.row(i).sum() + (1 - rho);
