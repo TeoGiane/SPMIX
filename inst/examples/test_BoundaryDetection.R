@@ -63,7 +63,7 @@ thin = 2
 params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
 
 # Run Spatial sampler
-out <- SPMIXSampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc", display_progress = F)
+out <- SPMIXSampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
 
 ###########################################################################
 
@@ -71,17 +71,8 @@ out <- SPMIXSampler(burnin, niter, thin, data, W, params_filename, type = "rjmcm
 chains <- sapply(out, function(x) DeserializeSPMIXProto("UnivariateState",x))
 H_chain <- sapply(chains, function(x) x$num_components)
 G_chain <- lapply(chains, function(x) matrix(x$G$data,x$G$rows,x$G$cols))
-rho_chain <- sapply(chains, function(x) x$rho)
 
-# reducing visited graphs with how many times they have been visited
-# Gunique <- unique(G_chain)
-# freq <- vector()
-# for (i in 1:length(Gunique)) {
-#   tmp <- sapply(G_chain, function(x) prod(x == Gunique[[i]]))
-#   freq[i] <- sum(tmp)
-# }
-
-# plinks according to mean and estimated graph
+# Compute plinks according to mean and estimated graph
 plinks <- Reduce('+', G_chain)/length(G_chain)
 G_est <- ifelse(plinks > 0.5, 1, 0)
 
@@ -91,15 +82,19 @@ estimated_densities <- ComputeDensities(chains, 500, data_ranges, labels)
 
 # Computing true densities and adjacency matrix for comparison
 true_densities <- list()
-# for (i in 1:I) {
-#   true_densities[[i]] <- dnorm(seq(data_ranges[1,i], data_ranges[2,i], length.out = 500), mean = means[i], sd = 1)
-# }
-true_densities[[1]] <- metRology::dt.scaled(seq(data_ranges[1,1],data_ranges[2,1],length.out = 500), df=6, mean=-4, sd=1)
-true_densities[[2]] <- metRology::dt.scaled(seq(data_ranges[1,2],data_ranges[2,2],length.out = 500), df=6, mean=-4, sd=1)
-true_densities[[3]] <- sn::dsn(seq(data_ranges[1,3],data_ranges[2,3],length.out = 500), xi=4, omega=4, alpha=1); attributes(true_densities[[3]]) <- NULL
-true_densities[[4]] <- sn::dsn(seq(data_ranges[1,4],data_ranges[2,4],length.out = 500), xi=4, omega=4, alpha=1); attributes(true_densities[[4]]) <- NULL
-true_densities[[5]] <- dchisq(seq(data_ranges[1,5],data_ranges[2,5],length.out = 500), df=3)
-true_densities[[6]] <- dchisq(seq(data_ranges[1,6],data_ranges[2,6],length.out = 500), df=3)
+for (i in 1:I) {
+  x <- seq(data_ranges[1,i], data_ranges[2,i], length.out=500)
+  if (i %in% c(1,2)){
+    true_densities[[i]] <- metRology::dt.scaled(x, df=6, mean=-4, sd=1)
+  }
+  if (i %in% c(3,4)){
+    true_densities[[i]] <- sn::dsn(x, xi=4, omega=4, alpha=1); attributes(true_densities[[i]]) <- NULL
+  }
+  if (i %in% c(5,6)) {
+    true_densities[[i]] <- dchisq(x, df=3)
+  }
+}
+rm(list = c('x','i'))
 names(true_densities) <- labels
 W_true <- matrix(0,I,I); W_true[1,2] <- W_true[3,4] <- W_true[5,6] <- 1;  W_true <- W_true + t(W_true)
 
