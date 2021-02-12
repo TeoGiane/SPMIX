@@ -76,19 +76,18 @@ void SpatialMixtureRJSampler::sample() {
     	regress();
     	computeRegressionResiduals();
 	}
-
 	if (boundary_detection) {
 		//Rcpp::Rcout << "boundary, ";
 		sampleP();
 		sampleW();
 	}
-
 	//Rcpp::Rcout << "atoms, ";
 	sampleAtoms();
 	//Rcpp::Rcout << "sigma, ";
 	sampleSigma();
 	//Rcpp::Rcout << "rho, ";
-	sampleRho();
+	if (not boundary_detection)
+		sampleRho();
 	//Rcpp::Rcout << "label, ";
 	labelSwitch();
 	if (iter % 5 == 0){
@@ -101,7 +100,6 @@ void SpatialMixtureRJSampler::sample() {
 		//Rcpp::Rcout << "weights, ";
 		sampleWeights();
 	}
-
 	//Rcpp::Rcout << std::endl;
 	++iter;
 }
