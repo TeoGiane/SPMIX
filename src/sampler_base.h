@@ -77,7 +77,8 @@ class SpatialMixtureSamplerBase {
 	// Boundary detection
 	bool boundary_detection = false;
 	std::vector<std::vector<int>> neighbors;
-	std::vector<std::vector<double>> p;
+	double p;
+	//std::vector<std::vector<double>> p;
 	Eigen::MatrixXd W;
 
 	// prior for Sigma --> depends on the derivation
