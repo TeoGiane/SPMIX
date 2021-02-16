@@ -78,7 +78,6 @@ class SpatialMixtureSamplerBase {
 	bool boundary_detection = false;
 	std::vector<std::vector<int>> neighbors;
 	double p;
-	//std::vector<std::vector<double>> p;
 	Eigen::MatrixXd W;
 
 	// prior for Sigma --> depends on the derivation
@@ -120,7 +119,6 @@ class SpatialMixtureSamplerBase {
 		const Eigen::MatrixXd &_W, const std::vector<Eigen::MatrixXd> &X);
 
 	virtual ~SpatialMixtureSamplerBase() {
-		//Rcpp::Rcout << "SamplerBase destructor!" << std::endl;
 		delete(pg_rng);
 	}
 
