@@ -73,7 +73,7 @@ thin = 2
 params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
 
 # Run Spatial sampler
-out <- SPMIXSampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
+out <- Sampler.BoundaryDetection(burnin, niter, thin, data, W, params_filename)
 
 ###########################################################################
 
