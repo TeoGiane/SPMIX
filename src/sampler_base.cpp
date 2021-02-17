@@ -104,7 +104,7 @@ void SpatialMixtureSamplerBase::init() {
     W = W_init;
     //Rcpp::Rcout << "W:\n" << W << std::endl;
     if (boundary_detection) {
-
+    	//Rcpp::Rcout << "Inside boundary_detection condition!" << std::endl;
     	if (params.graph_params().has_beta())
 			p = stan::math::beta_rng(params.graph_params().beta().a(),params.graph_params().beta().b(), rng);
 		else
