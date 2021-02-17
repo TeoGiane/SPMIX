@@ -3,8 +3,14 @@
 SpatialMixtureRJSampler::SpatialMixtureRJSampler(const SamplerParams &_params,
 												 const std::vector<std::vector<double>> &_data,
 												 const Eigen::MatrixXd &_W,
-												 const OptimOptions &_options):
+												 const OptimOptions &_options,
+												 bool _boundary_detection):
 SpatialMixtureSamplerBase(_params, _data, _W), options(_options) {
+
+	// Setting boundary detection flag
+	boundary_detection = _boundary_detection;
+
+	// Control the prior for Sigma
 	if (!_params.sigma_params().has_inv_gamma()) {
 		std::string message = "Cannot build object of class 'SpatialMixtureRJSampler': "
 							  "expected parameters for an Inverse Gamma distribution.";
@@ -16,8 +22,14 @@ SpatialMixtureRJSampler::SpatialMixtureRJSampler(const SamplerParams &_params,
 												 const std::vector<std::vector<double>> &_data,
 												 const Eigen::MatrixXd &_W,
 												 const OptimOptions &_options,
-												 const std::vector<Eigen::MatrixXd> &X):
+												 const std::vector<Eigen::MatrixXd> &X,
+												 bool _boundary_detection):
 SpatialMixtureSamplerBase(_params, _data, _W, X), options(_options) {
+
+	// Setting boundary detection flag
+	boundary_detection = _boundary_detection;
+
+	// Control the prior for Sigma
 	if (!_params.sigma_params().has_inv_gamma()) {
 		std::string message = "Cannot build object of class 'SpatialMixtureRJSampler': "
 							  "expected parameters for an Inverse Gamma distribution.";
@@ -28,7 +40,8 @@ SpatialMixtureSamplerBase(_params, _data, _W, X), options(_options) {
 void SpatialMixtureRJSampler::init() {
 
 	// Switch on boundary detection
-	boundary_detection = true;
+	//boundary_detection = true;
+	//Rcpp::Rcout << "boundary_detection? " << std::boolalpha << boundary_detection << std::endl;
 
 	// Base class init
 	SpatialMixtureSamplerBase::init();
@@ -85,9 +98,10 @@ void SpatialMixtureRJSampler::sample() {
 	sampleAtoms();
 	//Rcpp::Rcout << "sigma, ";
 	sampleSigma();
-	//Rcpp::Rcout << "rho, ";
-	if (not boundary_detection)
+	if (not boundary_detection){
+		//Rcpp::Rcout << "rho, ";
 		sampleRho();
+	}
 	//Rcpp::Rcout << "label, ";
 	labelSwitch();
 	if (iter % 5 == 0){
@@ -101,6 +115,7 @@ void SpatialMixtureRJSampler::sample() {
 		sampleWeights();
 	}
 	//Rcpp::Rcout << std::endl;
+	//Rcpp::Rcout << "W:\n" << W << std::endl;
 	++iter;
 }
 
