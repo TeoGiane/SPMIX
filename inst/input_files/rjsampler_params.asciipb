@@ -22,5 +22,8 @@ sigma_params {
 mtilde_sigmasq: 5
 
 graph_params {
-	fixed: 0.2
+	beta {
+    a: 2
+    b: 2
+	}
 }
