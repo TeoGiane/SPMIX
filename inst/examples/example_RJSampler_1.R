@@ -18,6 +18,7 @@ DataRecast <- function(x, y, labels = row.names(y)) {
 
 ###########################################################################
 # Data Simulation ---------------------------------------------------------
+
 # Generate data (1 location, mixture of 3 normals)
 set.seed(230196)
 ngroups <- 1; ncomponents <- 3; N <- 1000
@@ -42,7 +43,7 @@ thin = 2
 params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
 
 # Run Spatial sampler
-out <- SPMIXSampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
+out <- Sampler.DensityEstimation(burnin,niter,thin,data,W,params_filename,type = "rjmcmc")
 
 ###########################################################################
 
@@ -84,7 +85,7 @@ x11(width = 5.8, height = 3); plot_densCompare
 ###########################################################################
 
 ###########################################################################
-# Sampler Execution (full run, NO burnin, no Thinning) --------------------
+# Sampler Execution (full run) --------------------------------------------
 
 # Setting MCMC parameters
 burnin = 0
@@ -95,7 +96,7 @@ thin = 1
 params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
 
 # Run Spatial sampler
-out <- SPMIXSampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
+out <- Sampler.DensityEstimation(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
 
 ###########################################################################
 
@@ -139,7 +140,7 @@ for (i in 1:length(Ns)) {
   params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
 
   # Run Spatial sampler
-  out <- SPMIXSampler(0, 10000, 1, data, W, params_filename, type = "rjmcmc")
+  out <- Sampler.DensityEstimation(0, 10000, 1, data, W, params_filename, type = "rjmcmc")
 
   # Deserialization
   chains <- sapply(out, function(x) DeserializeSPMIXProto("UnivariateState",x))
