@@ -16,21 +16,31 @@ DataRecast <- function(x, y, labels = row.names(y)) {
   }
   return(out)
 }
-AUC <- function(plinks, W_true, thresholds = seq(min(plinks[upper.tri(plinks)]),max(plinks[upper.tri(plinks)]),by = 0.01)) {
-  aucs <- vector()
-  for (i in 1:length(thresholds)) {
-    Wtmp <- ifelse(plinks > thresholds[i], 1, 0)
-    aucs[i] <- suppressMessages(as.numeric(pROC::auc(pROC::roc(as.vector(W_true), as.vector(Wtmp)))))
-  }
-  result <- data.frame("Threshold" = thresholds, "AUC"=aucs)
-  return(result)
-}
 
 ###########################################################################
-# Data Generation ---------------------------------------------------------
+# Data Generation - Scenario I --------------------------------------------
 
 # Generating data
-I <- 6; Ns <- rep(100,I); set.seed(230196)
+set.seed(230196)
+I <- 6; Ns <- rep(100,I); means <- c(rep(-5,2),rep(0,2),rep(5,2))
+data <- list(); labels <- sprintf("g%d", 1:I)
+for (i in 1:I) {
+  data[[i]] <- rnorm(Ns[i], means[i], 1)
+}
+rm(list = 'i')
+names(data) <- labels
+
+# Setting initial W
+W <- matrix(1,I,I)
+
+###########################################################################
+
+###########################################################################
+# Data Generation - Scenario II -------------------------------------------
+
+# Generating data
+set.seed(230196)
+I <- 6; Ns <- rep(100,I)
 data <- list(); labels <- sprintf("g%d", 1:I)
 for (i in 1:I) {
   if (i %in% c(1,2)){
@@ -67,12 +77,14 @@ out <- SPMIXSampler(burnin, niter, thin, data, W, params_filename, type = "rjmcm
 
 ###########################################################################
 
+###########################################################################
+# Posterior Analysis - Scenario I -----------------------------------------
+
 # Deserialization
 chains <- sapply(out, function(x) DeserializeSPMIXProto("UnivariateState",x))
-H_chain <- sapply(chains, function(x) x$num_components)
 G_chain <- lapply(chains, function(x) matrix(x$G$data,x$G$rows,x$G$cols))
 
-# Compute plinks according to mean and estimated graph
+# Compute plinks and median graph according to mean and estimated graph
 plinks <- Reduce('+', G_chain)/length(G_chain)
 G_est <- ifelse(plinks > 0.5, 1, 0)
 
@@ -80,7 +92,33 @@ G_est <- ifelse(plinks > 0.5, 1, 0)
 data_ranges <- sapply(data, range)
 estimated_densities <- ComputeDensities(chains, 500, data_ranges, labels)
 
-# Computing true densities and adjacency matrix for comparison
+# Computing true densities for comparison
+true_densities <- list()
+for (i in 1:I) {
+  x <- seq(data_ranges[1,i], data_ranges[2,i], length.out=500)
+  true_densities[[i]] <- dnorm(x, means[i], 1)
+}
+rm(list = c('x','i'))
+names(true_densities) <- labels
+
+###########################################################################
+
+###########################################################################
+# Posterior Analysis - Scenario II ----------------------------------------
+
+# Deserialization
+chains <- sapply(out, function(x) DeserializeSPMIXProto("UnivariateState",x))
+G_chain <- lapply(chains, function(x) matrix(x$G$data,x$G$rows,x$G$cols))
+
+# Compute plinks and median graph according to mean and estimated graph
+plinks <- Reduce('+', G_chain)/length(G_chain)
+G_est <- ifelse(plinks > 0.5, 1, 0)
+
+# Computing estimated densities
+data_ranges <- sapply(data, range)
+estimated_densities <- ComputeDensities(chains, 500, data_ranges, labels)
+
+# Computing true densities for comparison
 true_densities <- list()
 for (i in 1:I) {
   x <- seq(data_ranges[1,i], data_ranges[2,i], length.out=500)
@@ -96,7 +134,11 @@ for (i in 1:I) {
 }
 rm(list = c('x','i'))
 names(true_densities) <- labels
-W_true <- matrix(0,I,I); W_true[1,2] <- W_true[3,4] <- W_true[5,6] <- 1;  W_true <- W_true + t(W_true)
+
+###########################################################################
+
+###########################################################################
+# Visualization -----------------------------------------------------------
 
 # Comparison plots between estimated and true densities in i-th area
 plots_area <- list()
@@ -110,4 +152,23 @@ for (i in 1:I) {
 }
 names(plots_area) <- labels
 
+# Visualization
 x11(height = 6, width = 8.27); gridExtra::grid.arrange(grobs=plots_area, nrow=2, ncol=3)
+x11(height = 3, width = 4.5); fields::image.plot(plinks) # Rifare su illustrator
+
+# Save pdf
+dev.copy2pdf(device=x11, file="BD_fixed_p05_plinks.pdf"); dev.off()
+dev.copy2pdf(device=x11, file="BD_fixed_p05_Densities.pdf"); dev.off()
+
+###########################################################################
+
+# Drafts
+AUC <- function(plinks, W_true, thresholds = seq(min(plinks[upper.tri(plinks)]),max(plinks[upper.tri(plinks)]),by = 0.01)) {
+  aucs <- vector()
+  for (i in 1:length(thresholds)) {
+    Wtmp <- ifelse(plinks > thresholds[i], 1, 0)
+    aucs[i] <- suppressMessages(as.numeric(pROC::auc(pROC::roc(as.vector(W_true), as.vector(Wtmp)))))
+  }
+  result <- data.frame("Threshold" = thresholds, "AUC"=aucs)
+  return(result)
+}
