@@ -121,14 +121,14 @@ std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, 
 std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>> & data,
     											 const Eigen::MatrixXd & W, std::string params_str,
     											 const std::vector<Eigen::MatrixXd> & covariates,
-    											 const std::string & options_str, bool display_progress) {
+    											 const std::string & options_str, bool boundary_detection, bool display_progress) {
 
 	// Messages Parsing
 	SamplerParams params; google::protobuf::TextFormat::ParseFromString(params_str, &params);
 	OptimOptions options; google::protobuf::TextFormat::ParseFromString(options_str, &options);
 
 	// Initializarion
-	SpatialMixtureRJSampler spSampler(params, data, W, options, covariates);
+	SpatialMixtureRJSampler spSampler(params, data, W, options, covariates, boundary_detection);
 	spSampler.init();
 
 	// Initialize output container
