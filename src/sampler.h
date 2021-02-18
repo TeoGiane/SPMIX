@@ -16,12 +16,12 @@ class SpatialMixtureSampler: public SpatialMixtureSamplerBase {
 	SpatialMixtureSampler(
 		const SamplerParams &_params,
 		const std::vector<std::vector<double>> &_data,
-		const Eigen::MatrixXd &W);
+		const Eigen::MatrixXd &_W);
 
 	SpatialMixtureSampler(
 		const SamplerParams &_params,
 		const std::vector<std::vector<double>> &_data,
-		const Eigen::MatrixXd &W, const std::vector<Eigen::MatrixXd> &X);
+		const Eigen::MatrixXd &_W, const std::vector<Eigen::MatrixXd> &X);
 
     void init();
 

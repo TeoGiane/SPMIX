@@ -90,12 +90,12 @@ thin = 2
 params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
 
 # Run Spatial sampler
-out <- SPMIXSampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
+out <- Sampler.DensityEstimation(burnin,niter,thin,data,W,params_filename,type = "rjmcmc")
 
 ###########################################################################
 
 ###########################################################################
-# Sampler Execution (full run, NO burnin, no Thinning) --------------------
+# Sampler Execution (full run) --------------------------------------------
 
 # Setting MCMC parameters
 burnin = 0
@@ -106,7 +106,7 @@ thin = 1
 params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
 
 # Run Spatial sampler
-out <- SPMIXSampler(burnin, niter, thin, data, W, params_filename, type = "rjmcmc")
+out <- Sampler.DensityEstimation(burnin,niter,thin,data,W,params_filename,type = "rjmcmc")
 
 ###########################################################################
 

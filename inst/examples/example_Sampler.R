@@ -23,4 +23,4 @@ readProtoFiles(file = system.file("proto/sampler_params.proto", package = "SPMIX
 params_obj <- RProtoBuf::readASCII(SamplerParams, file(params_filename))
 
 # Executing Sampler
-out <- SPMIXSampler(burnin, niter, thin, data_filename, w_filename, params_filename, type = "no_rjmcmc")
+out <- Sampler.DensityEstimation(burnin,niter,thin,data_filename,w_filename,params_filename,type = "no_rjmcmc")

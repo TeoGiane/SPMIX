@@ -20,3 +20,10 @@ sigma_params {
 }
 
 mtilde_sigmasq: 5
+
+graph_params {
+	beta {
+    a: 2
+    b: 2
+	}
+}

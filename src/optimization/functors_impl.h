@@ -76,7 +76,8 @@ T spmixLogLikelihood::operator() (const Eigen::Matrix<T, Eigen::Dynamic, 1> & x)
 		Eigen::Matrix<T,Eigen::Dynamic,1> tw_vec = Eigen::Map<Eigen::Matrix<T,-1,1>>(transformed_weights_ext.data(),
 																					 transformed_weights_ext.size());
 		Eigen::Matrix<T,Eigen::Dynamic,1> weightsMean = Eigen::VectorXd::Zero(tw_vec.size());
-		Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> F_rhoWInv = (F-rho*W).inverse();
+		Eigen::MatrixXd I = Eigen::MatrixXd::Identity(numGroups,numGroups);
+		Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> F_rhoWInv = (F-rho*W).ldlt().solve(I);
 		Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> weightsCov = Eigen::kroneckerProduct(Sigma_ext, F_rhoWInv);
 		output += stan::math::multi_normal_lpdf(tw_vec, weightsMean, weightsCov);
 	}

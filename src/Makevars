@@ -13,7 +13,7 @@ PROTOBUF_LIBS = $(shell pkg-config --libs protobuf)
 # Setting Package Flags
 PKG_CXXFLAGS += -D_REENTRANT -DSTAN_THREADS $(GSL_CFLAGS) $(PROTOBUF_CFLAGS) \
 			    -I'.' -I'./optimization' -I'./polyagamma' -I'./cpp_proto' \
-			    -fopenmp $(NOCRANFLAGS)
+			    $(NOCRANFLAGS)
 PKG_LIBS = $(shell "$(R_HOME)/bin/Rscript" -e "StanHeaders:::LdFlags()") $(GSL_LIBS) $(PROTOBUF_LIBS)
 
 # Setting Package sources and object files
@@ -36,3 +36,5 @@ compile_protos:
 		do \
 			protoc -I$(PROTO_DIR) --cpp_out=$(PWD)/cpp_proto $${file}; \
 		done
+		
+# -fopenmp

@@ -29,17 +29,18 @@
 
 class SpatialMixtureSamplerBase {
   protected:
+
 	// Params
 	SamplerParams params;
 
-	// data
+	// Data
 	int numGroups;
 	std::vector<int> samplesPerGroup;
 	std::vector<std::vector<double>> data;
 	int numdata;
 	Eigen::MatrixXd W_init;
 
-	// mixtures
+	// Mixtures
 	int numComponents;
 	std::vector<double> means;
 	std::vector<double> stddevs;
@@ -54,7 +55,6 @@ class SpatialMixtureSamplerBase {
 	// MCAR
 	double rho;
 	Eigen::MatrixXd Sigma;
-	Eigen::MatrixXd W;
 	Eigen::MatrixXd SigmaInv;
 	Eigen::MatrixXd F;
 	std::vector<int> node2comp;
@@ -73,6 +73,12 @@ class SpatialMixtureSamplerBase {
 	Eigen::VectorXd reg_data;
 	Eigen::VectorXd mu;
 	Eigen::DiagonalMatrix<double, Eigen::Dynamic, Eigen::Dynamic> V;
+
+	// Boundary detection
+	bool boundary_detection = false;
+	std::vector<std::vector<int>> neighbors;
+	double p;
+	Eigen::MatrixXd W;
 
 	// prior for Sigma --> depends on the derivation
 
@@ -105,15 +111,14 @@ class SpatialMixtureSamplerBase {
 	SpatialMixtureSamplerBase(
 		const SamplerParams &_params,
 		const std::vector<std::vector<double>> &_data,
-		const Eigen::MatrixXd &W);
+		const Eigen::MatrixXd &_W);
 
 	SpatialMixtureSamplerBase(
 		const SamplerParams &_params,
 		const std::vector<std::vector<double>> &_data,
-		const Eigen::MatrixXd &W, const std::vector<Eigen::MatrixXd> &X);
+		const Eigen::MatrixXd &_W, const std::vector<Eigen::MatrixXd> &X);
 
 	virtual ~SpatialMixtureSamplerBase() {
-		//Rcpp::Rcout << "SamplerBase destructor!" << std::endl;
 		delete(pg_rng);
 	}
 
@@ -155,7 +160,13 @@ class SpatialMixtureSamplerBase {
 
 	void computeRegressionResiduals();
 
+	void sampleW();
+
+	void sampleP();
+
 	void _computeInvSigmaH();
+
+	void _computeWrelatedQuantities(bool W_has_changed);
 
 	/*
 	 * Sampler the hyperparameters in the base measure P_0

@@ -12,11 +12,17 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 	double alpha_Sigma;
 	double beta_Sigma;
 
+	// prior for W --> Beta-Bernoulli prior
+	//std::vector<std::vector<int>> neighbors;
+	//std::vector<std::vector<double>> p;
+	//double alpha_p; double beta_p;
+	//double p = 0.5;
+
 	// data range --> used in gradient ascent
 	double lowerBound, upperBound;
 
 	// Iteration counter for sample method
-	int iter{1};
+	int iter{0};
 	//int cutoff{10};
 	//int acceptedMoves{0};
 
@@ -28,20 +34,26 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 
 	SpatialMixtureRJSampler(const SamplerParams &_params,
 							const std::vector<std::vector<double>> &_data,
-							const Eigen::MatrixXd &W,
-							const OptimOptions &_options);
+							const Eigen::MatrixXd &_W,
+							const OptimOptions &_options,
+							bool _boundary_detection);
 
 	SpatialMixtureRJSampler(const SamplerParams &_params,
 							const std::vector<std::vector<double>> &_data,
-							const Eigen::MatrixXd &W,
+							const Eigen::MatrixXd &_W,
 							const OptimOptions &_options,
-							const std::vector<Eigen::MatrixXd> &X);
+							const std::vector<Eigen::MatrixXd> &X,
+							bool _boundary_detection);
 
 	void init();
 
 	void sample() override;
 
 	void sampleSigma() override;
+
+	//void sampleW();
+
+	//void sampleP();
 
 	void labelSwitch();
 
