@@ -121,7 +121,7 @@ stdev_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$stdev))
 
 # Computing estimated densities
 data_ranges <- sapply(data, range)
-estimated_densities <- ComputeDensities(chains, 500, data_ranges, labels)
+estimated_densities <- ComputeDensities(chains, 500, data_ranges, alpha=0.05, names=labels)
 
 # Computing true densities for comparison
 true_densities <- list()
@@ -167,15 +167,22 @@ plot_traceH <- ggplot(data=df, aes(x=Iteration, y=LowPoints, xend=Iteration, yen
   ggtitle("Traceplot of H")
 rm(list='df')
 
-# Comparison plots between estimated and true densities in i-th area
+# Comparison plots between estimated and true densities in i-th area + bands
 plots_area <- list()
 for (i in 1:numGroups) {
-  x <- seq(data_ranges[1,i], data_ranges[2,i], length.out = 500)
-  y <- rbind(estimated_densities[[i]], true_densities[[i]]); row.names(y) <- c("Estimated", "True")
-  tmp <- ggplot(data = DataRecast(x,y), aes(x=Grid, y=Value, group=Density, col=Density)) +
-    geom_line(lwd=1) + theme(plot.title = element_text(face="bold", hjust = 0.5)) +
-    ggtitle(paste0("Area ", i)) + theme(legend.position = "none")
-  plots_area[[i]] <- tmp; rm(list=c('x','y','tmp'))
+  df <- data.frame('x'=seq(data_ranges[1,i], data_ranges[2,i], length.out=500),
+                   t(estimated_densities[[i]]),
+                   'true'=t(true_densities[[i]]))
+  tmp <- ggplot(data = df, aes(x=x)) +
+    geom_line(aes(y=est, color="Estimated"), lwd=1) +
+    geom_line(aes(y=true, color="True"), lwd=1) +
+    scale_color_manual("", breaks=c("Estimated","True"), values=c("Estimated"="darkorange", "True"="steelblue")) +
+    theme(plot.title = element_text(face="bold", hjust = 0.5), legend.position = "none") +
+    xlab("Grid") + ylab("Density") + ggtitle(paste0("Area ", i))
+  if (dim(estimated_densities[[i]])[1] > 1) {
+    tmp <- tmp + geom_ribbon(aes(x=x, ymax=up, ymin=low), fill="orange", alpha=0.3)
+  }
+  plots_area[[i]] <- tmp; rm(list=c('df','tmp'))
 }
 names(plots_area) <- labels
 
@@ -187,3 +194,5 @@ x11(height = 4, width = 4); plot_traceH
 x11(height = 8.27, width = 8.27); gridExtra::grid.arrange(grobs=plots_area, nrow=3, ncol=3)
 
 ###########################################################################
+
+
