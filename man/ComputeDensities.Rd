@@ -4,7 +4,7 @@
 \alias{ComputeDensities}
 \title{Compute the estimated posterior densities}
 \usage{
-ComputeDensities(deserialized_chains, N, ranges, names = NULL)
+ComputeDensities(deserialized_chains, N, ranges, alpha = NULL, names = NULL)
 }
 \arguments{
 \item{deserialized_chains}{A list of \code{RProtoBuf::Message} which stores the deserialized output of
@@ -15,12 +15,16 @@ the sampler (either with a fixed or a variable number of components).}
 \item{ranges}{A matrix of dimesions \mjseqn{2 \times I}, where \mjseqn{I} is the number of areal locations. This
 matrix represents the extrema of the grid on which the density estimation will be performed.}
 
+\item{alpha}{A double in \code{[0,1]} that indicates the level at which compute credibility bands for the
+estimated densities. The deafult value is set to \code{NULL}, thus meaning that the bounds are not computed.}
+
 \item{names}{A vector of strings of length \mjseqn{I}, optional input that sets the names of the output elements.
 Default value is set to \code{NULL}, thus no name will be attributed.}
 }
 \value{
-A list of \mjseqn{I} elements, where the \mjseqn{i}-th element represent the estimated density over a fixed
-grid of \code{N} points between \code{ranges[1,i]} and \code{ranges[2,i]}.
+A list of \mjseqn{I} elements, where the \mjseqn{i}-th element is a matrix that represent, by row,
+the estimated density, the lower and the upper bounds the corresponding credibility interval
+(if such quantity is required) over a fixed grid of \code{N} points between \code{ranges[1,i]} and \code{ranges[2,i]}.
 }
 \description{
 \loadmathjax This utility takes as input the deserialized output of the samplers
