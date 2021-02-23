@@ -7,6 +7,7 @@
 2. [Requirements](#requirements)
 3. [Installation - Linux](#installation---linux)
 4. [Installation - Windows](#installation---windows)
+5. [License](#license)
 
 ## Overview
 SPMIX collects sampling schemes that performs density estimation for spatially dependent areal data, in a Bayesian Non-Parametric setting. Data on each area are modelled as a finite mixture of Gaussian kernels and the weights provides the spatial dependence among neighbours via the logistic multivariate CAR prior. The number of components of the mixture can be either fixed or variable: in the second case, a prior on such quantity is added and a reversible jump scheme is adopted to estimate the posterior distribution of the model.
@@ -141,3 +142,6 @@ install.packages(c("BH", "Rcpp", "RcppEigen", "RcppParallel", "RcppProgress",
 devtools::install_github("TeoGiane/SPMIX")
 ```
 This command will automatically download, build and install <code>SPMIX</code> in your package library. Once installed, you can import it in your workflow as a standard package with <code>library("SPMIX")</code>.
+
+## License
+This package is open source and licensed under the [MIT License](https://github.com/TeoGiane/SPMIX/blob/master/LICENSE.md)
