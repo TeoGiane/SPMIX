@@ -27,16 +27,6 @@ BuildLattice <- function(coords) {
   names(out) <- c("spatialGrid", "proxMatrix")
   return(out)
 }
-DataRecast <- function(x, y, labels = row.names(y)) {
-  rows <- dim(y)[1]; cols <- dim(y)[2]
-  out <- data.frame()
-  for (i in 1:rows) {
-    tmp <- data.frame(x, y[i,], as.factor(rep(labels[i],cols)));
-    names(tmp) <- c("Grid", "Value", "Density"); row.names(tmp) <- NULL
-    out <- rbind(out,tmp)
-  }
-  return(out)
-}
 
 ###########################################################################
 # Data Generation ---------------------------------------------------------
@@ -120,14 +110,13 @@ means_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$mean))
 stdev_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$stdev))
 
 # Computing estimated densities
-data_ranges <- sapply(data, range)
-estimated_densities <- ComputeDensities(chains, 500, data_ranges, alpha=0.05, names=labels)
+data_ranges <- sapply(data, range); Npoints <- 500
+estimated_densities <- ComputeDensities(chains, Npoints, data_ranges, alpha=0.05, names=labels)
 
 # Computing true densities for comparison
 true_densities <- list()
 for (i in 1:numGroups) {
-  data_range <- range(data[[i]])
-  x_grid <- seq(data_range[1], data_range[2], length.out = 500)
+  x_grid <- seq(data_ranges[1,i], data_ranges[2,i], length.out = Npoints)
   xgrid_expand <- t(rbind(replicate(numComponents, x_grid, simplify = "matrix")))
   true_dens <- t(as.matrix(weights[i,])) %*% dnorm(xgrid_expand, means, sds)
   true_densities[[i]] <- true_dens
@@ -170,18 +159,21 @@ rm(list='df')
 # Comparison plots between estimated and true densities in i-th area + bands
 plots_area <- list()
 for (i in 1:numGroups) {
-  df <- data.frame('x'=seq(data_ranges[1,i], data_ranges[2,i], length.out=500),
+  # Auxiliary dataframe
+  df <- data.frame('grid'=seq(data_ranges[1,i], data_ranges[2,i], length.out=Npoints),
                    t(estimated_densities[[i]]),
                    'true'=t(true_densities[[i]]))
-  tmp <- ggplot(data = df, aes(x=x)) +
+  # Generate plot
+  tmp <- ggplot(data = df, aes(x=grid)) +
     geom_line(aes(y=est, color="Estimated"), lwd=1) +
     geom_line(aes(y=true, color="True"), lwd=1) +
     scale_color_manual("", breaks=c("Estimated","True"), values=c("Estimated"="darkorange", "True"="steelblue")) +
     theme(plot.title = element_text(face="bold", hjust = 0.5), legend.position = "none") +
     xlab("Grid") + ylab("Density") + ggtitle(paste0("Area ", i))
-  if (dim(estimated_densities[[i]])[1] > 1) {
-    tmp <- tmp + geom_ribbon(aes(x=x, ymax=up, ymin=low), fill="orange", alpha=0.3)
-  }
+  # Add credibility band if present
+  if (dim(estimated_densities[[i]])[1] > 1)
+    tmp <- tmp + geom_ribbon(aes(ymax=up, ymin=low), fill="orange", alpha=0.3)
+  # Save plot and clean useless variables
   plots_area[[i]] <- tmp; rm(list=c('df','tmp'))
 }
 names(plots_area) <- labels
