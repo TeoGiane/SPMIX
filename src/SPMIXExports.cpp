@@ -87,28 +87,34 @@ std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, 
 
     // Sampling
     auto start = std::chrono::high_resolution_clock::now();
-    REprintf("SPMIX Sampler: Burn-in\n");
-    Progress p_burn(burnin, display_progress);
-    for (int i=0; i < burnin; i++) {
-        spSampler.sample();
-        p_burn.increment();
-    }
-    p_burn.cleanup();
-    Rcpp::Rcout << std::endl;
+
+    if (burnin > 0) {
+		REprintf("SPMIX Sampler: Burn-in\n");
+		Progress p_burn(burnin, display_progress);
+		for (int i=0; i < burnin; i++) {
+			spSampler.sample();
+			p_burn.increment();
+		}
+		p_burn.cleanup();
+		Rcpp::Rcout << std::endl;
+	}
 
 
-    REprintf("SPMIX Sampler: Running\n");
-    Progress p_run(niter, display_progress);
-    for (int i=0; i < niter; i++) {
-        spSampler.sample();
-        if ((i+1) % thin == 0) {
-            std::string s;
-            spSampler.getStateAsProto().SerializeToString(&s);
-            out.push_back(utils::str2raw(s));
-        }
-        p_run.increment();
-    }
-    Rcpp::Rcout << std::endl;
+	if (niter > 0) {
+		REprintf("SPMIX Sampler: Running\n");
+		Progress p_run(niter, display_progress);
+		for (int i=0; i < niter; i++) {
+			spSampler.sample();
+			if ((i+1) % thin == 0) {
+				std::string s;
+				spSampler.getStateAsProto().SerializeToString(&s);
+				out.push_back(utils::str2raw(s));
+			}
+			p_run.increment();
+		}
+		Rcpp::Rcout << std::endl;
+	}
+
     auto end = std::chrono::high_resolution_clock::now();
 
     double duration = std::chrono::duration<double>(end - start).count();
@@ -136,28 +142,33 @@ std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin
 
     // Sampling
     auto start = std::chrono::high_resolution_clock::now();
-    REprintf("SPMIX RJ Sampler: Burn-in\n");
-    Progress p_burn(burnin, display_progress);
-    for (int i=0; i < burnin; i++) {
-        spSampler.sample();
-        p_burn.increment();
-    }
-    p_burn.cleanup();
-    Rcpp::Rcout << std::endl;
 
+    if (burnin > 0) {
+		REprintf("SPMIX RJ Sampler: Burn-in\n");
+		Progress p_burn(burnin, display_progress);
+		for (int i=0; i < burnin; i++) {
+			spSampler.sample();
+			p_burn.increment();
+		}
+		p_burn.cleanup();
+		Rcpp::Rcout << std::endl;
+	}
 
-    REprintf("SPMIX RJ Sampler: Running\n");
-    Progress p_run(niter, display_progress);
-    for (int i=0; i < niter; i++) {
-        spSampler.sample();
-        if ((i+1) % thin == 0) {
-            std::string s;
-            spSampler.getStateAsProto().SerializeToString(&s);
-            out.push_back(utils::str2raw(s));
-        }
-        p_run.increment();
-    }
-    Rcpp::Rcout << std::endl;
+	if (niter > 0) {
+		REprintf("SPMIX RJ Sampler: Running\n");
+		Progress p_run(niter, display_progress);
+		for (int i=0; i < niter; i++) {
+			spSampler.sample();
+			if ((i+1) % thin == 0) {
+				std::string s;
+				spSampler.getStateAsProto().SerializeToString(&s);
+				out.push_back(utils::str2raw(s));
+			}
+			p_run.increment();
+		}
+		Rcpp::Rcout << std::endl;
+	}
+
     auto end = std::chrono::high_resolution_clock::now();
 
 	double duration = std::chrono::duration<double>(end - start).count();
