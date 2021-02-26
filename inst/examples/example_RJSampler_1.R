@@ -31,7 +31,7 @@ thin = 2
 params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
 
 # Run Spatial sampler
-out <- Sampler.DensityEstimation(burnin,niter,thin,data,W,params_filename,type = "rjmcmc")
+out <- Sampler.DensityEstimation(burnin, niter, thin, data, W, params_filename, type="rjmcmc")
 
 ###########################################################################
 
@@ -47,15 +47,15 @@ df <- as.data.frame(table(H_chain)/length(H_chain)); names(df) <- c("NumComponen
 plot_postH <- ggplot(data = df, aes(x=NumComponents, y=Prob.)) +
   geom_bar(stat="identity", color="steelblue", fill="lightblue") +
   theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
-  ggtitle("Posterior of H")
+  xlab("N° of Components") #+ ggtitle("Posterior of H")
 rm(list='df')
 
-x11(height = 3, width = 3); plot_postH
+x11(height = 4, width = 4); plot_postH
 
 # Plotting the average density over iterations and compare with true curve
 # Compute estimated density
 data_ranges <- sapply(data, range); Npoints <- 500
-estimated_densities <- ComputeDensities(chains, Npoints, data_range, alpha = 0.05)
+estimated_densities <- ComputeDensities(chains, Npoints, data_ranges, alpha = 0.05)
 
 # Compute true densities
 true_densities <- list()
@@ -76,7 +76,8 @@ plot_densCompare <- ggplot(data = df, aes(x=grid)) +
   geom_line(aes(y=est, color="Estimated"), lwd=1) +
   geom_line(aes(y=true, color="True"), lwd=1) +
   scale_color_manual("", breaks=c("Estimated","True"), values=c("Estimated"="darkorange", "True"="steelblue")) +
-  theme(plot.title = element_text(face="bold", hjust = 0.5), legend.position = "none") +
+  theme(plot.title = element_text(face="bold", hjust = 0.5)) +
+  theme(legend.title=element_blank(), legend.position="bottom") +
   xlab("Grid") + ylab("Density") + ggtitle(paste0("Area ", i))
 # Add credibility band if present
 if (dim(estimated_densities[[i]])[1] > 1) {
@@ -85,7 +86,7 @@ if (dim(estimated_densities[[i]])[1] > 1) {
 # Clean useless variables
 rm(list='df')
 
-x11(width = 5.8, height = 3); plot_densCompare
+x11(width = 6, height = 4); plot_densCompare
 
 ###########################################################################
 
@@ -113,14 +114,14 @@ chains <- sapply(out, function(x) DeserializeSPMIXProto("UnivariateState",x))
 H_chain <- sapply(chains, function(x) x$num_components)
 
 # Traceplot for the whole chain (no burnin, no thinning)
-df <- data.frame("Iteration"=1:niterfull, "LowPoints"=H_chain-0.3, "UpPoints"=H_chain+0.3)
+df <- data.frame("Iteration"=1:niter, "LowPoints"=H_chain-0.3, "UpPoints"=H_chain+0.3)
 plot_traceH <- ggplot(data=df, aes(x=Iteration, y=LowPoints, xend=Iteration, yend=UpPoints)) +
-  ylim(range(df[,-1])) + ylab("NumComponents") + geom_segment(lwd=0.1) +
-  theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
-  ggtitle("Traceplot of H")
+  ylim(range(df[,-1])) + ylab("N° of Components") + geom_segment(lwd=0.1) +
+  theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) #+
+  # ggtitle("Traceplot of H")
 rm(list='df')
 
-x11(height = 3, width = 3); plot_traceH
+x11(height = 4, width = 4); plot_traceH
 
 ###########################################################################
 
