@@ -256,7 +256,7 @@ void SpatialMixtureSamplerBase::sampleRho() {
 		sigma = 0.01;
 	} else {
 
-		if (sigma_n_rho == 0)
+		if (sigma_n_rho <= 0.)
 			sigma = 0.01;
 		else {
 			if (stan::math::uniform_rng(0.0, 1.0, rng) < 0.05)
@@ -265,6 +265,7 @@ void SpatialMixtureSamplerBase::sampleRho() {
 				sigma = 2.38 * sigma_n_rho;
 		}
 	}
+	
 	double proposed = utils::trunc_normal_rng(curr, sigma, 0.0, 0.9999, rng);
 
 	// compute acceptance ratio
