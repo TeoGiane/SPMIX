@@ -57,7 +57,7 @@ row.names(weights) <- labels
 
 # Generate data
 set.seed(230196)
-means <- c(-5,0,5); sds <- c(1,1,1); Ns <- rep(50, numGroups)
+means <- c(-5,0,5); sds <- c(1,1,1); Ns <- rep(25, numGroups)
 data <- list()
 for (i in 1:numGroups) {
   cluster_alloc <- sample(1:numComponents, prob = weights[i,], size = Ns[i], replace = T)
@@ -143,17 +143,17 @@ rm(list='df')
 # Posterior of H - Barplot
 df <- as.data.frame(table(H_chain)/length(H_chain)); names(df) <- c("NumComponents", "Prob.")
 plot_postH <- ggplot(data = df, aes(x=NumComponents, y=Prob.)) +
-  geom_bar(stat="identity", color="steelblue", fill="lightblue") +
-  theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
-  ggtitle("Posterior of H")
+  geom_bar(stat="identity", color="steelblue", fill="lightblue") + ylab("N° of Components") +
+  theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) #+
+  #ggtitle("Posterior of H")
 rm(list='df')
 
 # Posterior of H - Traceplot
 df <- data.frame("Iteration"=1:niter, "LowPoints"=H_chain-0.3, "UpPoints"=H_chain+0.3)
 plot_traceH <- ggplot(data=df, aes(x=Iteration, y=LowPoints, xend=Iteration, yend=UpPoints)) +
-  ylim(range(df[,-1])) + ylab("NumComponents") + geom_segment(lwd=0.1) +
-  theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
-  ggtitle("Traceplot of H")
+  ylim(range(df[,-1])) + ylab("N° of Components") + geom_segment(lwd=0.1) +
+  theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) #+
+  #ggtitle("Traceplot of H")
 rm(list='df')
 
 # Comparison plots between estimated and true densities in i-th area + bands
