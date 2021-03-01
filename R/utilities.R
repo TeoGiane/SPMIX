@@ -81,7 +81,8 @@ ComputeDensities <- function(deserialized_chains, N, ranges, alpha = NULL, names
   means_chain <- lapply(deserialized_chains, function(x) sapply(x$atoms, function(x) x$mean))
   stdev_chain <- lapply(deserialized_chains, function(x) sapply(x$atoms, function(x) x$stdev))
 
-  # Compute Estimated densities
+  # Compute Estimated
+  estimated_densities <- list()
   for (i in 1:numGroups) {
     weights_chain <- lapply(deserialized_chains, function(x) x$groupParams[[i]]$weights)
     x_grid <- seq(ranges[1,i], ranges[2,i], length.out = N)
@@ -92,7 +93,6 @@ ComputeDensities <- function(deserialized_chains, N, ranges, alpha = NULL, names
     }
 
     # Build the element of the return list
-    estimated_densities <- list()
     est_dens <- colMeans(est_dens_mat)
     if (!is.null(alpha)) {
       up_bound <- apply(est_dens_mat, 2, quantile, probs=1-alpha/2)
