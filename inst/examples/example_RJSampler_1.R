@@ -155,7 +155,7 @@ for (i in 1:length(Ns)) {
   # Traceplot for the whole chain (no burnin, no thinning)
   df <- data.frame("Iteration"=1:10000, "LowPoints"=H_chain-0.3, "UpPoints"=H_chain+0.3)
   tmp <- ggplot(data=df, aes(x=Iteration, y=LowPoints, xend=Iteration, yend=UpPoints)) +
-    ylim(range(df[,-1])) + ylab("NumComponents") + geom_segment(lwd=0.1) +
+    ylim(range(df[,-1])) + ylab("N° of Components") + geom_segment(lwd=0.1) +
     theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
     ggtitle(paste0("Traceplot of H - ", Ns[i], " obs."))
   rm(list='df')
