@@ -103,9 +103,10 @@ void SpatialMixtureRJSampler::sample() {
 		sampleRho();
 	}
 	//Rcpp::Rcout << "label, ";
-	labelSwitch();
-	if (iter % 5 == 0){
+	//labelSwitch();
+	if (itercounter % 5 == 0){
 		//Rcpp::Rcout << "jump, ";
+		labelSwitch();
 		betweenModelMove();
 	}
 	for (int i = 0; i < 2; ++i) {
@@ -116,7 +117,7 @@ void SpatialMixtureRJSampler::sample() {
 	}
 	//Rcpp::Rcout << std::endl;
 	//Rcpp::Rcout << "W:\n" << W << std::endl;
-	++iter;
+	++itercounter;
 }
 
 void SpatialMixtureRJSampler::sampleSigma() {
