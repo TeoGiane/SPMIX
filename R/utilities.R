@@ -41,13 +41,16 @@ DeserializeSPMIXProto <- function(message_type, raw_vector) {
 #' @param N An integer representing the number of points of the grid on which the estimated density will be computed.
 #' @param ranges A matrix of dimesions \mjseqn{2 \times I}, where \mjseqn{I} is the number of areal locations. This
 #' matrix represents the extrema of the grid on which the density estimation will be performed.
+#' @param alpha A double in \code{[0,1]} that indicates the level at which compute credibility bands for the
+#' estimated densities. The deafult value is set to \code{NULL}, thus meaning that the bounds are not computed.
 #' @param names A vector of strings of length \mjseqn{I}, optional input that sets the names of the output elements.
 #' Default value is set to \code{NULL}, thus no name will be attributed.
-#' @return A list of \mjseqn{I} elements, where the \mjseqn{i}-th element represent the estimated density over a fixed
-#' grid of \code{N} points between \code{ranges[1,i]} and \code{ranges[2,i]}.
+#' @return A list of \mjseqn{I} elements, where the \mjseqn{i}-th element is a matrix that represent, by row,
+#' the estimated density, the lower and the upper bounds the corresponding credibility interval
+#' (if such quantity is required) over a fixed grid of \code{N} points between \code{ranges[1,i]} and \code{ranges[2,i]}.
 #'
 #' @export
-ComputeDensities <- function(deserialized_chains, N, ranges, names = NULL) {
+ComputeDensities <- function(deserialized_chains, N, ranges, alpha = NULL, names = NULL) {
 
   # Check input type for deserialized_chains
   if(!is.list(deserialized_chains)){
@@ -78,19 +81,26 @@ ComputeDensities <- function(deserialized_chains, N, ranges, names = NULL) {
   means_chain <- lapply(deserialized_chains, function(x) sapply(x$atoms, function(x) x$mean))
   stdev_chain <- lapply(deserialized_chains, function(x) sapply(x$atoms, function(x) x$stdev))
 
-  # Compute Estimated densities
+  # Compute Estimated
   estimated_densities <- list()
   for (i in 1:numGroups) {
     weights_chain <- lapply(deserialized_chains, function(x) x$groupParams[[i]]$weights)
     x_grid <- seq(ranges[1,i], ranges[2,i], length.out = N)
-    est_dens <- rep(0,length(x_grid))
+    est_dens_mat <- matrix(0,length(deserialized_chains),length(x_grid))
     for (j in 1:length(deserialized_chains)) {
       xgrid_expand <- t(rbind(replicate(H_chain[j], x_grid, simplify = "matrix")))
-      est_dens <- est_dens + t(as.matrix(weights_chain[[j]])) %*% dnorm(xgrid_expand,
-                                                                        means_chain[[j]],stdev_chain[[j]])
+      est_dens_mat[j,] <- t(as.matrix(weights_chain[[j]])) %*% dnorm(xgrid_expand,means_chain[[j]],stdev_chain[[j]])
     }
-    est_dens <- est_dens/length(chains)
-    estimated_densities[[i]] <- est_dens
+
+    # Build the element of the return list
+    est_dens <- colMeans(est_dens_mat)
+    if (!is.null(alpha)) {
+      up_bound <- apply(est_dens_mat, 2, quantile, probs=1-alpha/2)
+      low_bound <- apply(est_dens_mat, 2, quantile, probs=alpha/2)
+      estimated_densities[[i]] <- rbind("est"=est_dens,"up"=up_bound,"low"=low_bound)
+    } else {
+      estimated_densities[[i]] <- rbind("est"=est_dens)
+    }
   }
 
   # Set names if passed

@@ -27,16 +27,6 @@ BuildLattice <- function(coords) {
   names(out) <- c("spatialGrid", "proxMatrix")
   return(out)
 }
-DataRecast <- function(x, y, labels = row.names(y)) {
-  rows <- dim(y)[1]; cols <- dim(y)[2]
-  out <- data.frame()
-  for (i in 1:rows) {
-    tmp <- data.frame(x, y[i,], as.factor(rep(labels[i],cols)));
-    names(tmp) <- c("Grid", "Value", "Density"); row.names(tmp) <- NULL
-    out <- rbind(out,tmp)
-  }
-  return(out)
-}
 
 ###########################################################################
 # Data Generation ---------------------------------------------------------
@@ -67,7 +57,7 @@ row.names(weights) <- labels
 
 # Generate data
 set.seed(230196)
-means <- c(-5,0,5); sds <- c(1,1,1); Ns <- rep(50, numGroups)
+means <- c(-5,0,5); sds <- c(1,1,1); Ns <- rep(25, numGroups)
 data <- list()
 for (i in 1:numGroups) {
   cluster_alloc <- sample(1:numComponents, prob = weights[i,], size = Ns[i], replace = T)
@@ -120,14 +110,13 @@ means_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$mean))
 stdev_chain <- lapply(chains, function(x) sapply(x$atoms, function(x) x$stdev))
 
 # Computing estimated densities
-data_ranges <- sapply(data, range)
-estimated_densities <- ComputeDensities(chains, 500, data_ranges, labels)
+data_ranges <- sapply(data, range); Npoints <- 500
+estimated_densities <- ComputeDensities(chains, Npoints, data_ranges, alpha=0.05, names=labels)
 
 # Computing true densities for comparison
 true_densities <- list()
 for (i in 1:numGroups) {
-  data_range <- range(data[[i]])
-  x_grid <- seq(data_range[1], data_range[2], length.out = 500)
+  x_grid <- seq(data_ranges[1,i], data_ranges[2,i], length.out = Npoints)
   xgrid_expand <- t(rbind(replicate(numComponents, x_grid, simplify = "matrix")))
   true_dens <- t(as.matrix(weights[i,])) %*% dnorm(xgrid_expand, means, sds)
   true_densities[[i]] <- true_dens
@@ -154,28 +143,38 @@ rm(list='df')
 # Posterior of H - Barplot
 df <- as.data.frame(table(H_chain)/length(H_chain)); names(df) <- c("NumComponents", "Prob.")
 plot_postH <- ggplot(data = df, aes(x=NumComponents, y=Prob.)) +
-  geom_bar(stat="identity", color="steelblue", fill="lightblue") +
-  theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
-  ggtitle("Posterior of H")
+  geom_bar(stat="identity", color="steelblue", fill="lightblue") + ylab("N° of Components") +
+  theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) #+
+  #ggtitle("Posterior of H")
 rm(list='df')
 
 # Posterior of H - Traceplot
 df <- data.frame("Iteration"=1:niter, "LowPoints"=H_chain-0.3, "UpPoints"=H_chain+0.3)
 plot_traceH <- ggplot(data=df, aes(x=Iteration, y=LowPoints, xend=Iteration, yend=UpPoints)) +
-  ylim(range(df[,-1])) + ylab("NumComponents") + geom_segment(lwd=0.1) +
-  theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
-  ggtitle("Traceplot of H")
+  ylim(range(df[,-1])) + ylab("N° of Components") + geom_segment(lwd=0.1) +
+  theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) #+
+  #ggtitle("Traceplot of H")
 rm(list='df')
 
-# Comparison plots between estimated and true densities in i-th area
+# Comparison plots between estimated and true densities in i-th area + bands
 plots_area <- list()
 for (i in 1:numGroups) {
-  x <- seq(data_ranges[1,i], data_ranges[2,i], length.out = 500)
-  y <- rbind(estimated_densities[[i]], true_densities[[i]]); row.names(y) <- c("Estimated", "True")
-  tmp <- ggplot(data = DataRecast(x,y), aes(x=Grid, y=Value, group=Density, col=Density)) +
-    geom_line(lwd=1) + theme(plot.title = element_text(face="bold", hjust = 0.5)) +
-    ggtitle(paste0("Area ", i)) + theme(legend.position = "none")
-  plots_area[[i]] <- tmp; rm(list=c('x','y','tmp'))
+  # Auxiliary dataframe
+  df <- data.frame('grid'=seq(data_ranges[1,i], data_ranges[2,i], length.out=Npoints),
+                   t(estimated_densities[[i]]),
+                   'true'=t(true_densities[[i]]))
+  # Generate plot
+  tmp <- ggplot(data = df, aes(x=grid)) +
+    geom_line(aes(y=est, color="Estimated"), lwd=1) +
+    geom_line(aes(y=true, color="True"), lwd=1) +
+    scale_color_manual("", breaks=c("Estimated","True"), values=c("Estimated"="darkorange", "True"="steelblue")) +
+    theme(plot.title = element_text(face="bold", hjust = 0.5), legend.position = "none") +
+    xlab("Grid") + ylab("Density") + ggtitle(paste0("Area ", i))
+  # Add credibility band if present
+  if (dim(estimated_densities[[i]])[1] > 1)
+    tmp <- tmp + geom_ribbon(aes(ymax=up, ymin=low), fill="orange", alpha=0.3)
+  # Save plot and clean useless variables
+  plots_area[[i]] <- tmp; rm(list=c('df','tmp'))
 }
 names(plots_area) <- labels
 
@@ -187,3 +186,5 @@ x11(height = 4, width = 4); plot_traceH
 x11(height = 8.27, width = 8.27); gridExtra::grid.arrange(grobs=plots_area, nrow=3, ncol=3)
 
 ###########################################################################
+
+

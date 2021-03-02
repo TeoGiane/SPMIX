@@ -4,25 +4,13 @@
 library("SPMIX")
 library("ggplot2")
 
-# Utilites
-DataRecast <- function(x, y, labels = row.names(y)) {
-  rows <- dim(y)[1]; cols <- dim(y)[2]
-  out <- data.frame()
-  for (i in 1:rows) {
-    tmp <- data.frame(x, y[i,], as.factor(rep(labels[i],cols)));
-    names(tmp) <- c("Grid", "Value", "Density"); row.names(tmp) <- NULL
-    out <- rbind(out,tmp)
-  }
-  return(out)
-}
-
 ###########################################################################
 # Data Simulation ---------------------------------------------------------
 
 # Generate data (1 location, mixture of 3 normals)
 set.seed(230196)
 ngroups <- 1; ncomponents <- 3; N <- 1000
-means <- c(-4,1,5); std_devs <- c(1,1,1); weights <- c(1/6,3/6,2/6)
+means <- c(-4,1,5); std_devs <- c(1,1,1); weights <- matrix(c(1/6,3/6,2/6),ngroups,ncomponents,T)
 cluster_alloc <- sample(1:ncomponents, prob = weights, size = N, replace = T)
 data <- list(); data[[1]] <- rnorm(N, mean = means[cluster_alloc], sd = std_devs[cluster_alloc])
 
@@ -43,7 +31,7 @@ thin = 2
 params_filename = system.file("input_files/rjsampler_params.asciipb", package = "SPMIX")
 
 # Run Spatial sampler
-out <- Sampler.DensityEstimation(burnin,niter,thin,data,W,params_filename,type = "rjmcmc")
+out <- Sampler.DensityEstimation(burnin, niter, thin, data, W, params_filename, type="rjmcmc")
 
 ###########################################################################
 
@@ -57,30 +45,48 @@ H_chain <- sapply(chains, function(x) x$num_components)
 # Barplot of the estimated posterior for H
 df <- as.data.frame(table(H_chain)/length(H_chain)); names(df) <- c("NumComponents", "Prob.")
 plot_postH <- ggplot(data = df, aes(x=NumComponents, y=Prob.)) +
-  geom_bar(stat="identity", color="steelblue", fill="lightblue") +#"white") +
+  geom_bar(stat="identity", color="steelblue", fill="lightblue") +
   theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
-  ggtitle("Posterior of H")
+  xlab("N° of Components") #+ ggtitle("Posterior of H")
 rm(list='df')
 
-x11(height = 3, width = 3); plot_postH
+x11(height = 4, width = 4); plot_postH
 
 # Plotting the average density over iterations and compare with true curve
-# Computing estimated density
-data_range <- sapply(data, range)
-est_dens <- ComputeDensities(chains, 500, data_range)
+# Compute estimated density
+data_ranges <- sapply(data, range); Npoints <- 500
+estimated_densities <- ComputeDensities(chains, Npoints, data_ranges, alpha = 0.05)
 
-# Computing true density
-x_grid <- seq(data_range[1,1], data_range[2,1], length.out = 500)
-xgrid_expand <- t(rbind(replicate(ncomponents, x_grid, simplify = "matrix")))
-true_dens <- t(as.matrix(weights)) %*% dnorm(xgrid_expand,means,std_devs)
+# Compute true densities
+true_densities <- list()
+for (i in 1:ngroups) {
+  x_grid <- seq(data_ranges[1,i], data_ranges[2,i], length.out = Npoints)
+  xgrid_expand <- t(rbind(replicate(ncomponents, x_grid, simplify = "matrix")))
+  true_dens <- t(as.matrix(weights[i,])) %*% dnorm(xgrid_expand, means, std_devs)
+  true_densities[[i]] <- true_dens
+}
 
-# Density comparison - visual plot
-y <- rbind(est_dens[[1]], true_dens); row.names(y) <- c("Estimated", "True")
-plot_densCompare <- ggplot(data = DataRecast(x_grid,y), aes(x=Grid, y=Value, group=Density, col=Density)) +
-  geom_line(lwd=1) + theme(plot.title = element_text(face="bold", hjust = 0.5)) +
-  ggtitle("Area 1")
+# Density comparison - Plot
+# Auxiliary dataframe
+df <- data.frame('grid'=seq(data_ranges[1,1], data_ranges[2,1], length.out=Npoints),
+                 t(estimated_densities[[1]]),
+                 'true'=t(true_densities[[1]]))
+# Generate plot
+plot_densCompare <- ggplot(data = df, aes(x=grid)) +
+  geom_line(aes(y=est, color="Estimated"), lwd=1) +
+  geom_line(aes(y=true, color="True"), lwd=1) +
+  scale_color_manual("", breaks=c("Estimated","True"), values=c("Estimated"="darkorange", "True"="steelblue")) +
+  theme(plot.title = element_text(face="bold", hjust = 0.5)) +
+  theme(legend.title=element_blank(), legend.position="bottom") +
+  xlab("Grid") + ylab("Density") + ggtitle(paste0("Area ", i))
+# Add credibility band if present
+if (dim(estimated_densities[[i]])[1] > 1) {
+  plot_densCompare <- plot_densCompare + geom_ribbon(aes(ymax=up, ymin=low), fill="orange", alpha=0.3)
+}
+# Clean useless variables
+rm(list='df')
 
-x11(width = 5.8, height = 3); plot_densCompare
+x11(width = 6, height = 4); plot_densCompare
 
 ###########################################################################
 
@@ -108,14 +114,14 @@ chains <- sapply(out, function(x) DeserializeSPMIXProto("UnivariateState",x))
 H_chain <- sapply(chains, function(x) x$num_components)
 
 # Traceplot for the whole chain (no burnin, no thinning)
-df <- data.frame("Iteration"=1:niterfull, "LowPoints"=H_chain-0.3, "UpPoints"=H_chain+0.3)
+df <- data.frame("Iteration"=1:niter, "LowPoints"=H_chain-0.3, "UpPoints"=H_chain+0.3)
 plot_traceH <- ggplot(data=df, aes(x=Iteration, y=LowPoints, xend=Iteration, yend=UpPoints)) +
-  ylim(range(df[,-1])) + ylab("NumComponents") + geom_segment(lwd=0.1) +
-  theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
-  ggtitle("Traceplot of H")
+  ylim(range(df[,-1])) + ylab("N° of Components") + geom_segment(lwd=0.1) +
+  theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) #+
+  # ggtitle("Traceplot of H")
 rm(list='df')
 
-x11(height = 3, width = 3); plot_traceH
+x11(height = 4, width = 4); plot_traceH
 
 ###########################################################################
 
@@ -149,7 +155,7 @@ for (i in 1:length(Ns)) {
   # Traceplot for the whole chain (no burnin, no thinning)
   df <- data.frame("Iteration"=1:10000, "LowPoints"=H_chain-0.3, "UpPoints"=H_chain+0.3)
   tmp <- ggplot(data=df, aes(x=Iteration, y=LowPoints, xend=Iteration, yend=UpPoints)) +
-    ylim(range(df[,-1])) + ylab("NumComponents") + geom_segment(lwd=0.1) +
+    ylim(range(df[,-1])) + ylab("N° of Components") + geom_segment(lwd=0.1) +
     theme(plot.title = element_text(face="bold", hjust = 0.5), plot.subtitle = element_text(hjust = 0.5)) +
     ggtitle(paste0("Traceplot of H - ", Ns[i], " obs."))
   rm(list='df')

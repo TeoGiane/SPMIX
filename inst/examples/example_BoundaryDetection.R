@@ -5,18 +5,6 @@
 library("SPMIX")
 library("ggplot2")
 
-# Helper functions
-DataRecast <- function(x, y, labels = row.names(y)) {
-  rows <- dim(y)[1]; cols <- dim(y)[2]
-  out <- data.frame()
-  for (i in 1:rows) {
-    tmp <- data.frame(x, y[i,], as.factor(rep(labels[i],cols)));
-    names(tmp) <- c("Grid", "Value", "Density"); row.names(tmp) <- NULL
-    out <- rbind(out,tmp)
-  }
-  return(out)
-}
-
 ###########################################################################
 # Data Generation - Scenario I --------------------------------------------
 
@@ -89,14 +77,14 @@ plinks <- Reduce('+', G_chain)/length(G_chain)
 G_est <- ifelse(plinks > 0.5, 1, 0)
 
 # Computing estimated densities
-data_ranges <- sapply(data, range)
-estimated_densities <- ComputeDensities(chains, 500, data_ranges, labels)
+data_ranges <- sapply(data, range); Npoints <- 500
+estimated_densities <- ComputeDensities(chains, Npoints, data_ranges, names=labels)
 
 # Computing true densities for comparison
 true_densities <- list()
 for (i in 1:I) {
-  x <- seq(data_ranges[1,i], data_ranges[2,i], length.out=500)
-  true_densities[[i]] <- dnorm(x, means[i], 1)
+  x <- seq(data_ranges[1,i], data_ranges[2,i], length.out=Npoints)
+  true_densities[[i]] <- t(dnorm(x, means[i], 1))
 }
 rm(list = c('x','i'))
 names(true_densities) <- labels
@@ -115,21 +103,21 @@ plinks <- Reduce('+', G_chain)/length(G_chain)
 G_est <- ifelse(plinks > 0.5, 1, 0)
 
 # Computing estimated densities
-data_ranges <- sapply(data, range)
-estimated_densities <- ComputeDensities(chains, 500, data_ranges, labels)
+data_ranges <- sapply(data, range); Npoints <- 500
+estimated_densities <- ComputeDensities(chains, Npoints, data_ranges, labels)
 
 # Computing true densities for comparison
 true_densities <- list()
 for (i in 1:I) {
-  x <- seq(data_ranges[1,i], data_ranges[2,i], length.out=500)
+  x <- seq(data_ranges[1,i], data_ranges[2,i], length.out=Npoints)
   if (i %in% c(1,2)){
-    true_densities[[i]] <- metRology::dt.scaled(x, df=6, mean=-4, sd=1)
+    true_densities[[i]] <- t(metRology::dt.scaled(x, df=6, mean=-4, sd=1))
   }
   if (i %in% c(3,4)){
-    true_densities[[i]] <- sn::dsn(x, xi=4, omega=4, alpha=1); attributes(true_densities[[i]]) <- NULL
+    true_densities[[i]] <- t(sn::dsn(x, xi=4, omega=4, alpha=1))
   }
   if (i %in% c(5,6)) {
-    true_densities[[i]] <- dchisq(x, df=3)
+    true_densities[[i]] <- t(dchisq(x, df=3))
   }
 }
 rm(list = c('x','i'))
@@ -143,14 +131,23 @@ names(true_densities) <- labels
 # Comparison plots between estimated and true densities in i-th area
 plots_area <- list()
 for (i in 1:I) {
-  x <- seq(data_ranges[1,i], data_ranges[2,i], length.out = 500)
-  y <- rbind(estimated_densities[[i]], true_densities[[i]]); row.names(y) <- c("Estimated", "True")
-  tmp <- ggplot(data = DataRecast(x,y), aes(x=Grid, y=Value, group=Density, col=Density)) +
-    geom_line(lwd=1) + theme(plot.title = element_text(face="bold", hjust = 0.5)) +
-    ggtitle(paste0("Area ", i)) + theme(legend.position = "none")
-  plots_area[[i]] <- tmp; rm(list=c('x','y','tmp'))
+  # Auxiliary dataframe
+  df <- data.frame('grid'=seq(data_ranges[1,i], data_ranges[2,i], length.out=Npoints),
+                   t(estimated_densities[[i]]),
+                   'true'=t(true_densities[[i]]))
+  # Generate plot
+  tmp <- ggplot(data = df, aes(x=grid)) +
+    geom_line(aes(y=est, color="Estimated"), lwd=1) +
+    geom_line(aes(y=true, color="True"), lwd=1) +
+    scale_color_manual("", breaks=c("Estimated","True"), values=c("Estimated"="darkorange", "True"="steelblue")) +
+    theme(plot.title = element_text(face="bold", hjust = 0.5), legend.position = "none") +
+    xlab("Grid") + ylab("Density") + ggtitle(paste0("Area ", i))
+  # Add credibility band if present
+  if (dim(estimated_densities[[i]])[1] > 1)
+    tmp <- tmp + geom_ribbon(aes(ymax=up, ymin=low), fill="orange", alpha=0.3)
+  # Save plot and clean useless variables
+  plots_area[[i]] <- tmp; rm(list=c('df','tmp'))
 }
-names(plots_area) <- labels
 
 # Visualization
 x11(height = 6, width = 8.27); gridExtra::grid.arrange(grobs=plots_area, nrow=2, ncol=3)
@@ -161,14 +158,3 @@ dev.copy2pdf(device=x11, file="BD_fixed_p05_plinks.pdf"); dev.off()
 dev.copy2pdf(device=x11, file="BD_fixed_p05_Densities.pdf"); dev.off()
 
 ###########################################################################
-
-# Drafts
-AUC <- function(plinks, W_true, thresholds = seq(min(plinks[upper.tri(plinks)]),max(plinks[upper.tri(plinks)]),by = 0.01)) {
-  aucs <- vector()
-  for (i in 1:length(thresholds)) {
-    Wtmp <- ifelse(plinks > thresholds[i], 1, 0)
-    aucs[i] <- suppressMessages(as.numeric(pROC::auc(pROC::roc(as.vector(W_true), as.vector(Wtmp)))))
-  }
-  result <- data.frame("Threshold" = thresholds, "AUC"=aucs)
-  return(result)
-}

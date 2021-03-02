@@ -22,7 +22,7 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 	double lowerBound, upperBound;
 
 	// Iteration counter for sample method
-	int iter{0};
+	int itercounter{0};
 	//int cutoff{10};
 	//int acceptedMoves{0};
 
