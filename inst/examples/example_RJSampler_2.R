@@ -135,9 +135,18 @@ for (i in 1:length(labels)) {
   df[which(df$id==labels[i]),'w_i2'] <- weights[i,2]
 }
 plot_weightsi1 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i1)) +
-  geom_polygon() + scale_fill_continuous(type = "gradient") + theme(legend.position = "none")
+  geom_polygon() + scale_fill_gradient(low="steelblue", high="orange") +
+  xlab("") + ylab("") + theme(legend.position = "none")
 plot_weightsi2 <- ggplot(data = df, aes(x=long, y=lat, group=group, fill=w_i2)) +
-  geom_polygon() + scale_fill_continuous(type = "gradient") + theme(legend.position = "none")
+  geom_polygon() + scale_fill_gradient(low="steelblue", high="orange") +
+  xlab("") + ylab("") + theme(legend.position = "none")
+rm(list='df')
+
+# Adjacency matrix - plot
+df <- reshape2::melt(W)
+plot_W <- ggplot(data=df, aes(x=Var1, y=Var2, fill=value)) +
+  geom_tile() + scale_fill_gradient(low="white", high="orange") +
+  xlab("") + ylab("") + theme(legend.position = "none")
 rm(list='df')
 
 # Posterior of H - Barplot
@@ -179,12 +188,11 @@ for (i in 1:numGroups) {
 names(plots_area) <- labels
 
 # Printing plots
-x11(height = 2.75, width = 2.75); plot_weightsi1
-x11(height = 2.75, width = 2.75); plot_weightsi2
+x11(height = 4, width = 4); plot_weightsi1
+x11(height = 4, width = 4); plot_weightsi2
+x11(height = 4, width = 4); plot_W
 x11(height = 4, width = 4); plot_postH
 x11(height = 4, width = 4); plot_traceH
 x11(height = 8.27, width = 8.27); gridExtra::grid.arrange(grobs=plots_area, nrow=3, ncol=3)
 
 ###########################################################################
-
-
