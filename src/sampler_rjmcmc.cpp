@@ -91,8 +91,10 @@ void SpatialMixtureRJSampler::sample() {
 	}
 	if (boundary_detection) {
 		//Rcpp::Rcout << "boundary, ";
-		sampleP();
-		sampleW();
+		for (int i = 0; i < 2; ++i) {
+			sampleP();
+			sampleW();
+		}
 	}
 	//Rcpp::Rcout << "atoms, ";
 	sampleAtoms();
