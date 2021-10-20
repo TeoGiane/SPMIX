@@ -1,6 +1,6 @@
 # SPMIX - Spatial Mixture Models in R
 <strong>Author</strong>: Matteo Gianella <br>
-<strong>Supervisors</strong>: Prof. Alessandra Guglielmi, Dott. Mario Beraha
+<strong>Supervisors</strong>: Prof. Alessandra Guglielmi, Dr. Mario Beraha
 
 ## Table of Contents
 1. [Overview](#overview)
