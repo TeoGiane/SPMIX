@@ -10,7 +10,7 @@ parseData <- function(data) {
     # Return if the input filepath does not exist
     if (all(is.na(data_in)))
       stop("Input file for 'data' does not exist.")
-  } else if ( typeof(data)=="list" && sapply(data, function(x) return(typeof(x)=="double" && length(x)>0)) ) {
+  } else if ( typeof(data)=="list" && prod(sapply(data, function(x) return(typeof(x)=="double" && length(x)>0))) ) {
     cat("Data are provided as a list of numeric vectors\n")
     data_in <- data
   } else {
