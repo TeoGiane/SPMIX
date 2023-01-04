@@ -10,7 +10,7 @@ A Protobuf::Message with the following fields:
 \item{p0_params}{A \code{NormalGammaParams} message, that can be simply imagined as a named tuple
 storing the prior paramteres for the atom base measure \mjseqn{ P_{0} }, in our case a Normal-Inverse-Gamma
 measure defined as \mjseqn{P_{0}( \mu , \sigma ^2) \sim \mathcal{N}( \mu \lvert \sigma ^2; \mu_{0}, \lambda^{-1}
-\sigma ^2) \times \operatorname{IG}(\sigma^2; a, b) }. Hence, this message stores four double, i.e.
+  \sigma ^2) \times \operatorname{IG}(\sigma^2; a, b) }. Hence, this message stores four double, i.e.
 \mjseqn{(\mu_{0}, a, b, \lambda)}.}
 \item{rho_params}{A \code{BetaParams} message that stores the distribution parameters for \mjseqn{\rho},
 whose prior is a Beta distribution of parameters \mjseqn{(\alpha,\beta)}.}

@@ -18,5 +18,5 @@ Vector of double in the simplex \mjseqn{S^H} i.e. \mjseqn{\operatorname{alr}^{-1
 \mjsdeqn{ \begin{eqnarray*}
 \operatorname{alr}^{-1}(x)_{j} &=& \textstyle\frac{\operatorname{e}^{x_j}}{\sum _{h} \operatorname{e}^{x_h}} \quad \forall j=1,\dots,H-1 \cr
 \operatorname{alr}^{-1}(x)_H &=& 1 - \textstyle\sum _{h} \operatorname{alr}^{-1}(x)_h
-\end{eqnarray*} }
+		 \end{eqnarray*} }
 }
