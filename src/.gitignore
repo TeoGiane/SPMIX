@@ -3,3 +3,4 @@
 *.dll
 /cpp_proto/*
 /.tests/*
+.vscode
