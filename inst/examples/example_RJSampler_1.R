@@ -73,8 +73,8 @@ df <- data.frame('grid'=seq(data_ranges[1,1], data_ranges[2,1], length.out=Npoin
                  'true'=t(true_densities[[1]]))
 # Generate plot
 plot_densCompare <- ggplot(data = df, aes(x=grid)) +
-  geom_line(aes(y=est, color="Estimated"), lwd=1) +
-  geom_line(aes(y=true, color="True"), lwd=1) +
+  geom_line(aes(y=est, color="Estimated"), linewidth = 1) +
+  geom_line(aes(y=true, color="True"), linewidth = 1) +
   scale_color_manual("", breaks=c("Estimated","True"), values=c("Estimated"="darkorange", "True"="steelblue")) +
   theme(plot.title = element_text(face="bold", hjust = 0.5)) +
   theme(legend.title=element_blank(), legend.position="bottom") +
