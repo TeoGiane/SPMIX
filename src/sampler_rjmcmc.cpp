@@ -83,41 +83,42 @@ void SpatialMixtureRJSampler::init() {
 }
 
 void SpatialMixtureRJSampler::sample() {
-	
+
 	if (regression) {
-		//Rcpp::Rcout << "regression, ";
+		// Rcpp::Rcout << "regression, ";
     	regress();
     	computeRegressionResiduals();
 	}
 	if (boundary_detection) {
-		//Rcpp::Rcout << "boundary, ";
+		// Rcpp::Rcout << "boundary, ";
 		for (int i = 0; i < 2; ++i) {
 			sampleP();
 			sampleW();
 		}
 	}
-	//Rcpp::Rcout << "atoms, ";
+	// Rcpp::Rcout << "atoms, ";
 	sampleAtoms();
-	//Rcpp::Rcout << "sigma, ";
-	sampleSigma();
+
 	if (not boundary_detection){
-		//Rcpp::Rcout << "rho, ";
+		// Rcpp::Rcout << "rho, ";
 		sampleRho();
 	}
-	//Rcpp::Rcout << "label, ";
+	// Rcpp::Rcout << "label, ";
 	//labelSwitch();
 	if (itercounter % 5 == 0){
-		//Rcpp::Rcout << "jump, ";
+		// Rcpp::Rcout << "jump, ";
 		labelSwitch();
 		betweenModelMove();
 	}
 	for (int i = 0; i < 2; ++i) {
-		//Rcpp::Rcout << "allocs, ";
+		// Rcpp::Rcout << "allocs, ";
 		sampleAllocations();
-		//Rcpp::Rcout << "weights, ";
+		// Rcpp::Rcout << "weights, ";
 		sampleWeights();
 	}
-	//Rcpp::Rcout << std::endl;
+	// Rcpp::Rcout << "sigma, ";
+	sampleSigma();
+	// Rcpp::Rcout << std::endl;
 	//Rcpp::Rcout << "W:\n" << W << std::endl;
 	++itercounter;
 }
@@ -125,13 +126,13 @@ void SpatialMixtureRJSampler::sample() {
 void SpatialMixtureRJSampler::sampleSigma() {
 
 	//Rcpp::Rcout << std::endl;
-	
+
 	double alpha_n = alpha_Sigma + numGroups*(numComponents-1);
 	double beta_n = beta_Sigma;
 	Eigen::MatrixXd F_m_rhoG = F - W * rho;
-	
-	//Rcpp::Rcout << "F_m_rhoG:\n" << F_m_rhoG << std::endl;
-	//Rcpp::Rcout << "mtildes:\n" << mtildes << std::endl;
+
+	// Rcpp::Rcout << "F_m_rhoG:\n" << F_m_rhoG << std::endl;
+	// Rcpp::Rcout << "mtildes:\n" << mtildes << std::endl;
 
 	for (int i = 0; i < numGroups; i++) {
 		Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents - 1);
@@ -148,8 +149,8 @@ void SpatialMixtureRJSampler::sampleSigma() {
 				<< "mtilde_" << j << ": " << mtilde_j.transpose() << std::endl;*/
 		}
 	}
-	
-	//Rcpp::Rcout << "beta_n: " << beta_n << std::endl;
+
+	// Rcpp::Rcout << "beta_n: " << beta_n << std::endl;
 
 	double sigma_new = stan::math::inv_gamma_rng(alpha_n/2, beta_n/2, rng);
 	Sigma = sigma_new * Eigen::MatrixXd::Identity(numComponents-1, numComponents-1);
@@ -220,7 +221,7 @@ void SpatialMixtureRJSampler::sampleSigma() {
 void SpatialMixtureRJSampler::labelSwitch() {
 
 	// Randomly select the component to swap with the last one
-	int to_swap = stan::math::categorical_rng(Eigen::VectorXd::Constant(numComponents,1./(numComponents)), rng)-1;
+	int to_swap = stan::math::categorical_rng(Eigen::VectorXd::Constant(numComponents,1./(numComponents)), rng) - 1;
 
 	// Swap columns of weights ad recompute transformed weights
 	weights.col(to_swap).swap(weights.col(numComponents-1));
@@ -255,7 +256,7 @@ void SpatialMixtureRJSampler::betweenModelMove() {
 void SpatialMixtureRJSampler::increaseMove() {
 
 	// Increase Case
-	//Rcpp::Rcout << "Increase." << std::endl;
+	// Rcpp::Rcout << "Increase." << std::endl;
 
 	// Build the extended loglikelihood
 	Eigen::MatrixXd trans_weights = transformed_weights.block(0,0,numGroups,numComponents-1);
@@ -275,22 +276,26 @@ void SpatialMixtureRJSampler::increaseMove() {
 	Eigen::VectorXd optMean = solver.get_state().current_maximizer;
 	Eigen::MatrixXd optCov = -solver.get_state().current_hessian.inverse();
 
-	double alpha{0.}; Eigen::VectorXd x;
-	if (solver.get_state().current_iteration < options.max_iter() and !solver.get_state().stagnated) {
+	double log_arate = stan::math::negative_infinity(); Eigen::VectorXd x;
+	if (solver.get_state().current_iteration < options.max_iter() and
+      !solver.get_state().stagnated and
+      Eigen::LDLT<Eigen::MatrixXd>(optCov).isPositive()) {
 
 		// Simulating from the approximated optimal posterior
 		x = stan::math::multi_normal_rng(optMean, optCov, rng);
 
-		//Computing Acceptance Rate
-		alpha = std::exp(loglik_extended(x)-loglik_extended()-stan::math::multi_normal_lpdf(x,optMean,optCov)) *
-				std::exp(stan::math::poisson_lpmf((numComponents+1-2),1)-stan::math::poisson_lpmf((numComponents-2),1));
+		// Computing Log Acceptance Rate
+		log_arate = loglik_extended(x) - loglik_extended() +
+					stan::math::poisson_lpmf((numComponents+1-2),1) -
+					stan::math::poisson_lpmf((numComponents-2),1) -
+					stan::math::multi_normal_lpdf(x,optMean,optCov);
 	}
 
 	// Accept of Reject the move
-	bool accept = stan::math::bernoulli_rng(std::min(1., alpha), rng);
+	// bool accept = stan::math::bernoulli_rng(std::min(1., alpha), rng);
 
 	// Update state to augment dimension
-	if (accept) {
+	if (std::log(stan::math::uniform_rng(0, 1, rng)) < log_arate) {
 		++numComponents;
 		means.resize(numComponents, means[numComponents-2]); means[numComponents-2] = x(numGroups);
 		stddevs.resize(numComponents, stddevs[numComponents-2]); stddevs[numComponents-2] = x(numGroups+1)*x(numGroups+1);
@@ -316,7 +321,7 @@ void SpatialMixtureRJSampler::increaseMove() {
 void SpatialMixtureRJSampler::reduceMove() {
 
 	// Reduction Case
-	//Rcpp::Rcout << "Reduce." << std::endl;
+	// Rcpp::Rcout << "Reduce." << std::endl;
 
 	// Randomly select the component to drop
 	int to_drop = stan::math::categorical_rng(Eigen::VectorXd::Constant(numComponents-1, 1./(numComponents-1)), rng)-1;
@@ -339,19 +344,21 @@ void SpatialMixtureRJSampler::reduceMove() {
 	stan::math::hessian(loglik_reduced, x0, fx, grad_fx, hess_fx);
 	Eigen::MatrixXd optCov = -hess_fx.inverse();
 
-	double alpha{1.};
+	double log_arate = 0;
 	if (Eigen::LDLT<Eigen::MatrixXd>(optCov).isPositive()) {
 
 		// Compute Acceptance rate
-		alpha = std::exp(loglik_reduced()-loglik_reduced(x0)+stan::math::multi_normal_lpdf(x0,x0,optCov)) *
-				std::exp(stan::math::poisson_lpmf((numComponents-1-2),1)-stan::math::poisson_lpmf((numComponents-2),1));
+		log_arate = loglik_reduced() - loglik_reduced(x0) +
+					stan::math::poisson_lpmf((numComponents-1-2),1) -
+					stan::math::poisson_lpmf((numComponents-2),1) +
+					stan::math::multi_normal_lpdf(x0,x0,optCov);
 	}
 
 	// Accept of Reject the move
-	bool accept = stan::math::bernoulli_rng(std::min(1., alpha), rng);
+	// bool accept = stan::math::bernoulli_rng(std::min(1., alpha), rng);
 
 	// Update state to reduce dimension
-	if (accept) {
+	if (std::log(stan::math::uniform_rng(0, 1, rng)) < log_arate) {
 		--numComponents;
 		means.erase(means.begin()+to_drop);
 		stddevs.erase(stddevs.begin()+to_drop);
