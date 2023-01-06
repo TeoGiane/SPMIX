@@ -107,7 +107,7 @@ void SpatialMixtureRJSampler::sample() {
 	//labelSwitch();
 	if (itercounter % 5 == 0){
 		// Rcpp::Rcout << "jump, ";
-		labelSwitch();
+		// labelSwitch();
 		betweenModelMove();
 	}
 	for (int i = 0; i < 2; ++i) {
