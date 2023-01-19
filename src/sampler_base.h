@@ -6,8 +6,8 @@
 // [[Rcpp::depends(RcppParallel)]]
 // [[Rcpp::depends(StanHeaders)]]
 #define STRICT_R_HEADERS
-#include <stan/math/fwd/mat.hpp>
-#include <stan/math/mix/mat.hpp>
+// #include <stan/math/fwd/mat.hpp>
+// #include <stan/math/mix/mat.hpp>
 #include <stan/math.hpp>
 #include <Rcpp.h>
 #include <RcppEigen.h>
@@ -125,7 +125,7 @@ class SpatialMixtureSamplerBase {
 	void init();
 
 	virtual void sample() = 0;
-	
+
 	/*
 	 * We use a Normal kernel with conjugate Normal - Inverse Gamma
 	 * base measure, so the update of the atom is
