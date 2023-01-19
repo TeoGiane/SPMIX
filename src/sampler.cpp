@@ -40,7 +40,7 @@ void SpatialMixtureSampler::init() {
     }
 
     // Confirm
-    Rcpp::Rcout << "Init done." << std::endl;
+    Rcpp::Rcout << "Init done." << std::endl << std::endl;
 }
 
 void SpatialMixtureSampler::sample() {
