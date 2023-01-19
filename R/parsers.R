@@ -80,13 +80,13 @@ parseOptions <- function(options) {
   if (is.null(options)) {
     cat("Optimization Options required but not given: setting default values ... ")
     RProtoBuf::readProtoFiles(file = system.file("proto/optimization_options.proto", package = "SPMIX"))
-    options_in <- RProtoBuf::toString(RProtoBuf::new(OptimOptions, max_iter = 1000, tol = 1e-6))
+    options_in <- RProtoBuf::toString(RProtoBuf::new(OptimOptions, max_iter = 5, tol = 1e-6))
     cat("done!\n")
   } else if(typeof(options) == "character") {
     cat("Optimization Options are provided as a path to an asciipb file\n")
     # Check if file exists
-    if(!file.exists(options)){}
-    stop("Input file does not exist.")
+    if(!file.exists(options))
+      stop("Input file does not exist.")
     # Read ASCII file
     cat("readOptimOptionsfromASCII ... ")
     RProtoBuf::readProtoFiles(file = system.file("proto/optimization_options.proto", package = "SPMIX"))
