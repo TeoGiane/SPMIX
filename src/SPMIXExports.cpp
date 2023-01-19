@@ -10,8 +10,8 @@
 // [[Rcpp::depends(RcppParallel)]]
 // [[Rcpp::depends(StanHeaders)]]
 #define STRICT_R_HEADERS
-#include <stan/math/fwd/mat.hpp>
-#include <stan/math/mix/mat.hpp>
+// #include <stan/math/fwd/mat.hpp>
+// #include <stan/math/mix/mat.hpp>
 #include <stan/math.hpp>
 #include <Rcpp.h>
 #include <RcppEigen.h>
@@ -27,7 +27,7 @@
 #include <google/protobuf/text_format.h>
 
 #include "utils.h"
-#include "functors.h"
+// #include "functors.h"
 #include "sampler.h"
 #include "sampler_rjmcmc.h"
 #include "univariate_mixture_state.pb.h"
@@ -54,7 +54,7 @@ Eigen::VectorXd Alr(Eigen::VectorXd x) {
 
 //' Inverse Additive Log Ratio
 //'
-//' \loadmathjax This utility computes the inverse additive log-ratio transform of a given vector. Given a generic vector 
+//' \loadmathjax This utility computes the inverse additive log-ratio transform of a given vector. Given a generic vector
 //' \mjseqn{ x \in \mathbb{R}^{H-1} }, the transformation is defined as:
 //' \mjsdeqn{ \begin{eqnarray*}
 //'	\operatorname{alr}^{-1}(x)_{j} &=& \textstyle\frac{\operatorname{e}^{x_j}}{\sum _{h} \operatorname{e}^{x_h}} \quad \forall j=1,\dots,H-1 \cr
@@ -118,7 +118,7 @@ std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, 
     auto end = std::chrono::high_resolution_clock::now();
 
     double duration = std::chrono::duration<double>(end - start).count();
-    Rcpp::Rcout << "Duration: " << duration << std::endl;
+    Rcpp::Rcout << "Elapsed Time: " << duration << std::endl << std::endl;
     return out;
 }
 
@@ -172,14 +172,14 @@ std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin
     auto end = std::chrono::high_resolution_clock::now();
 
 	double duration = std::chrono::duration<double>(end - start).count();
-	Rcpp::Rcout << "Duration: " << duration << std::endl;
+	Rcpp::Rcout << "Elapsed Time: " << duration << std::endl << std::endl;
 	return out;
 }
 
 //' Import Proximity Matrix from File
 //'
 //' \loadmathjax This function simply reads the proximity matrix \mjseqn{G} of the Spatial Mixture Model from a \code{.csv} file.
-//' This file should not have columns or row headers and it must be written in the visual form of a matrix 
+//' This file should not have columns or row headers and it must be written in the visual form of a matrix
 //' only composed by either \mjseqn{0} or \mjseqn{1}. As assumption, the diagonal of this matrix should be \mjseqn{0}.
 //' @param filename A string identifying the path to a \code{.csv} file from which the matrix will be read.
 //' @return The proximity matrix as a usual \code{R matrix} object.
@@ -191,13 +191,13 @@ Eigen::MatrixXd ReadMatrixFromCSV(std::string filename) {
 
 //' Import Data from File
 //'
-//' \loadmathjax This utility reads the input data for the sampler from a \code{.csv} file. This file needs to be provided 
+//' \loadmathjax This utility reads the input data for the sampler from a \code{.csv} file. This file needs to be provided
 //' with column headers. Moreover, it should be organized in two columns for the correct parsing:
 //' \itemize{
 //' \item{\strong{group}, an integer (from \mjseqn{0} to \mjseqn{I-1}) describing the area to which the data belongs to;}
 //' \item{\strong{data}, the actual data, which will be assigned to area indicated by the "group" column.}
 //' }
-//' @return A list of dimension \mjseqn{I}, in which the \mjseqn{i}-th element is a vector containing all data that 
+//' @return A list of dimension \mjseqn{I}, in which the \mjseqn{i}-th element is a vector containing all data that
 //' have been assigned to the \mjseqn{i}-th location.
 //' @export
 // [[Rcpp::export]]
