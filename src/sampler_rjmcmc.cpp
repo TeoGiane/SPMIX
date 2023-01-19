@@ -4,14 +4,18 @@ SpatialMixtureRJSampler::SpatialMixtureRJSampler(const SamplerParams &_params,
 												 const std::vector<std::vector<double>> &_data,
 												 const Eigen::MatrixXd &_W,
 												 const OptimOptions &_options,
-												 bool _boundary_detection):
-SpatialMixtureSamplerBase(_params, _data, _W), options(_options) {
+												 bool _boundary_detection) : SpatialMixtureSamplerBase(_params, _data, _W) {
+
+	// Set up optimization options from proto
+	options.epsilon = _options.tol();
+	options.max_iterations = _options.max_iter();
 
 	// Setting boundary detection flag
 	boundary_detection = _boundary_detection;
 
 	// Control the prior for Sigma
-	if (!_params.sigma_params().has_inv_gamma()) {
+	if (!_params.sigma_params().has_inv_gamma())
+	{
 		std::string message = "Cannot build object of class 'SpatialMixtureRJSampler': "
 							  "expected parameters for an Inverse Gamma distribution.";
 		throw std::runtime_error(message);
@@ -23,14 +27,18 @@ SpatialMixtureRJSampler::SpatialMixtureRJSampler(const SamplerParams &_params,
 												 const Eigen::MatrixXd &_W,
 												 const OptimOptions &_options,
 												 const std::vector<Eigen::MatrixXd> &X,
-												 bool _boundary_detection):
-SpatialMixtureSamplerBase(_params, _data, _W, X), options(_options) {
+												 bool _boundary_detection) : SpatialMixtureSamplerBase(_params, _data, _W, X) {
+
+	// Set up optimization options from proto
+	options.epsilon = _options.tol();
+	options.max_iterations = _options.max_iter();
 
 	// Setting boundary detection flag
 	boundary_detection = _boundary_detection;
 
 	// Control the prior for Sigma
-	if (!_params.sigma_params().has_inv_gamma()) {
+	if (!_params.sigma_params().has_inv_gamma())
+	{
 		std::string message = "Cannot build object of class 'SpatialMixtureRJSampler': "
 							  "expected parameters for an Inverse Gamma distribution.";
 		throw std::runtime_error(message);
@@ -40,8 +48,8 @@ SpatialMixtureSamplerBase(_params, _data, _W, X), options(_options) {
 void SpatialMixtureRJSampler::init() {
 
 	// Switch on boundary detection
-	//boundary_detection = true;
-	//Rcpp::Rcout << "boundary_detection? " << std::boolalpha << boundary_detection << std::endl;
+	// boundary_detection = true;
+	// Rcpp::Rcout << "boundary_detection? " << std::boolalpha << boundary_detection << std::endl;
 
 	// Base class init
 	SpatialMixtureSamplerBase::init();
@@ -54,9 +62,9 @@ void SpatialMixtureRJSampler::init() {
 	std::tie(lowerBound, upperBound) = utils::range(data);
 
 	// Setting sampler for Boundary detection
-	//boundary_detection = true;
-	//W = W_init;//Eigen::MatrixXd::Zero(numGroups,numGroups);//W_init;
-	//Rcpp::Rcout << "W:\n" << W << std::endl;
+	// boundary_detection = true;
+	// W = W_init;//Eigen::MatrixXd::Zero(numGroups,numGroups);//W_init;
+	// Rcpp::Rcout << "W:\n" << W << std::endl;
 	/*for (int i = 0; i < numGroups; ++i) {
 		//Rcpp::Rcout << "i: " << i << std::endl;
 		std::vector<int> tmp;
@@ -79,55 +87,59 @@ void SpatialMixtureRJSampler::init() {
 	}*/
 
 	// Confirm
-	Rcpp::Rcout << "Init done." << std::endl;
+	Rcpp::Rcout << "Init done." << std::endl << std::endl;
+	// std::cout << "Init done." << std::endl;
 }
 
 void SpatialMixtureRJSampler::sample() {
 
-	if (regression) {
+	if (regression)
+	{
 		// Rcpp::Rcout << "regression, ";
-    	regress();
-    	computeRegressionResiduals();
+		regress();
+		computeRegressionResiduals();
 	}
+
 	if (boundary_detection) {
 		// Rcpp::Rcout << "boundary, ";
-		for (int i = 0; i < 2; ++i) {
-			sampleP();
-			sampleW();
-		}
+		sampleP();
+		sampleW();
+	} else {
+	  // Rcpp::Rcout << "rho, ";
+	  sampleRho();
 	}
+
 	// Rcpp::Rcout << "atoms, ";
 	sampleAtoms();
-
-	if (not boundary_detection){
-		// Rcpp::Rcout << "rho, ";
-		sampleRho();
-	}
-	// Rcpp::Rcout << "label, ";
-	//labelSwitch();
-	if (itercounter % 5 == 0){
-		// Rcpp::Rcout << "jump, ";
-		// labelSwitch();
-		betweenModelMove();
-	}
-	for (int i = 0; i < 2; ++i) {
-		// Rcpp::Rcout << "allocs, ";
-		sampleAllocations();
-		// Rcpp::Rcout << "weights, ";
-		sampleWeights();
-	}
 	// Rcpp::Rcout << "sigma, ";
 	sampleSigma();
+	// Rcpp::Rcout << "allocs, ";
+	sampleAllocations();
+	// Rcpp::Rcout << "weights, ";
+	sampleWeights();
+
+	if (itercounter % 5 == 4) {
+	  // Rcpp::Rcout << "label, ";
+	  // labelSwitch();
+	  // Rcpp::Rcout << "jump, ";
+	  betweenModelMove();
+	}
+
+	// Rcpp::Rcout << "label, ";
+	labelSwitch();
+	// Rcpp::Rcout << "allocs, ";
+	sampleAllocations();
+	// Rcpp::Rcout << "weights, ";
+	// sampleWeights();
 	// Rcpp::Rcout << std::endl;
-	//Rcpp::Rcout << "W:\n" << W << std::endl;
 	++itercounter;
 }
 
 void SpatialMixtureRJSampler::sampleSigma() {
 
-	//Rcpp::Rcout << std::endl;
+	// Rcpp::Rcout << std::endl;
 
-	double alpha_n = alpha_Sigma + numGroups*(numComponents-1);
+	double alpha_n = alpha_Sigma + numGroups * (numComponents - 1);
 	double beta_n = beta_Sigma;
 	Eigen::MatrixXd F_m_rhoG = F - W * rho;
 
@@ -135,25 +147,28 @@ void SpatialMixtureRJSampler::sampleSigma() {
 	// Rcpp::Rcout << "mtildes:\n" << mtildes << std::endl;
 
 	for (int i = 0; i < numGroups; i++) {
+		
 		Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents - 1);
 		Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents - 1);
 		for (int j = 0; j < numGroups; j++) {
+
 			Eigen::VectorXd wtilde_j = transformed_weights.row(j).head(numComponents - 1);
 			Eigen::VectorXd mtilde_j = mtildes.row(node2comp[j]).head(numComponents - 1);
 			beta_n += ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j)) * F_m_rhoG(i, j);
 
-			/*Rcpp::Rcout << "(" << i << "," << j << ")\n"
+			/* Rcpp::Rcout << "(" << i << "," << j << ")\n"
 				<< "wtilde_" << i << ": " << wtilde_i.transpose() << "\n"
 				<< "mtilde_" << i << ": " << mtilde_i.transpose() << "\n"
 				<< "wtilde_" << j << ": " << wtilde_j.transpose() << "\n"
-				<< "mtilde_" << j << ": " << mtilde_j.transpose() << std::endl;*/
+        << "mtilde_" << j << ": " << mtilde_j.transpose() << std::endl; */
 		}
 	}
 
 	// Rcpp::Rcout << "beta_n: " << beta_n << std::endl;
 
-	double sigma_new = stan::math::inv_gamma_rng(alpha_n/2, beta_n/2, rng);
-	Sigma = sigma_new * Eigen::MatrixXd::Identity(numComponents-1, numComponents-1);
+	double sigma_new = stan::math::inv_gamma_rng(alpha_n / 2, beta_n / 2, rng);
+	// std::cout << "Here!" << std::endl;
+	Sigma = sigma_new * Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
 	_computeInvSigmaH();
 	return;
 }
@@ -221,16 +236,16 @@ void SpatialMixtureRJSampler::sampleSigma() {
 void SpatialMixtureRJSampler::labelSwitch() {
 
 	// Randomly select the component to swap with the last one
-	int to_swap = stan::math::categorical_rng(Eigen::VectorXd::Constant(numComponents,1./(numComponents)), rng) - 1;
+	int to_swap = stan::math::categorical_rng(Eigen::VectorXd::Constant(numComponents, 1. / (numComponents)), rng) - 1;
 
 	// Swap columns of weights ad recompute transformed weights
-	weights.col(to_swap).swap(weights.col(numComponents-1));
+	weights.col(to_swap).swap(weights.col(numComponents - 1));
 	for (int i = 0; i < numGroups; ++i)
 		transformed_weights.row(i) = utils::Alr(weights.row(i), true);
 
 	// Swap Atoms
-	std::iter_swap(means.begin()+to_swap, means.begin()+(numComponents-1));
-	std::iter_swap(stddevs.begin()+to_swap, stddevs.begin()+(numComponents-1));
+	std::iter_swap(means.begin() + to_swap, means.begin() + (numComponents - 1));
+	std::iter_swap(stddevs.begin() + to_swap, stddevs.begin() + (numComponents - 1));
 
 	return;
 }
@@ -255,122 +270,146 @@ void SpatialMixtureRJSampler::betweenModelMove() {
 
 void SpatialMixtureRJSampler::increaseMove() {
 
-	// Increase Case
-	// Rcpp::Rcout << "Increase." << std::endl;
-
-	// Build the extended loglikelihood
-	Eigen::MatrixXd trans_weights = transformed_weights.block(0,0,numGroups,numComponents-1);
+  // std::cout << "Increase" << std::endl;
+	// Compute required quantities
 	Eigen::Map<Eigen::VectorXd> means_map(means.data(), means.size());
-	Eigen::VectorXd sqrt_stddevs(numComponents);
+	Eigen::VectorXd log_stddevs(numComponents);
 	for (int i = 0; i < numComponents; ++i)
-		sqrt_stddevs(i) = std::sqrt(stddevs[i]);
+		log_stddevs(i) = std::log(stddevs[i]);
+	double sigma = Sigma(0, 0);
+	Eigen::MatrixXd I = Eigen::MatrixXd::Identity(numGroups, numGroups);
+	Eigen::MatrixXd cov_weights = sigma * (F - rho * W).ldlt().solve(I);
 
-	function::spmixLogLikelihood loglik_extended(data, W, params, numGroups, numComponents, rho,
-				   								 means_map, sqrt_stddevs, trans_weights, Sigma);
+	// Build target negative lpdf to optimize
+	spmix_neglpdf target_nlpdf(data, transformed_weights, means_map, log_stddevs, cov_weights, params);
 
-	// Eliciting the approximated optimal proposal parameters
-	optimization::GradientAscent<decltype(loglik_extended)> solver(loglik_extended, options);
-	Eigen::VectorXd x0(numGroups+2);
-	x0 << Eigen::VectorXd::Zero(numGroups), stan::math::uniform_rng(lowerBound,upperBound,rng), 1.;
-	solver.solve(x0);
-	Eigen::VectorXd optMean = solver.get_state().current_maximizer;
-	Eigen::MatrixXd optCov = -solver.get_state().current_hessian.inverse();
+	// Create solver object
+	LBFGSpp::LBFGSSolver<double> solver(options);
 
-	double log_arate = stan::math::negative_infinity(); Eigen::VectorXd x;
-	if (solver.get_state().current_iteration < options.max_iter() and
-      !solver.get_state().stagnated and
-      Eigen::LDLT<Eigen::MatrixXd>(optCov).isPositive()) {
+	// Initial guess
+	Eigen::VectorXd opt(numGroups + 2);
+	opt << Eigen::VectorXd::Zero(numGroups), stan::math::uniform_rng(lowerBound, upperBound, rng), 1.;
 
-		// Simulating from the approximated optimal posterior
-		x = stan::math::multi_normal_rng(optMean, optCov, rng);
+	// Optimize
+	double fx; //int niter = -1, max = 1;
+	int niter = solver.minimize(target_nlpdf, opt, fx);
+	if(niter == -1) { /*std::cout << "gave -1" << std::endl;*/ niter = solver.minimize(target_nlpdf, opt, fx); }
+	// while (niter == -1 and max != 0) { niter = solver.minimize(target_nlpdf, opt, fx); max--; }
+  // int niter = solver.minimize(target_nlpdf, opt, fx);
+  Eigen::MatrixXd iHess = solver.final_ihess();
 
-		// Computing Log Acceptance Rate
-		log_arate = loglik_extended(x) - loglik_extended() +
-					stan::math::poisson_lpmf((numComponents+1-2),1) -
-					stan::math::poisson_lpmf((numComponents-2),1) -
-					stan::math::multi_normal_lpdf(x,optMean,optCov);
-	}
+	// Compute proposal state
+	Eigen::VectorXd prop_state = stan::math::multi_normal_rng(opt, iHess, rng);
 
-	// Accept of Reject the move
-	// bool accept = stan::math::bernoulli_rng(std::min(1., alpha), rng);
+	// std::cout << "prop_state: " << prop_state.transpose() << std::endl;
+
+	// Compute acceptance rate
+	double log_arate = - target_nlpdf(prop_state) + target_nlpdf.value() +
+					   stan::math::poisson_lpmf((numComponents + 1 - 2), 1) -
+					   stan::math::poisson_lpmf((numComponents - 2), 1) -
+					   stan::math::multi_normal_lpdf(prop_state, opt, iHess);
 
 	// Update state to augment dimension
 	if (std::log(stan::math::uniform_rng(0, 1, rng)) < log_arate) {
+
 		++numComponents;
-		means.resize(numComponents, means[numComponents-2]); means[numComponents-2] = x(numGroups);
-		stddevs.resize(numComponents, stddevs[numComponents-2]); stddevs[numComponents-2] = x(numGroups+1)*x(numGroups+1);
+		means.resize(numComponents, means[numComponents - 2]);
+		means[numComponents - 2] = prop_state(numGroups);
+		stddevs.resize(numComponents, stddevs[numComponents - 2]);
+		stddevs[numComponents - 2] = std::exp(prop_state(numGroups + 1));
 		transformed_weights.conservativeResize(numGroups, numComponents);
-		transformed_weights.col(numComponents-2) = x.head(numGroups);
-		transformed_weights.col(numComponents-1) = Eigen::VectorXd::Zero(numGroups);
+		transformed_weights.col(numComponents - 2) = prop_state.head(numGroups);
+		transformed_weights.col(numComponents - 1) = Eigen::VectorXd::Zero(numGroups);
 		weights.resize(numGroups, numComponents);
 		for (int i = 0; i < numGroups; ++i)
-			weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), true);
+			weights.row(i) = utils::InvAlr(Eigen::VectorXd(transformed_weights.row(i)), true);
 		mtildes.conservativeResize(num_connected_comps, numComponents);
-		mtildes.col(numComponents-1) = Eigen::VectorXd::Zero(num_connected_comps);
-		Sigma.conservativeResize(numComponents-1, numComponents-1);
-		Sigma.col(numComponents-2).head(numComponents-2) = Eigen::VectorXd::Zero(numComponents-1);
-		Sigma.row(numComponents-2).head(numComponents-2) = Eigen::VectorXd::Zero(numComponents-1);
-		Sigma(numComponents-2,numComponents-2) = Sigma(0,0);
-		pippo.resize(numComponents-1);
-		sigma_star_h.resize(numGroups, numComponents-1);
+		mtildes.col(numComponents - 1) = Eigen::VectorXd::Zero(num_connected_comps);
+		Sigma = sigma * Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
+		pippo.resize(numComponents - 1);
+		sigma_star_h.resize(numGroups, numComponents - 1);
 		_computeInvSigmaH();
+
+		/*std::cout << "Accepting!" << std::endl;
+		std::cout << "numComponents: " << numComponents << std::endl;
+		std::cout << "means: " << Eigen::Map<Eigen::VectorXd>(means.data(), means.size()).transpose() << std::endl;
+		std::cout << "stddevs: " << Eigen::Map<Eigen::VectorXd>(stddevs.data(), stddevs.size()).transpose() << std::endl;
+		std::cout << "transformed_weights:\n" << transformed_weights << std::endl;*/
+
 	}
+
 	return;
 }
 
 void SpatialMixtureRJSampler::reduceMove() {
 
-	// Reduction Case
-	// Rcpp::Rcout << "Reduce." << std::endl;
-
+  // std::cout << "Reduce" << std::endl;
 	// Randomly select the component to drop
-	int to_drop = stan::math::categorical_rng(Eigen::VectorXd::Constant(numComponents-1, 1./(numComponents-1)), rng)-1;
+	int to_drop = stan::math::categorical_rng(Eigen::VectorXd::Constant(numComponents - 1, 1. / (numComponents - 1)), rng) - 1;
 
-	// Build the reduced loglikelihood
-	Eigen::MatrixXd trans_weights = transformed_weights.block(0,0,numGroups,numComponents-1);
+	// Compute required quantities
 	Eigen::Map<Eigen::VectorXd> means_map(means.data(), means.size());
-	Eigen::VectorXd sqrt_stddevs(numComponents);
+	Eigen::VectorXd log_stddevs(numComponents);
 	for (int i = 0; i < numComponents; ++i)
-		sqrt_stddevs(i) = std::sqrt(stddevs[i]);
+		log_stddevs(i) = std::log(stddevs[i]);
+	double sigma = Sigma(0, 0);
+	Eigen::MatrixXd I = Eigen::MatrixXd::Identity(numGroups, numGroups);
+	Eigen::MatrixXd cov_weights = sigma * (F - rho * W).ldlt().solve(I);
 
-	function::spmixLogLikelihood loglik_reduced(data, W, params, numGroups, numComponents-1, rho,
-				   								utils::removeElem(means_map,to_drop), utils::removeElem(sqrt_stddevs,to_drop),
-				   								utils::removeColumn(trans_weights, to_drop),
-				   								utils::removeRowColumn(Sigma,to_drop),to_drop);
+	// Build target negative lpdf to optimize
+	spmix_neglpdf target_nlpdf(data, utils::removeColumn(transformed_weights, to_drop),
+							 utils::removeElem(means_map, to_drop), utils::removeElem(log_stddevs, to_drop),
+							 cov_weights, params);
 
-	// Eliciting the approximated optimal proposal parameters
-	Eigen::VectorXd x0(numGroups+2); x0 << trans_weights.col(to_drop), means_map(to_drop), sqrt_stddevs(to_drop);
-	double fx; Eigen::VectorXd grad_fx; Eigen::MatrixXd hess_fx;
-	stan::math::hessian(loglik_reduced, x0, fx, grad_fx, hess_fx);
-	Eigen::MatrixXd optCov = -hess_fx.inverse();
+	// Create solver object
+	LBFGSpp::LBFGSSolver<double> solver(options);
 
-	double log_arate = 0;
-	if (Eigen::LDLT<Eigen::MatrixXd>(optCov).isPositive()) {
+	// Initial guess
+	Eigen::VectorXd opt(numGroups + 2);
+	opt << transformed_weights.col(to_drop), means_map(to_drop), log_stddevs(to_drop);
 
-		// Compute Acceptance rate
-		log_arate = loglik_reduced() - loglik_reduced(x0) +
-					stan::math::poisson_lpmf((numComponents-1-2),1) -
-					stan::math::poisson_lpmf((numComponents-2),1) +
-					stan::math::multi_normal_lpdf(x0,x0,optCov);
-	}
+	// Optimize
+	double fx; // int niter = -1, max = 1;
+	int niter = solver.minimize(target_nlpdf, opt, fx);
+	if(niter == -1) { /*std::cout << "gave -1" << std::endl;*/ niter = solver.minimize(target_nlpdf, opt, fx); }
+	// while (niter == -1 and max != 0) { niter = solver.minimize(target_nlpdf, opt, fx); max--; }
+	// int niter = solver.minimize(target_nlpdf, opt, fx);
+	Eigen::MatrixXd iHess = solver.final_ihess();
 
-	// Accept of Reject the move
-	// bool accept = stan::math::bernoulli_rng(std::min(1., alpha), rng);
+	// Compute proposal state
+	Eigen::VectorXd prop_state = stan::math::multi_normal_rng(opt, iHess, rng);
+
+	// std::cout << "prop_state: " << prop_state.transpose() << std::endl;
+
+	// Compute acceptance rate
+	double log_arate = -target_nlpdf.value() + target_nlpdf(prop_state) +
+					   stan::math::poisson_lpmf((numComponents - 1 - 2), 1) -
+					   stan::math::poisson_lpmf((numComponents - 2), 1) +
+					   stan::math::multi_normal_lpdf(prop_state, opt, iHess);
 
 	// Update state to reduce dimension
 	if (std::log(stan::math::uniform_rng(0, 1, rng)) < log_arate) {
+
 		--numComponents;
-		means.erase(means.begin()+to_drop);
-		stddevs.erase(stddevs.begin()+to_drop);
+		means.erase(means.begin() + to_drop);
+		stddevs.erase(stddevs.begin() + to_drop);
 		transformed_weights = utils::removeColumn(transformed_weights, to_drop);
 		weights.resize(numGroups, numComponents);
 		for (int i = 0; i < numGroups; ++i)
 			weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), true);
 		mtildes.conservativeResize(num_connected_comps, numComponents);
 		Sigma = utils::removeRowColumn(Sigma, to_drop);
-		pippo.resize(numComponents-1);
-		sigma_star_h.resize(numGroups, numComponents-1);
+		pippo.resize(numComponents - 1);
+		sigma_star_h.resize(numGroups, numComponents - 1);
 		_computeInvSigmaH();
+
+		/*std::cout << "Accepting!" << std::endl;
+		std::cout << "numComponents: " << numComponents << std::endl;
+		std::cout << "means: " << Eigen::Map<Eigen::VectorXd>(means.data(), means.size()).transpose() << std::endl;
+		std::cout << "stddevs: " << Eigen::Map<Eigen::VectorXd>(stddevs.data(), stddevs.size()).transpose() << std::endl;
+		std::cout << "transformed_weights:\n" << transformed_weights << std::endl;*/
+
 	}
+
 	return;
 }

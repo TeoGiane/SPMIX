@@ -1,10 +1,15 @@
 #ifndef RJMCMC_SAMPLER_HH
 #define RJMCMC_SAMPLER_HH
 
-#include "sampler_base.h"
-#include "functors.h"
-#include "gradient_ascent.h"
+#include "LBFGS.h"
+
 #include "optimization_options.pb.h"
+
+#include "sampler_base.h"
+#include "spmix_neglpdf.h"
+
+// #include "functors.h"
+// #include "gradient_ascent.h"
 
 class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
   protected:
@@ -27,7 +32,8 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 	//int acceptedMoves{0};
 
 	// Options for Optimization Algorithm
-	OptimOptions options;
+	LBFGSpp::LBFGSParam<double> options;
+	// OptimOptions options;
 
   public:
 	SpatialMixtureRJSampler() = default;
