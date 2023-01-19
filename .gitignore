@@ -1,6 +1,10 @@
+# Ignored Files
 .Rproj.user
 .Rhistory
 .Rbuildignore
 *.dat
 *.Rout
 .Rdata
+
+# Ignored Folders
+src/.old/
