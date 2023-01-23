@@ -400,7 +400,7 @@ void SpatialMixtureSamplerBase::sampleW() {
 
 	// Initial quantities
 	Eigen::MatrixXd W_uppertri = Eigen::MatrixXd::Zero(numGroups,numGroups);
-	Eigen::VectorXd logProbas(2);
+	Eigen::VectorXd logProbas = Eigen::VectorXd::Zero(2);
 
 	for (int i = 0; i < neighbors.size(); ++i) {
 		if (neighbors[i].size() > 0) {
@@ -415,14 +415,18 @@ void SpatialMixtureSamplerBase::sampleW() {
 				Eigen::VectorXd mtilde_j = mtildes.row(node2comp[neighbors[i][j]]).head(numComponents - 1);
 
 				// Computing probabilities
-				double addendum_ij = rho/(2*Sigma(0,0)) * ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j));
-				logProbas(0) = std::log(1-p); logProbas(1) = std::log(p) + addendum_ij;
+				logProbas(1) = std::log(p) - std::log(1-p) +
+				               rho / (2*Sigma(0,0)) * ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j));
+				Eigen::VectorXd probas = stan::math::softmax(logProbas);
+				// double addendum_ij = rho/(2*Sigma(0,0)) * ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j));
+
+				// logProbas(0) = std::log(1-p); logProbas(1) = std::log(p) + addendum_ij;
 				//logProbas(0) = std::log(1-p[i][j]); logProbas(1) = std::log(p[i][j]) + addendum_ij;
-				Eigen::VectorXd probas = logProbas.array().exp(); probas /= probas.sum();
+				// Eigen::VectorXd probas = logProbas.array().exp(); probas /= probas.sum();
 				//Rcpp::Rcout << " new_probs: " << probas.transpose() << std::endl;
 
 				// Sampling new edge
-				W_uppertri(i,neighbors[i][j]) = stan::math::categorical_rng(probas, rng)-1;
+				W_uppertri(i,neighbors[i][j]) = stan::math::categorical_rng(probas, rng) - 1;
 				//Rcpp::Rcout << "W(" << i << "," << neighbors[i][j] << ") = " << W_uppertri(i,neighbors[i][j]) << std::endl;
 			}
 			//Rcpp::Rcout << std::endl;
