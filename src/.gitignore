@@ -1,6 +1,9 @@
+# Ignored files
 *.o
 *.so
 *.dll
-/cpp_proto/*
-/.tests/*
-.vscode
+cpp_proto/*
+
+# Ignored folders
+.vscode/
+.old/
