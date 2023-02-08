@@ -180,9 +180,10 @@ public:
             std::cout << "||x - m_xp|| = " << (x - m_xp).norm() << std::endl;
             std::cout << "m_grad - m_gradp = " << (m_grad - m_gradp).transpose() << std::endl;
             std::cout << "||m_grad - m_gradp|| = " << (m_grad - m_gradp).norm() << std::endl;
-            std::cout << "m_drt: " << m_drt.transpose() << std::endl;*/
+            std::cout << "m_drt: " << m_drt.transpose() << std::endl;
+            std::cout << "||m_drt|| = " << m_drt.norm() << std::endl;*/
 
-            if(m_grad.dot(m_drt) > 0)
+            if(m_grad.dot(m_drt) > 0 || m_drt.norm() > 1e3)
               return -1;
 
             // Reset step = 1.0 as initial guess for the next line search
