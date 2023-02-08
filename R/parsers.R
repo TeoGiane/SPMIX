@@ -1,6 +1,22 @@
 ## Internals - Parsers for samplers input to check and manage data types ##
 
 ###########################################################################
+# Maybe Print to File -----------------------------------------------------
+# If maybe_proto is a file, returns the file name. If maybe_proto is a string
+# representing a message, prints the message to a file and returns its path.
+maybe_print_to_file <- function(maybe_proto, proto_name = NULL, out_dir = NULL) {
+  if(file.exists(maybe_proto)){
+    return(maybe_proto)
+  }
+  proto_file = sprintf("%s/%s.asciipb", out_dir, proto_name)
+  write(maybe_proto, file = proto_file)
+  return(proto_file)
+}
+
+###########################################################################
+
+
+###########################################################################
 # Data Parser -------------------------------------------------------------
 parseData <- function(data) {
   # Checking if data is given or needs to be read from file
@@ -80,7 +96,7 @@ parseOptions <- function(options) {
   if (is.null(options)) {
     cat("Optimization Options required but not given: setting default values ... ")
     RProtoBuf::readProtoFiles(file = system.file("proto/optimization_options.proto", package = "SPMIX"))
-    options_in <- RProtoBuf::toString(RProtoBuf::new(OptimOptions, max_iter = 5, tol = 1e-6))
+    options_in <- RProtoBuf::toString(RProtoBuf::new(OptimOptions, max_iter = 20, tol = 1e-6))
     cat("done!\n")
   } else if(typeof(options) == "character") {
     cat("Optimization Options are provided as a path to an asciipb file\n")
