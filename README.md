@@ -1,147 +1,80 @@
 # SPMIX - Spatial Mixture Models in R
-<strong>Author</strong>: Matteo Gianella <br>
-<strong>Supervisors</strong>: Prof. Alessandra Guglielmi, Dr. Mario Beraha
 
-## Table of Contents
-1. [Overview](#overview)
-2. [Requirements](#requirements)
-3. [Installation - Linux](#installation---linux)
-4. [Installation - Windows](#installation---windows)
-5. [License](#license)
+<code>SPMIX</code> collects sampling schemes that performs density estimation for spatially dependent areal data, in a Bayesian Nonparametric setting. Data on each area are modelled as a finite mixture of Gaussian kernels and the weights provides the spatial dependence among neighbours via the logistic multivariate CAR prior. The number of components of the mixture can be either fixed or variable: in the second case, a prior on such quantity is added and a reversible jump scheme is adopted to estimate the posterior distribution of the model.
 
-## Overview
-SPMIX collects sampling schemes that performs density estimation for spatially dependent areal data, in a Bayesian Non-Parametric setting. Data on each area are modelled as a finite mixture of Gaussian kernels and the weights provides the spatial dependence among neighbours via the logistic multivariate CAR prior. The number of components of the mixture can be either fixed or variable: in the second case, a prior on such quantity is added and a reversible jump scheme is adopted to estimate the posterior distribution of the model.
+## Dependencies
+<code>SPMIX</code> depends on:
 
-## Requirements
-This package relies, for various purposes, on the following libraries:
+- [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page): A C++ template library for linear algebra.
+- [GNU Scientific Library](https://www.gnu.org/software/gsl/): A numerical library for C and C++ programmers. It is required in <code>src/polyagamma/</code> subfolder.
+- [Stan Math Library](https://mc-stan.org/math/): A BSD-3 licensed C++, reverse-mode automatic differentiation library designed to facilitate the construction and utilization of algorithms that utilize derivatives.
+- [Google Protocol Buffers](https://developers.google.com/protocol-buffers): A language-neutral, platform-neutral extensible mechanism for serializing structured data.
 
-* [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page): it provides advanced and optimized linear algebra utilities, used extensively throughout the code.
-* [GSL](https://www.gnu.org/software/gsl/): the GNU Scientific Library is used as linear algebra tool in the <code>/src/polyagamma</code> subfolder, which is a third-party code used in the samplers.
-* [Stan Math](https://mc-stan.org/math/): this library provides both probability distributions utilities and the reverse mode automatic differentiation module, required in the samplers. Using this library, also its dependencies are necessairly required.
-* [Google Protocol Buffers](https://developers.google.com/protocol-buffers): this library provides tools for quick serialization of structured data. This protocol is used as serialization tool for samplers inputs and outputs.
+## Prerequisites
+<code>SPMIX</code> is an <code>R</code> package, so make sure to have <code>R</code> installed on your machine (see the [project homepage](https://www.r-project.org/) otherwise) as well as the 
+<code>devtools</code> package. Once <code>R</code> is installed, it can be insalled with the following command called from an <code>R</code> terminal.
+```R
+> install.packages("devtools")
+```
 
-<!---
-In order for this package to be available both for Windows and Linux systems, headers and libraries are provided, whenever possible, through already existing R packages. Nevertheless, some aforementioned dependencies require some extra effort to make them available on your operating system (expecially for Windows users).
--->
+**Note for Linux users**: <code>devtools</code> and all <code>R</code> packages in Linux are built from source. Thus, you need to install some external libraries via package manager. Usually, the following command on Ubuntu/Debian leads to a succesfull installation of <code>devtools</code>.
 
-## Installation - Linux
-### R development tools
-<code>SPMIX</code> is an R development package, hence you need to have R installed on your computer as well as all development tools. The [R homepage](https://www.r-project.org/) offers extensive documentation on how to install R on your machine. Moreover, it is also advisable to have an IDE for R installed, in order to simplify future workflow. As a suggestion, [RStudio](https://rstudio.com/) is a pretty complete programme and it is highly advisable to have it installed on your system.
-
-Since the development tools package for R has many dependencies that rely on external libraries, it is advisable to install them at this stage in order to avoid several iterations to install the <code>devtools</code> package. To install those libraries, type on terminal
 ```shell
-sudo apt-get install libssl-dev libcurl4-openssl-dev libxml2-dev libgit2-dev libnode-dev
+# apt install libssl-dev libcurl4-openssl-dev libxml2-dev libgit2-dev libnode-dev
 ```
-**Remark**: The command above is valid for Ubuntu/Debian users. On other platforms, please use the corresponding package managing tool to install them.
-At the end of this procedure, you will be able to install the <code>devtools</code> package and its dependencies from an R console simply typing
-```r
-install.packages("devtools")
-```
-### External Libraries Dependencies
-In this package, the <code>gsl</code> and the <code>protobuf</code> libraries are linked to the package as external libraries. As far as the GNU Scientific Library is concerned, it can be easily installed, in most Linux operating systems, through the package manager with commands like
+
+<br>
+
+# Installation
+
+This package links <code>gsl</code> and <code>protobuf</code> as external libraries, while <code>Eigen</code> and <code>stan/math</code> are provided as <code>R</code> packages. All <code>R</code> dependencies are automatically installed via <code>devtools</code>.
+
+External libraries are handled differently according to your operating system. Follow the instruction for [Linux](#linux-systems) or [Windows](#windows-systems) machines accordingly.
+
+<br>
+
+## Linux Systems
+
+1. Install <code>gsl</code> via package manager.
+
 ```shell
-sudo apt-get install libgsl-dev
+# apt install libgsl-dev
 ```
-The protobuf library needs to be installed from source following the [protobuf C++ Installation Instructions](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md).
-Be aware that this library is under continuous development, so you may incurr into some troubles during installation, expecially at checking stage. The following notes may be helpful in order to avoid issues while installing protobuf.
 
-**Note on Compiler**: If you are using GNU compiler version 10.2 (available, for instance, in Ubuntu 20.10), you will have issues at compile time if you download the release of protobuf. So it is advisable to use more stable versions of the compiler (no problems have been reported with g++ version 9.3.0)
+2. Install <code>protobuf</code> from source using [CMake](https://cmake.org/). The latter can be installed via package manager.
 
-**Note on Memory**: In the latest release of protobuf, one of the tests requires a huge amount of memory, so you may see your <code>make check</code> failed due to the fact that your machine or VM has not enough memory. With 8GB of RAM available, there should not be issues. In case you have a lower amount of memory, make sure to provide an adeguate amount of swap memory to your Linux machine (the tests were succesfull on a VM with 4GB of RAM and 8GB of swap, for instance). As an alternative, you can pick an older release, in which the aforemontioned test is missing (e.g. protobuf v. 3.13).
-
-### R Packages Dependencies
-The DESCRIPTION file lists all the dependencies of this package. Both the <strong>Eigen</strong> and the <strong>Stan Math</strong> headers and libraries are available as R packages, which are, respectively, <code>RcppEigen</code> and <code>StanHeaders</code>, which themselves depend on other libraries (e.g. <code>RcppParallel</code> or <code>rstan</code>) that will be installed automatically. <code>RcppProgress</code>, instead, offers display classes to print samplers' progresses during execution. LaTeX support for documentation in the R helper is offered by <code>mathjaxr</code>. Finally, since this package manages compiled code through the <code>Rcpp</code> package, this should be installed as well. On the other hand, <code>RProtoBuf</code> is a required package due to the fact that <code>SPMIX</code> relies on Google Protocol Buffers as serialization tool and, hence, an easy-to-use R interface to this API is suggested. The installation commands available with <code>devtools</code> will automatically install these dependencies together with this package.
-
-<!---
-The installation of all these packages is trivial, since you only need a single R command to do it.
-```r
-install.packages(c("BH", "Rcpp", "RcppEigen", "RcppParallel", "RcppProgress",
-                   "RProtoBuf", "StanHeaders", "mathjaxr", "rstan"))
-```
--->
-
-### SPMIX
-<code>SPMIX</code> is extremely simple to install. To do so, open R and simply type
-```r
-devtools::install_github("TeoGiane/SPMIX")
-```
-This command will automatically download, build and install <code>SPMIX</code> in your package library. Once installed, you can import it in your workflow as a standard package with <code>library("SPMIX")</code>.
-
-## Installation - Windows
-### R development tools
-<code>SPMIX</code> is an R development package, hence you need to have R installed on your computer as well as all development tools. The [R homepage](https://www.r-project.org/) offers extensive documentation on how to install R on your machine. Moreover, it is also advisable to have an IDE for R installed, in order to simplify future workflow. As a suggestion, [RStudio](https://rstudio.com/) is a pretty complete programme and it is highly advisable to have it installed on your system. Finally, in order to install the R development tools package in Windows systems, all the required compilers needs to be available on your machine. In windows, these are provided in a toolchain bundle called [Rtools](https://cran.r-project.org/bin/windows/Rtools/). At the previous link you can find all the instructions to set up Rtools on your system.
-
-<!---
-In order to add the Rtools binary path to PATH variable and set compatibility flags for the compiler to avoid unnecessary warnings at compile time, type in the Rtools Bash (available when Rtools is installed) the following commands:
 ```shell
-echo 'PATH="${RTOOLS40_HOME}\\usr\\bin;${PATH}"' >> Documents/.Renviron
-mkdir -p Documents/.R
-echo 'CXX17FLAGS = -O2 -mtune=native -mmmx -msse -msse2 -msse3 -mssse3 -msse4.1 -msse4.2' >> Documents/.R/Makevars.win
-```
--->
-
-At the end of this procedure, you will be able to install the <code>devtools</code> package and its dependencies from an R console simply typing
-```r
-install.packages("devtools")
+# apt install cmake
 ```
 
-### External Libraries Dependencies
-In this package, the <code>gsl</code> and the <code>protobuf</code> libraries are linked to the package as external libraries. While in Linux systems is simple to link libraries dynamically (so it is convenient to install them from the package manager), in Windows external libraries are statically linked, since the management of dynamic libraries is very different from Linux. To provide the aforementioned libraries, we rely on the [rwinlib](https://github.com/rwinlib) project, which offers several pre-build static headers and libraries to build R packages in Windows. The procedure is fully automatized, so these external libraries will be available during installation.
+3. Download and extract the latest Protocol Buffers Release from [here](https://github.com/protocolbuffers/protobuf/releases/latest/). For a minimal installation, download the <code>protobuf-cpp-<VERSION\>.\*</code> asset.
 
-<!---
-While Unix systems are organized in repositories and manages libraries via package managing programmes, on Windows things are more complicated, in general. The general approach adopted here is to exploit the R toolchain provided with Rtools to compile and install the external libraries dependencies emulating a Unix environment. Main reference for this procedure is the [Rtools Packages Repository](https://github.com/r-windows/rtools-packages), which offers an extremely automatized procedure to build and install the required libraries for both 32 and 64 bits architectures. In the following we report the necessary instructions, with the aim of furtherly simplifying the procedure.
+4. Once inside the folder containing <code>protobuf</code> source files, build and install it using the following command.
 
-Open the Rtools Bash terminal (it has been installed with Rtools, you can find it simply searching for "Rtools Bash" on Windows search bar) and simply follow these instructions:
-
-* **Enable all upstream MSYS2 build tools**: this will allow the installation of further packages required by <code>protobuf</code>. Type:
 ```shell
-sed -i '78,79 s/^#//' $RTOOLS40_HOME\\etc\\pacman.conf
-echo 'SigLevel = Never' >> $RTOOLS40_HOME\\etc\\pacman.conf
-pacman -Sy
+$ cmake . -Dprotobuf_BUILD_SHARED_LIBS=ON
+$ cmake --build . [--parallel <NUM_THREADS>]
+$ ctest --verbose
+# cmake --install
+# ldconfig
 ```
-* **Clone the Rtools Packages repo**: after git installation (you can skip the command on the first line in case you have [Git](https://gitforwindows.org/) already installed on your OS), clone the <code>rtools-packages</code> repository. You can choose whichever location you like to clone the repo. Use the following commands:
-```shell
-pacman -S git
-git clone https://github.com/r-windows/rtools-packages.git
-cd rtools-packages
-```
-* **Build and Install the gsl library**: the following commands also clean the folder from files created during the build. Type:
-```shell
-cd mingw-w64-gsl
-makepkg-mingw --syncdeps --noconfirm
-pacman -U mingw-w64-i686-gsl-2.6-1-any.pkg.tar.xz
-pacman -U mingw-w64-x86_64-gsl-2.6-1-any.pkg.tar.xz
-rm -f -r pkg src *.xz *.gz
-cd ../
-```
-* **Build and Install the protobuf library**: the following commands also clean the folder from files created during the build. Type:
-```shell
-cd mingw-w64-protobuf
-makepkg-mingw --syncdeps --noconfirm
-pacman -U mingw-w64-i686-protobuf-3.12.4-1-any.pkg.tar.xz
-pacman -U mingw-w64-x86_64-protobuf-3.12.4-1-any.pkg.tar.xz
-rm -f -r pkg src *.xz *.gz
-cd ../
-```
--->
+5. Install <code>SPMIX</code> and all its package dependencies.
 
-### R Packages Dependencies
-The DESCRIPTION file lists all the dependencies of this package. Both the <strong>Eigen</strong> and the <strong>Stan Math</strong> headers and libraries are available as R packages, which are, respectively, <code>RcppEigen</code> and <code>StanHeaders</code>, which themselves depend on other libraries (e.g. <code>RcppParallel</code> or <code>rstan</code>) that will be installed automatically. <code>RcppProgress</code>, instead, offers display classes to print samplers' progresses during execution. LaTeX support for documentation in the R helper is offered by <code>mathjaxr</code>. Finally, since this package manages compiled code through the <code>Rcpp</code> package, this should be installed as well. On the other hand, <code>RProtoBuf</code> is a required package due to the fact that <code>SPMIX</code> relies on Google Protocol Buffers as serialization tool and, hence, an easy-to-use R interface to this API is suggested. The installation commands available with <code>devtools</code> will automatically install these dependencies together with this package.
-
-<!---
-The installation of all these packages is trivial, since you only need a single R command to do it.
-```r
-install.packages(c("BH", "Rcpp", "RcppEigen", "RcppParallel", "RcppProgress",
-                   "RProtoBuf", "StanHeaders", "mathjaxr", "rstan"))
+```R
+> devtools::install_github("TeoGiane/SPMIX")
 ```
--->
 
-### SPMIX
-<code>SPMIX</code> is extremely simple to install. To do so, open R and simply type
-```r
-devtools::install_github("TeoGiane/SPMIX")
+<br>
+
+## Windows Systems
+
+On Windows machines, external libraries will be available during installation automatically thanks to the [rwinlib](https://github.com/rwinlib) project. Thus, you only need to install <code>SPMIX</code> via:
+
+```R
+> devtools::install("TeoGiane/SPMIX")
 ```
-This command will automatically download, build and install <code>SPMIX</code> in your package library. Once installed, you can import it in your workflow as a standard package with <code>library("SPMIX")</code>.
 
-## License
-This package is open source and licensed under the [MIT License](https://github.com/TeoGiane/SPMIX/blob/master/LICENSE.md)
+<br>
+
+# License
+This package is licensed under the [MIT License](https://github.com/TeoGiane/SPMIX/blob/master/LICENSE.md).
