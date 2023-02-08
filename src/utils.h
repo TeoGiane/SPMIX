@@ -69,6 +69,8 @@ std::string raw2str(const Rcpp::RawVector & raw_vect);
 
 std::pair<double,double> range(const std::vector<std::vector<double>> & vectvect);
 
+int min(const std::vector<double> & vect);
+
 } // namespace utils
 
 #endif // SRC_UTILS_HPP

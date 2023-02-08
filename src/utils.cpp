@@ -265,4 +265,14 @@ std::pair<double,double> range(const std::vector<std::vector<double>> & vectvect
                           *std::max_element(maxs.begin(), maxs.end()));
 }
 
+int min(const std::vector<double> & vect) {
+  int min_idx = 0;
+  for(int j = 1; j < vect.size(); j++) {
+    if(vect[j] <= vect[min_idx]) {
+      min_idx = j;
+    }
+  }
+  return min_idx;
+}
+
 } // namespace utils
