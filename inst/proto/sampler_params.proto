@@ -21,30 +21,37 @@ message SamplerParams {
 		bool identity = 2;
 		EigenMatrix V = 3;
 	}
-	
+
 	message InverseGammaParams {
 		double alpha = 1;
 		double beta = 2;
 	}
-	
+
+	message RhoParams {
+	  oneof rhoparams_type {
+	    double fixed = 1;
+	    BetaParams beta_prior = 2;
+	  };
+	}
+
 	message VarianceParams {
 		oneof varianceparams_type {
-			InverseWishartParams inv_wishart = 1;
-			InverseGammaParams inv_gamma = 2;
+			InverseWishartParams inv_wishart_prior = 1;
+			InverseGammaParams inv_gamma_prior = 2;
 		};
 	}
-	
+
 	message GraphParams {
 		oneof graphparams_type {
 			double fixed = 1;
-			BetaParams beta = 2;
+			BetaParams beta_prior = 2;
 		};
 	}
-	
+
 	int32 num_components = 1;
 	NormalGammaParams p0_params = 2;
-	BetaParams rho_params = 3;
-	VarianceParams sigma_params = 4;
+	RhoParams rho = 3;
+	VarianceParams sigma = 4;
 	double mtilde_sigmasq = 5;
 	GraphParams graph_params = 6;
 }

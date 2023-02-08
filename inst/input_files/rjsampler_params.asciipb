@@ -7,13 +7,15 @@ p0_params {
   lam_: 0.1
 }
 
-rho_params {
-  a: 1
-  b: 5
+rho {
+  beta_prior {
+    a: 1
+    b: 5
+  }
 }
 
-sigma_params {
-	inv_gamma {
+sigma {
+	inv_gamma_prior {
 		alpha: 2
 		beta: 2
 	}
@@ -22,7 +24,7 @@ sigma_params {
 mtilde_sigmasq: 5
 
 graph_params {
-	beta {
+	beta_prior {
     a: 2
     b: 2
 	}
