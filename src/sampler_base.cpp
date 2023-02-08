@@ -56,8 +56,11 @@ void SpatialMixtureSamplerBase::init() {
     priorB = params.p0_params().b();
     priorLambda = params.p0_params().lam_();
 
-    alpha = params.rho_params().a();
-    beta = params.rho_params().b();
+
+    if(params.rho().has_beta_prior()) {
+      alpha = params.rho().beta_prior().a();
+      beta = params.rho().beta_prior().b();
+    }
 
     /*node2comp = utils::findConnectedComponents(W_init);
     auto it = std::max_element(node2comp.begin(), node2comp.end());
@@ -69,7 +72,11 @@ void SpatialMixtureSamplerBase::init() {
     }*/
 
     // Now proper initialization
-    rho = 0.99;
+    if(params.rho().has_fixed()) {
+      rho = params.rho().fixed();
+    } else {
+      rho = 0.99;
+    }
     rho_sum = 0;
     rho_sum_sq = 0;
     Sigma = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
@@ -78,8 +85,10 @@ void SpatialMixtureSamplerBase::init() {
     weights = Eigen::MatrixXd::Zero(numGroups, numComponents);
     transformed_weights = Eigen::MatrixXd::Zero(numGroups, numComponents);
     cluster_allocs.resize(numGroups);
+    probs_in_clust.resize(numGroups);
     for (int i = 0; i < numGroups; i++) {
         cluster_allocs[i].resize(samplesPerGroup[i]);
+        probs_in_clust[i].resize(samplesPerGroup[i]);
     }
 
     for (int h = 0; h < numComponents; h++) {
@@ -102,13 +111,19 @@ void SpatialMixtureSamplerBase::init() {
 
     // Setting W to the initial matrix and (eventually) initialize boundary detection members
     W = W_init;
-    //Rcpp::Rcout << "W:\n" << W << std::endl;
+
+	  /*Rcpp::Rcout << "W:\n" << W << std::endl;
+	  Rcpp::Rcout << "W_up:\n" << W_up << std::endl;
+	  Rcpp::Rcout << "total_edges: " << total_edges << std::endl;*/
+
     if (boundary_detection) {
     	//Rcpp::Rcout << "Inside boundary_detection condition!" << std::endl;
-    	if (params.graph_params().has_beta())
-			p = stan::math::beta_rng(params.graph_params().beta().a(),params.graph_params().beta().b(), rng);
-		else
-			p = params.graph_params().fixed();
+		W_up = Eigen::TriangularView<Eigen::MatrixXd, Eigen::StrictlyUpper>(W);
+		total_edges = W_up.sum();
+    	if (params.graph_params().has_beta_prior())
+			  p = stan::math::beta_rng(params.graph_params().beta_prior().a(),params.graph_params().beta_prior().b(), rng);
+		  else
+			  p = params.graph_params().fixed();
 
     	for (int i = 0; i < numGroups; ++i) {
 			std::vector<int> tmp;
@@ -202,6 +217,8 @@ void SpatialMixtureSamplerBase::sampleAllocations() {
 			Eigen::VectorXd probas = stan::math::softmax(logProbas); //logProbas.array().exp();
 			//probas /= probas.sum();
 			cluster_allocs[i][j] = categorical_rng(probas, rng) - 1;
+			int h = cluster_allocs[i][j];
+			probs_in_clust[i][j] = normal_lpdf(datum, means[h], stddevs[h]);
     	}
 	}
 }
@@ -399,7 +416,7 @@ void SpatialMixtureSamplerBase::sampleW() {
 	//Rcpp::Rcout << "transformed_weights:\n" << transformed_weights << std::endl;
 
 	// Initial quantities
-	Eigen::MatrixXd W_uppertri = Eigen::MatrixXd::Zero(numGroups,numGroups);
+	// Eigen::MatrixXd W_uppertri = Eigen::MatrixXd::Zero(numGroups,numGroups);
 	Eigen::VectorXd logProbas = Eigen::VectorXd::Zero(2);
 
 	for (int i = 0; i < neighbors.size(); ++i) {
@@ -426,7 +443,7 @@ void SpatialMixtureSamplerBase::sampleW() {
 				//Rcpp::Rcout << " new_probs: " << probas.transpose() << std::endl;
 
 				// Sampling new edge
-				W_uppertri(i,neighbors[i][j]) = stan::math::categorical_rng(probas, rng) - 1;
+				W_up(i,neighbors[i][j]) = stan::math::categorical_rng(probas, rng) - 1;
 				//Rcpp::Rcout << "W(" << i << "," << neighbors[i][j] << ") = " << W_uppertri(i,neighbors[i][j]) << std::endl;
 			}
 			//Rcpp::Rcout << std::endl;
@@ -434,7 +451,7 @@ void SpatialMixtureSamplerBase::sampleW() {
 	}
 
 	// Computing whole W
-	W = W_uppertri + W_uppertri.transpose();
+	W = W_up + W_up.transpose();
 	_computeWrelatedQuantities(true);
 	//Rcpp::Rcout << std::endl;
 	//Rcpp::Rcout << "W:\n" << W << std::endl << "END:\n" << std::endl;
@@ -443,15 +460,18 @@ void SpatialMixtureSamplerBase::sampleW() {
 
 void SpatialMixtureSamplerBase::sampleP() {
 
-	if (params.graph_params().has_beta()) {
+	if (params.graph_params().has_beta_prior()) {
 
 		// Prior parameters
-		double alpha_p = params.graph_params().beta().a();
-		double beta_p = params.graph_params().beta().b();
+		double alpha_p = params.graph_params().beta_prior().a();
+		double beta_p = params.graph_params().beta_prior().b();
 
-		// Computing new p_{ij}
-		double alpha_post = alpha_p + W.array().sum();
-		double beta_post = beta_p + (W_init-W).array().sum();
+		// Computing posterior parameters
+		int num_edges = W_up.sum();
+		double alpha_post = alpha_p + num_edges;
+		double beta_post = beta_p + (total_edges - num_edges);
+
+		// Sampling p
 		p = stan::math::beta_rng(alpha_post, beta_post, rng);
 		/*for (int i = 0; i < neighbors.size(); ++i) {
 			for (int j = 0; j < neighbors[i].size(); ++j) {
@@ -496,6 +516,7 @@ void SpatialMixtureSamplerBase::_computeWrelatedQuantities(bool W_has_changed) {
 		comp2node.resize(num_connected_comps);
 		for (int i = 0; i < numGroups; i++)
 			comp2node[node2comp[i]].push_back(i);
+		// W_up = Eigen::TriangularView<Eigen::MatrixXd, Eigen::StrictlyUpper>(W);
 	}
 
 	// Resize m_tildes

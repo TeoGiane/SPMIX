@@ -14,7 +14,7 @@ SpatialMixtureRJSampler::SpatialMixtureRJSampler(const SamplerParams &_params,
 	boundary_detection = _boundary_detection;
 
 	// Control the prior for Sigma
-	if (!_params.sigma_params().has_inv_gamma())
+	if (!_params.sigma().has_inv_gamma_prior())
 	{
 		std::string message = "Cannot build object of class 'SpatialMixtureRJSampler': "
 							  "expected parameters for an Inverse Gamma distribution.";
@@ -36,11 +36,18 @@ SpatialMixtureRJSampler::SpatialMixtureRJSampler(const SamplerParams &_params,
 	// Setting boundary detection flag
 	boundary_detection = _boundary_detection;
 
+	// Check if beta prior is passed as rho
+	if(boundary_detection and _params.rho().has_beta_prior()) {
+	  std::string message = "A beta prior for rho is not supported for boundary detection: "
+	                        "fix rho to a value between 0 and 1.";
+	  throw std::runtime_error(message);
+	}
+
 	// Control the prior for Sigma
-	if (!_params.sigma_params().has_inv_gamma())
+	if (!_params.sigma().has_inv_gamma_prior())
 	{
 		std::string message = "Cannot build object of class 'SpatialMixtureRJSampler': "
-							  "expected parameters for an Inverse Gamma distribution.";
+	                        "expected parameters for an Inverse Gamma distribution.";
 		throw std::runtime_error(message);
 	}
 }
@@ -55,8 +62,8 @@ void SpatialMixtureRJSampler::init() {
 	SpatialMixtureSamplerBase::init();
 
 	// Setting InvGamma Params
-	alpha_Sigma = params.sigma_params().inv_gamma().alpha();
-	beta_Sigma = params.sigma_params().inv_gamma().beta();
+	alpha_Sigma = params.sigma().inv_gamma_prior().alpha();
+	beta_Sigma = params.sigma().inv_gamma_prior().beta();
 
 	// Setting data range
 	std::tie(lowerBound, upperBound) = utils::range(data);
@@ -93,8 +100,7 @@ void SpatialMixtureRJSampler::init() {
 
 void SpatialMixtureRJSampler::sample() {
 
-	if (regression)
-	{
+	if (regression) {
 		// Rcpp::Rcout << "regression, ";
 		regress();
 		computeRegressionResiduals();
@@ -105,8 +111,8 @@ void SpatialMixtureRJSampler::sample() {
 		sampleP();
 		sampleW();
 	} else {
-	  // Rcpp::Rcout << "rho, ";
-	  sampleRho();
+		// Rcpp::Rcout << "rho, ";
+		sampleRho();
 	}
 
 	// Rcpp::Rcout << "atoms, ";
@@ -118,15 +124,13 @@ void SpatialMixtureRJSampler::sample() {
 	// Rcpp::Rcout << "weights, ";
 	sampleWeights();
 
-	if (itercounter % 5 == 4) {
-	  // Rcpp::Rcout << "label, ";
-	  // labelSwitch();
+	if (itercounter % 1 == 0) {
 	  // Rcpp::Rcout << "jump, ";
 	  betweenModelMove();
+	  // Rcpp::Rcout << "label, ";
+	  labelSwitch();
 	}
 
-	// Rcpp::Rcout << "label, ";
-	labelSwitch();
 	// Rcpp::Rcout << "allocs, ";
 	sampleAllocations();
 	// Rcpp::Rcout << "weights, ";
@@ -147,7 +151,7 @@ void SpatialMixtureRJSampler::sampleSigma() {
 	// Rcpp::Rcout << "mtildes:\n" << mtildes << std::endl;
 
 	for (int i = 0; i < numGroups; i++) {
-		
+
 		Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents - 1);
 		Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents - 1);
 		for (int j = 0; j < numGroups; j++) {
@@ -270,7 +274,8 @@ void SpatialMixtureRJSampler::betweenModelMove() {
 
 void SpatialMixtureRJSampler::increaseMove() {
 
-  // std::cout << "Increase" << std::endl;
+  /*std::cout << std::endl;
+  std::cout << "Increase" << std::endl;*/
 	// Compute required quantities
 	Eigen::Map<Eigen::VectorXd> means_map(means.data(), means.size());
 	Eigen::VectorXd log_stddevs(numComponents);
@@ -278,7 +283,7 @@ void SpatialMixtureRJSampler::increaseMove() {
 		log_stddevs(i) = std::log(stddevs[i]);
 	double sigma = Sigma(0, 0);
 	Eigen::MatrixXd I = Eigen::MatrixXd::Identity(numGroups, numGroups);
-	Eigen::MatrixXd cov_weights = sigma * (F - rho * W).ldlt().solve(I);
+	Eigen::MatrixXd cov_weights = sigma * (F - rho * W).llt().solve(I);
 
 	// Build target negative lpdf to optimize
 	spmix_neglpdf target_nlpdf(data, transformed_weights, means_map, log_stddevs, cov_weights, params);
@@ -288,7 +293,10 @@ void SpatialMixtureRJSampler::increaseMove() {
 
 	// Initial guess
 	Eigen::VectorXd opt(numGroups + 2);
-	opt << Eigen::VectorXd::Zero(numGroups), stan::math::uniform_rng(lowerBound, upperBound, rng), 1.;
+	Eigen::VectorXd logProbs = Eigen::VectorXd::Zero(numGroups);
+	int min_i = stan::math::categorical_rng(stan::math::softmax(logProbs), rng) - 1;
+	int min_j = utils::min(probs_in_clust[min_i]);
+	opt << -5*Eigen::VectorXd::Ones(numGroups), data[min_i][min_j], log(1);
 
 	// Optimize
 	double fx; //int niter = -1, max = 1;
@@ -296,10 +304,20 @@ void SpatialMixtureRJSampler::increaseMove() {
 	if(niter == -1) { /*std::cout << "gave -1" << std::endl;*/ niter = solver.minimize(target_nlpdf, opt, fx); }
 	// while (niter == -1 and max != 0) { niter = solver.minimize(target_nlpdf, opt, fx); max--; }
   // int niter = solver.minimize(target_nlpdf, opt, fx);
-  Eigen::MatrixXd iHess = solver.final_ihess();
+  // std::cout << "Here!" << std::endl;
+
+  // Check inverse Hessian matrix
+  Eigen::LLT<Eigen::MatrixXd> iHess_chol(solver.final_ihess());
+  Eigen::MatrixXd optCov_chol;
+  if(iHess_chol.info() == Eigen::NumericalIssue){
+    // std::cout << "using I" << std::endl;
+    optCov_chol = 1e-1 * Eigen::MatrixXd::Identity(numGroups+2, numGroups+2);
+  } else {
+    optCov_chol = iHess_chol.matrixL();
+  }
 
 	// Compute proposal state
-	Eigen::VectorXd prop_state = stan::math::multi_normal_rng(opt, iHess, rng);
+	Eigen::VectorXd prop_state = stan::math::multi_normal_cholesky_rng(opt, optCov_chol, rng);
 
 	// std::cout << "prop_state: " << prop_state.transpose() << std::endl;
 
@@ -307,7 +325,7 @@ void SpatialMixtureRJSampler::increaseMove() {
 	double log_arate = - target_nlpdf(prop_state) + target_nlpdf.value() +
 					   stan::math::poisson_lpmf((numComponents + 1 - 2), 1) -
 					   stan::math::poisson_lpmf((numComponents - 2), 1) -
-					   stan::math::multi_normal_lpdf(prop_state, opt, iHess);
+					   stan::math::multi_normal_cholesky_lpdf(prop_state, opt, optCov_chol);
 
 	// Update state to augment dimension
 	if (std::log(stan::math::uniform_rng(0, 1, rng)) < log_arate) {
@@ -343,7 +361,8 @@ void SpatialMixtureRJSampler::increaseMove() {
 
 void SpatialMixtureRJSampler::reduceMove() {
 
-  // std::cout << "Reduce" << std::endl;
+  /*std::cout << std::endl;
+  std::cout << "Reduce" << std::endl;*/
 	// Randomly select the component to drop
 	int to_drop = stan::math::categorical_rng(Eigen::VectorXd::Constant(numComponents - 1, 1. / (numComponents - 1)), rng) - 1;
 
@@ -354,7 +373,7 @@ void SpatialMixtureRJSampler::reduceMove() {
 		log_stddevs(i) = std::log(stddevs[i]);
 	double sigma = Sigma(0, 0);
 	Eigen::MatrixXd I = Eigen::MatrixXd::Identity(numGroups, numGroups);
-	Eigen::MatrixXd cov_weights = sigma * (F - rho * W).ldlt().solve(I);
+	Eigen::MatrixXd cov_weights = sigma * (F - rho * W).llt().solve(I);
 
 	// Build target negative lpdf to optimize
 	spmix_neglpdf target_nlpdf(data, utils::removeColumn(transformed_weights, to_drop),
@@ -374,10 +393,20 @@ void SpatialMixtureRJSampler::reduceMove() {
 	if(niter == -1) { /*std::cout << "gave -1" << std::endl;*/ niter = solver.minimize(target_nlpdf, opt, fx); }
 	// while (niter == -1 and max != 0) { niter = solver.minimize(target_nlpdf, opt, fx); max--; }
 	// int niter = solver.minimize(target_nlpdf, opt, fx);
-	Eigen::MatrixXd iHess = solver.final_ihess();
+	// std::cout << "Here!" << std::endl;
+
+	// Check inverse Hessian matrix
+	Eigen::LLT<Eigen::MatrixXd> iHess_chol(solver.final_ihess());
+	Eigen::MatrixXd optCov_chol;
+	if(iHess_chol.info() == Eigen::NumericalIssue) {
+	  // std::cout << "using I" << std::endl;
+	  optCov_chol = 1e-1 * Eigen::MatrixXd::Identity(numGroups+2, numGroups+2);
+	} else {
+	  optCov_chol = iHess_chol.matrixL();
+	}
 
 	// Compute proposal state
-	Eigen::VectorXd prop_state = stan::math::multi_normal_rng(opt, iHess, rng);
+	Eigen::VectorXd prop_state = stan::math::multi_normal_cholesky_rng(opt, optCov_chol, rng);
 
 	// std::cout << "prop_state: " << prop_state.transpose() << std::endl;
 
@@ -385,7 +414,7 @@ void SpatialMixtureRJSampler::reduceMove() {
 	double log_arate = -target_nlpdf.value() + target_nlpdf(prop_state) +
 					   stan::math::poisson_lpmf((numComponents - 1 - 2), 1) -
 					   stan::math::poisson_lpmf((numComponents - 2), 1) +
-					   stan::math::multi_normal_lpdf(prop_state, opt, iHess);
+					   stan::math::multi_normal_cholesky_lpdf(prop_state, opt, optCov_chol);
 
 	// Update state to reduce dimension
 	if (std::log(stan::math::uniform_rng(0, 1, rng)) < log_arate) {

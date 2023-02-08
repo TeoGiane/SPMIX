@@ -49,6 +49,7 @@ class SpatialMixtureSamplerBase {
 	Eigen::MatrixXd weights; // one set of weights per location
 	Eigen::MatrixXd transformed_weights;
 	std::vector<std::vector<int>> cluster_allocs;
+	std::vector<std::vector<double>> probs_in_clust;
 	Eigen::MatrixXd mtildes;
 	int num_connected_comps;
 
@@ -76,9 +77,11 @@ class SpatialMixtureSamplerBase {
 
 	// Boundary detection
 	bool boundary_detection = false;
-	std::vector<std::vector<int>> neighbors;
-	double p;
 	Eigen::MatrixXd W;
+	Eigen::MatrixXd W_up;
+	std::vector<std::vector<int>> neighbors;
+	int total_edges = 0;
+	double p;
 
 	// prior for Sigma --> depends on the derivation
 

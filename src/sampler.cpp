@@ -6,7 +6,7 @@ SpatialMixtureSampler::SpatialMixtureSampler(const SamplerParams &_params,
                                              const std::vector<std::vector<double>> &_data,
                                              const Eigen::MatrixXd &_W):
 SpatialMixtureSamplerBase(_params, _data, _W) {
-    if (!_params.sigma_params().has_inv_wishart()) {
+    if (!_params.sigma().has_inv_wishart_prior()) {
         throw std::runtime_error("Cannot build object of class 'SpatialMixtureSampler': expected parameters for an Inverse Wishart distribution.");
     }
 };
@@ -16,7 +16,7 @@ SpatialMixtureSampler::SpatialMixtureSampler(const SamplerParams &_params,
                                              const Eigen::MatrixXd &_W,
                                              const std::vector<Eigen::MatrixXd> &X):
 SpatialMixtureSamplerBase(_params, _data, _W, X) {
-    if (!_params.sigma_params().has_inv_wishart()) {
+    if (!_params.sigma().has_inv_wishart_prior()) {
         throw std::runtime_error("Cannot build object of class 'SpatialMixtureSampler': expected parameters for an Inverse Wishart distribution.");
     }
 };
@@ -25,13 +25,13 @@ void SpatialMixtureSampler::init() {
 
   // Setting variables for W sampling
   boundary_detection = false;
-	
+
 	// Base class init
 	SpatialMixtureSamplerBase::init();
 
     // Setting InvWishart Params
-    nu = params.sigma_params().inv_wishart().nu();
-    if (params.sigma_params().inv_wishart().identity()){
+    nu = params.sigma().inv_wishart_prior().nu();
+    if (params.sigma().inv_wishart_prior().identity()){
         V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
     }
     else {
