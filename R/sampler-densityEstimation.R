@@ -35,6 +35,11 @@
 Sampler.DensityEstimation <- function(burnin, niter, thin, data, W, params,
                                       type = "no_rjmcmc", options = NULL, display_progress = TRUE) {
 
+  # Create .asciipb files in temporary directory if needed
+  out_dir = tempdir()
+  if(typeof(params) == "character") { params <- maybe_print_to_file(params, 'sampler_params', out_dir) }
+  if(typeof(options) == "character") { options <- maybe_print_to_file(options, 'optim_options', out_dir) }
+
   # Check and parse of input members
   data_in <- parseData(data)
   W_in <- parseW(W)
@@ -50,6 +55,7 @@ Sampler.DensityEstimation <- function(burnin, niter, thin, data, W, params,
     stop("Input parameter 'type' is of unknown type.")
   }
 
-  # Return the sampler output
+  # Remove temporary files amd return
+  unlink(paste0(out_dir,"/*.asciipb"))
   return(output)
 }
