@@ -30,8 +30,8 @@ InvAlr <- function(x) {
     .Call(`_SPMIX_InvAlr`, x)
 }
 
-runSpatialSampler <- function(burnin, niter, thin, data, W, params_str, covariates, display_progress) {
-    .Call(`_SPMIX_runSpatialSampler`, burnin, niter, thin, data, W, params_str, covariates, display_progress)
+runSpatialSampler <- function(burnin, niter, thin, data, W, params_str, covariates, boundary_detection, display_progress) {
+    .Call(`_SPMIX_runSpatialSampler`, burnin, niter, thin, data, W, params_str, covariates, boundary_detection, display_progress)
 }
 
 runSpatialRJSampler <- function(burnin, niter, thin, data, W, params_str, covariates, options_str, boundary_detection, display_progress) {

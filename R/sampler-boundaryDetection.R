@@ -15,6 +15,10 @@
 #' @param params The sampler parameters that needs to be provided as input. params can be passed as a string
 #' containing the path to an \code{.asciipb} file or as an \code{S4::Message} class of type SamplerParams, i.e. a
 #' Google Protocol Buffer Message available in the package and interfaced to R through \code{\link{RProtoBuf}}.
+#' @param type A string identifying the type of sampler to run. If type is "rjmcmc", the algorithm will run
+#' the spatial mixture sampler putting a prior on the number of components \mjseqn{H}.
+#' The default value is "no_rjmcmc", which samples from the spatial mixture model with a fixed number
+#' of components.
 #' @param options The sampler optimization options used in the execution of the reversible jump sampler.
 #' Default value is set to \code{NULL} and in case type is "rjmcmc", a \code{S4::Message} object of type
 #' OptimOptions is istanciated with default values. In order to override the default values, options can be
@@ -29,7 +33,7 @@
 #'
 #' @export
 Sampler.BoundaryDetection <- function(burnin, niter, thin, data, W, params,
-                                      options = NULL, display_progress = TRUE) {
+                                      type = "rjmcmc", options = NULL, display_progress = TRUE) {
 
   # Create .asciipb files in temporary directory if needed
   out_dir = tempdir()
@@ -40,10 +44,16 @@ Sampler.BoundaryDetection <- function(burnin, niter, thin, data, W, params,
   data_in <- parseData(data)
   W_in <- parseW(W)
   params_in <- parseParams(params)
-  options_in <- parseOptions(options)
 
   # Execute sampler
-  output <- SPMIX:::runSpatialRJSampler(burnin,niter,thin,data_in,W_in,params_in,list(),options_in,TRUE,display_progress)
+  if (type == "no_rjmcmc") {
+    output <- SPMIX:::runSpatialSampler(burnin, niter, thin, data_in, W_in, params_in, list(), TRUE, display_progress)
+  } else if (type == "rjmcmc") {
+    options_in <- parseOptions(options)
+    output <- SPMIX:::runSpatialRJSampler(burnin, niter, thin, data_in, W_in, params_in, list(), options_in, TRUE, display_progress)
+  } else {
+    stop("Input parameter 'type' is of unknown type.")
+  }
 
   # Remove temporary files amd return
   unlink(paste0(out_dir,"/*.asciipb"))

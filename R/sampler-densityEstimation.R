@@ -47,10 +47,10 @@ Sampler.DensityEstimation <- function(burnin, niter, thin, data, W, params,
 
   # Check sampler type and run
   if (type == "no_rjmcmc") {
-    output <- SPMIX:::runSpatialSampler(burnin,niter,thin,data_in,W_in,params_in,list(),display_progress)
+    output <- SPMIX:::runSpatialSampler(burnin, niter, thin, data_in, W_in, params_in, list(), FALSE, display_progress)
   } else if (type == "rjmcmc") {
     options_in <- parseOptions(options)
-    output <- SPMIX:::runSpatialRJSampler(burnin,niter,thin,data_in,W_in,params_in,list(),options_in,FALSE,display_progress)
+    output <- SPMIX:::runSpatialRJSampler(burnin, niter, thin, data_in, W_in, params_in, list(), options_in, FALSE, display_progress)
   } else {
     stop("Input parameter 'type' is of unknown type.")
   }

@@ -34,8 +34,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // runSpatialSampler
-std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, std::string params_str, const std::vector<Eigen::MatrixXd>& covariates, bool display_progress);
-RcppExport SEXP _SPMIX_runSpatialSampler(SEXP burninSEXP, SEXP niterSEXP, SEXP thinSEXP, SEXP dataSEXP, SEXP WSEXP, SEXP params_strSEXP, SEXP covariatesSEXP, SEXP display_progressSEXP) {
+std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>>& data, const Eigen::MatrixXd& W, std::string params_str, const std::vector<Eigen::MatrixXd>& covariates, bool boundary_detection, bool display_progress);
+RcppExport SEXP _SPMIX_runSpatialSampler(SEXP burninSEXP, SEXP niterSEXP, SEXP thinSEXP, SEXP dataSEXP, SEXP WSEXP, SEXP params_strSEXP, SEXP covariatesSEXP, SEXP boundary_detectionSEXP, SEXP display_progressSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -46,8 +46,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Eigen::MatrixXd& >::type W(WSEXP);
     Rcpp::traits::input_parameter< std::string >::type params_str(params_strSEXP);
     Rcpp::traits::input_parameter< const std::vector<Eigen::MatrixXd>& >::type covariates(covariatesSEXP);
+    Rcpp::traits::input_parameter< bool >::type boundary_detection(boundary_detectionSEXP);
     Rcpp::traits::input_parameter< bool >::type display_progress(display_progressSEXP);
-    rcpp_result_gen = Rcpp::wrap(runSpatialSampler(burnin, niter, thin, data, W, params_str, covariates, display_progress));
+    rcpp_result_gen = Rcpp::wrap(runSpatialSampler(burnin, niter, thin, data, W, params_str, covariates, boundary_detection, display_progress));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -97,7 +98,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_Alr", (DL_FUNC) &_SPMIX_Alr, 1},
     {"_SPMIX_InvAlr", (DL_FUNC) &_SPMIX_InvAlr, 1},
-    {"_SPMIX_runSpatialSampler", (DL_FUNC) &_SPMIX_runSpatialSampler, 8},
+    {"_SPMIX_runSpatialSampler", (DL_FUNC) &_SPMIX_runSpatialSampler, 9},
     {"_SPMIX_runSpatialRJSampler", (DL_FUNC) &_SPMIX_runSpatialRJSampler, 10},
     {"_SPMIX_ReadMatrixFromCSV", (DL_FUNC) &_SPMIX_ReadMatrixFromCSV, 1},
     {"_SPMIX_ReadDataFromCSV", (DL_FUNC) &_SPMIX_ReadDataFromCSV, 1},

@@ -72,23 +72,23 @@ Eigen::VectorXd InvAlr(Eigen::VectorXd x) {
 /* Spatial Sampler execution routine (no RJMCMC, w/ or w/o covariates,data,W and params as strings or proper data types from R)*/
 // [[Rcpp::export]]
 std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>> & data,
-    										   const Eigen::MatrixXd & W, std::string params_str,
-    										   const std::vector<Eigen::MatrixXd> & covariates, bool display_progress) {
-
+    										  										 const Eigen::MatrixXd & W, std::string params_str,
+    										   										 const std::vector<Eigen::MatrixXd> & covariates,
+											   											 bool boundary_detection, bool display_progress) {
 	// Messages Parsing
 	SamplerParams params; google::protobuf::TextFormat::ParseFromString(params_str, &params);
 
-    // Initializarion
-    SpatialMixtureSampler spSampler(params, data, W, covariates);
-    spSampler.init();
+	// Initializarion
+	SpatialMixtureSampler spSampler(params, data, W, covariates, boundary_detection);
+	spSampler.init();
 
-    // Initialize output container
-    std::vector<Rcpp::RawVector> out;
+	// Initialize output container
+	std::vector<Rcpp::RawVector> out;
 
-    // Sampling
-    auto start = std::chrono::high_resolution_clock::now();
+	// Sampling
+	auto start = std::chrono::high_resolution_clock::now();
 
-    if (burnin > 0) {
+	if (burnin > 0) {
 		REprintf("SPMIX Sampler: Burn-in\n");
 		Progress p_burn(burnin, display_progress);
 		for (int i=0; i < burnin; i++) {
@@ -98,7 +98,6 @@ std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, 
 		p_burn.cleanup();
 		Rcpp::Rcout << std::endl;
 	}
-
 
 	if (niter > 0) {
 		REprintf("SPMIX Sampler: Running\n");
@@ -115,11 +114,11 @@ std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, 
 		Rcpp::Rcout << std::endl;
 	}
 
-    auto end = std::chrono::high_resolution_clock::now();
+	auto end = std::chrono::high_resolution_clock::now();
 
-    double duration = std::chrono::duration<double>(end - start).count();
-    Rcpp::Rcout << "Elapsed Time: " << duration << std::endl << std::endl;
-    return out;
+	double duration = std::chrono::duration<double>(end - start).count();
+	Rcpp::Rcout << "Elapsed Time: " << duration << std::endl << std::endl;
+	return out;
 }
 
 /* Spatial Sampler execution routine (RJMCMC, w/ or w/o covariates,data,W and params as strings or proper data types from R)*/
