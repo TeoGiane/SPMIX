@@ -93,7 +93,7 @@ double v_eval(double y, double tol, int max_iter)
     // printf("iter: %i, v: %g, diff: %g\n", iter, vnew, diff);
   }
 
-  if (iter >= max_iter) fprintf(stderr, "InvertY.cpp, v_eval: reached max_iter: %i\n", iter);
+  // if (iter >= max_iter) fprintf(stderr, "InvertY.cpp, v_eval: reached max_iter: %i\n", iter);
 
   return vnew;
 }
