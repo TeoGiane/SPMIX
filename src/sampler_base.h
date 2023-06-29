@@ -85,6 +85,14 @@ class SpatialMixtureSamplerBase {
 
 	// prior for Sigma --> depends on the derivation
 
+	// prior for Sigma - Inverse Wishart
+	double nu;
+	Eigen::MatrixXd V0;
+
+	// prior for Sigma - Inverse Gamma
+	double alpha_Sigma;
+	double beta_Sigma;
+
 	// prior for Rho
 	double alpha;
 	double beta;
@@ -157,7 +165,9 @@ class SpatialMixtureSamplerBase {
 	 * for tw = transformed weights
 	 * \mu_i = \rho N^{-1} \sum{j \n N(i)} tw_j
 	 */
-	virtual void sampleSigma() = 0;
+	// virtual void sampleSigma() = 0;
+
+	void sampleSigma();
 
 	void regress();
 

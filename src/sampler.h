@@ -7,21 +7,22 @@ class SpatialMixtureSampler: public SpatialMixtureSamplerBase {
   protected:
 
 	// prior for Sigma --> here is an InvWishart
-	double nu;
-	Eigen::MatrixXd V0;
+	// double nu;
+	// Eigen::MatrixXd V0;
 
   public:
 	SpatialMixtureSampler() {}
 
-	SpatialMixtureSampler(
-		const SamplerParams &_params,
-		const std::vector<std::vector<double>> &_data,
-		const Eigen::MatrixXd &_W);
+	SpatialMixtureSampler(const SamplerParams &_params,
+                        const std::vector<std::vector<double>> &_data,
+                        const Eigen::MatrixXd &_W,
+                        bool _boundary_detection);
 
-	SpatialMixtureSampler(
-		const SamplerParams &_params,
-		const std::vector<std::vector<double>> &_data,
-		const Eigen::MatrixXd &_W, const std::vector<Eigen::MatrixXd> &X);
+	SpatialMixtureSampler(const SamplerParams &_params,
+                        const std::vector<std::vector<double>> &_data,
+                        const Eigen::MatrixXd &_W,
+                        const std::vector<Eigen::MatrixXd> &X,
+                        bool _boundary_detection);
 
     void init();
 
@@ -34,7 +35,7 @@ class SpatialMixtureSampler: public SpatialMixtureSamplerBase {
      * for tw = transformed weights
      * \mu_i = \rho N^{-1} \sum{j \n N(i)} tw_j
      */
-    void sampleSigma() override;
+    // void sampleSigma() override;
 
     void sample_mtilde();
 };

@@ -14,8 +14,8 @@
 class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
   protected:
 	// prior for Sigma --> here is an InvGamma
-	double alpha_Sigma;
-	double beta_Sigma;
+	// double alpha_Sigma;
+	// double beta_Sigma;
 
 	// prior for W --> Beta-Bernoulli prior
 	//std::vector<std::vector<int>> neighbors;
@@ -55,7 +55,7 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 
 	void sample() override;
 
-	void sampleSigma() override;
+	// void sampleSigma() override;
 
 	//void sampleW();
 

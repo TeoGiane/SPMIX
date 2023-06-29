@@ -4,82 +4,105 @@ using namespace stan::math;
 
 SpatialMixtureSampler::SpatialMixtureSampler(const SamplerParams &_params,
                                              const std::vector<std::vector<double>> &_data,
-                                             const Eigen::MatrixXd &_W):
+                                             const Eigen::MatrixXd &_W,
+																						 bool _boundary_detection):
 SpatialMixtureSamplerBase(_params, _data, _W) {
-    if (!_params.sigma().has_inv_wishart_prior()) {
-        throw std::runtime_error("Cannot build object of class 'SpatialMixtureSampler': expected parameters for an Inverse Wishart distribution.");
-    }
+	// Setting boundary detection flag
+	boundary_detection = _boundary_detection;
+	// Control the prior for Sigma
+	// if (!_params.sigma().has_inv_wishart_prior()) {
+	// 	throw std::runtime_error("Cannot build object of class 'SpatialMixtureSampler': expected parameters for an Inverse Wishart distribution.");
+	// }
 };
 
 SpatialMixtureSampler::SpatialMixtureSampler(const SamplerParams &_params,
                                              const std::vector<std::vector<double>> &_data,
                                              const Eigen::MatrixXd &_W,
-                                             const std::vector<Eigen::MatrixXd> &X):
+                                             const std::vector<Eigen::MatrixXd> &X,
+																						 bool _boundary_detection):
 SpatialMixtureSamplerBase(_params, _data, _W, X) {
-    if (!_params.sigma().has_inv_wishart_prior()) {
-        throw std::runtime_error("Cannot build object of class 'SpatialMixtureSampler': expected parameters for an Inverse Wishart distribution.");
-    }
+	// Setting boundary detection flag
+	boundary_detection = _boundary_detection;
+	// Control the prior for Sigma
+	// if (!_params.sigma().has_inv_wishart_prior()) {
+	// 	throw std::runtime_error("Cannot build object of class 'SpatialMixtureSampler': expected parameters for an Inverse Wishart distribution.");
+	// }
 };
 
 void SpatialMixtureSampler::init() {
 
   // Setting variables for W sampling
-  boundary_detection = false;
+	std::cout << "boundary detection: " << std::boolalpha << boundary_detection << std::endl;
+  // boundary_detection = false;
 
 	// Base class init
 	SpatialMixtureSamplerBase::init();
 
-    // Setting InvWishart Params
-    nu = params.sigma().inv_wishart_prior().nu();
-    if (params.sigma().inv_wishart_prior().identity()){
-        V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
-    }
-    else {
-        V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
-        Rcpp::Rcout << "Case not implemented yet, settig V0 to identity" << std::endl;
-    }
+	// Setting InvWishart Params
+	// nu = params.sigma().inv_wishart_prior().nu();
+	// if (params.sigma().inv_wishart_prior().identity()){
+	//     V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
+	// }
+	// else {
+	//     V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
+	//     Rcpp::Rcout << "Case not implemented yet, settig V0 to identity" << std::endl;
+	// }
 
-    // Confirm
-    Rcpp::Rcout << "Init done." << std::endl << std::endl;
+	// Confirm
+	Rcpp::Rcout << "Init done." << std::endl << std::endl;
 }
 
 void SpatialMixtureSampler::sample() {
 
 	if (regression){
+		// std::cout << "regression, ";
 		regress();
 		computeRegressionResiduals();
 	}
-	if (boundary_detection){
+
+	if (boundary_detection) {
+		// std::cout << "boundary, ";
 		sampleP();
 		sampleW();
+	} else {
+		// std::cout << "rho, ";
+		sampleRho();
 	}
+
+	// std::cout << "atoms, ";
 	sampleAtoms();
+
 	for (int i = 0; i < 2; ++i) {
+		// std::cout << "allocations, ";
 		sampleAllocations();
+		// std::cout << "weights, ";
 		sampleWeights();
 	}
+
+	// std::cout << "sigma";
 	sampleSigma();
-	sampleRho();
-	sample_mtilde();
+	// std::cout << "m_tilde";
+	// sample_mtilde();
+	// std::cout << std::endl;
 }
 
-void SpatialMixtureSampler::sampleSigma() {
-	Eigen::MatrixXd Vn = V0;
-	double nu_n = nu + numGroups;
-	Eigen::MatrixXd F_m_rhoG = F - W * rho;
+// void SpatialMixtureSampler::sampleSigma() {
+// 	Eigen::MatrixXd Vn = V0;
+// 	double nu_n = nu + numGroups;
+// 	Eigen::MatrixXd F_m_rhoG = F - W * rho;
 
-  	for (int i = 0; i < numGroups; i++) {
-    	Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents - 1);
-    	Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents - 1);
-	    for (int j = 0; j < numGroups; j++) {
-			Eigen::VectorXd wtilde_j = transformed_weights.row(j).head(numComponents - 1);
-			Eigen::VectorXd mtilde_j = mtildes.row(node2comp[j]).head(numComponents - 1);
-			Vn += ((wtilde_i - mtilde_i) * (wtilde_j - mtilde_j).transpose()) * F_m_rhoG(i, j);
-	    }
-	}
-	Sigma = inv_wishart_rng(nu_n, Vn, rng);
-	_computeInvSigmaH();
-}
+//   	for (int i = 0; i < numGroups; i++) {
+//     	Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents - 1);
+//     	Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents - 1);
+// 	    for (int j = 0; j < numGroups; j++) {
+// 			Eigen::VectorXd wtilde_j = transformed_weights.row(j).head(numComponents - 1);
+// 			Eigen::VectorXd mtilde_j = mtildes.row(node2comp[j]).head(numComponents - 1);
+// 			Vn += ((wtilde_i - mtilde_i) * (wtilde_j - mtilde_j).transpose()) * F_m_rhoG(i, j);
+// 	    }
+// 	}
+// 	Sigma = inv_wishart_rng(nu_n, Vn, rng);
+// 	_computeInvSigmaH();
+// }
 
 void SpatialMixtureSampler::sample_mtilde() {
 

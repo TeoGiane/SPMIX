@@ -62,8 +62,8 @@ void SpatialMixtureRJSampler::init() {
 	SpatialMixtureSamplerBase::init();
 
 	// Setting InvGamma Params
-	alpha_Sigma = params.sigma().inv_gamma_prior().alpha();
-	beta_Sigma = params.sigma().inv_gamma_prior().beta();
+	// alpha_Sigma = params.sigma().inv_gamma_prior().alpha();
+	// beta_Sigma = params.sigma().inv_gamma_prior().beta();
 
 	// Setting data range
 	std::tie(lowerBound, upperBound) = utils::range(data);
@@ -139,43 +139,43 @@ void SpatialMixtureRJSampler::sample() {
 	++itercounter;
 }
 
-void SpatialMixtureRJSampler::sampleSigma() {
+// void SpatialMixtureRJSampler::sampleSigma() {
 
-	// Rcpp::Rcout << std::endl;
+// 	// Rcpp::Rcout << std::endl;
 
-	double alpha_n = alpha_Sigma + numGroups * (numComponents - 1);
-	double beta_n = beta_Sigma;
-	Eigen::MatrixXd F_m_rhoG = F - W * rho;
+// 	double alpha_n = alpha_Sigma + numGroups * (numComponents - 1);
+// 	double beta_n = beta_Sigma;
+// 	Eigen::MatrixXd F_m_rhoG = F - W * rho;
 
-	// Rcpp::Rcout << "F_m_rhoG:\n" << F_m_rhoG << std::endl;
-	// Rcpp::Rcout << "mtildes:\n" << mtildes << std::endl;
+// 	// Rcpp::Rcout << "F_m_rhoG:\n" << F_m_rhoG << std::endl;
+// 	// Rcpp::Rcout << "mtildes:\n" << mtildes << std::endl;
 
-	for (int i = 0; i < numGroups; i++) {
+// 	for (int i = 0; i < numGroups; i++) {
 
-		Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents - 1);
-		Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents - 1);
-		for (int j = 0; j < numGroups; j++) {
+// 		Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents - 1);
+// 		Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents - 1);
+// 		for (int j = 0; j < numGroups; j++) {
 
-			Eigen::VectorXd wtilde_j = transformed_weights.row(j).head(numComponents - 1);
-			Eigen::VectorXd mtilde_j = mtildes.row(node2comp[j]).head(numComponents - 1);
-			beta_n += ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j)) * F_m_rhoG(i, j);
+// 			Eigen::VectorXd wtilde_j = transformed_weights.row(j).head(numComponents - 1);
+// 			Eigen::VectorXd mtilde_j = mtildes.row(node2comp[j]).head(numComponents - 1);
+// 			beta_n += ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j)) * F_m_rhoG(i, j);
 
-			/* Rcpp::Rcout << "(" << i << "," << j << ")\n"
-				<< "wtilde_" << i << ": " << wtilde_i.transpose() << "\n"
-				<< "mtilde_" << i << ": " << mtilde_i.transpose() << "\n"
-				<< "wtilde_" << j << ": " << wtilde_j.transpose() << "\n"
-        << "mtilde_" << j << ": " << mtilde_j.transpose() << std::endl; */
-		}
-	}
+// 			/* Rcpp::Rcout << "(" << i << "," << j << ")\n"
+// 				<< "wtilde_" << i << ": " << wtilde_i.transpose() << "\n"
+// 				<< "mtilde_" << i << ": " << mtilde_i.transpose() << "\n"
+// 				<< "wtilde_" << j << ": " << wtilde_j.transpose() << "\n"
+//         << "mtilde_" << j << ": " << mtilde_j.transpose() << std::endl; */
+// 		}
+// 	}
 
-	// Rcpp::Rcout << "beta_n: " << beta_n << std::endl;
+// 	// Rcpp::Rcout << "beta_n: " << beta_n << std::endl;
 
-	double sigma_new = stan::math::inv_gamma_rng(alpha_n / 2, beta_n / 2, rng);
-	// std::cout << "Here!" << std::endl;
-	Sigma = sigma_new * Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
-	_computeInvSigmaH();
-	return;
-}
+// 	double sigma_new = stan::math::inv_gamma_rng(alpha_n / 2, beta_n / 2, rng);
+// 	// std::cout << "Here!" << std::endl;
+// 	Sigma = sigma_new * Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
+// 	_computeInvSigmaH();
+// 	return;
+// }
 
 /*void SpatialMixtureRJSampler::sampleW() {
 

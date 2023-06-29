@@ -46,68 +46,93 @@ SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(const SamplerParams &_param
 }
 
 void SpatialMixtureSamplerBase::init() {
-    pg_rng = new PolyaGammaHybridDouble(seed);
+	// PolyaGamma rng
+	pg_rng = new PolyaGammaHybridDouble(seed);
 
-    numComponents = params.num_components();
-    mtilde_sigmasq = params.mtilde_sigmasq();
+	// Set numComponents
+	numComponents = params.num_components();
+	// mtilde_sigmasq = params.mtilde_sigmasq();
+	
+	// Set P= parameters
+	priorMean = params.p0_params().mu0();
+	priorA = params.p0_params().a();
+	priorB = params.p0_params().b();
+	priorLambda = params.p0_params().lam_();
 
-    priorMean = params.p0_params().mu0();
-    priorA = params.p0_params().a();
-    priorB = params.p0_params().b();
-    priorLambda = params.p0_params().lam_();
+	// Set prior hyperparameters for rho, if beta distributed
+	if(params.rho().has_beta_prior()) {
+		alpha = params.rho().beta_prior().a();
+		beta = params.rho().beta_prior().b();
+	}
 
-
-    if(params.rho().has_beta_prior()) {
-      alpha = params.rho().beta_prior().a();
-      beta = params.rho().beta_prior().b();
+	// Set prior hyperparameters for Sigma
+	if (params.sigma().has_inv_wishart_prior()) {
+		nu = params.sigma().inv_wishart_prior().nu();
+    if (params.sigma().inv_wishart_prior().identity()){
+      V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
     }
-
-    /*node2comp = utils::findConnectedComponents(W_init);
-    auto it = std::max_element(node2comp.begin(), node2comp.end());
-    num_connected_comps = *it + 1;
-
-    comp2node.resize(num_connected_comps);
-    for (int i = 0; i < numGroups; i++) {
-        comp2node[node2comp[i]].push_back(i);
-    }*/
-
-    // Now proper initialization
-    if(params.rho().has_fixed()) {
-      rho = params.rho().fixed();
-    } else {
-      rho = 0.99;
+    else {
+			V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
+			Rcpp::Rcout << "Case not yet implemented, settig V0 to identity" << std::endl;
     }
-    rho_sum = 0;
-    rho_sum_sq = 0;
-    Sigma = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
-    means.resize(numComponents);
-    stddevs.resize(numComponents);
-    weights = Eigen::MatrixXd::Zero(numGroups, numComponents);
-    transformed_weights = Eigen::MatrixXd::Zero(numGroups, numComponents);
-    cluster_allocs.resize(numGroups);
-    probs_in_clust.resize(numGroups);
-    for (int i = 0; i < numGroups; i++) {
-        cluster_allocs[i].resize(samplesPerGroup[i]);
-        probs_in_clust[i].resize(samplesPerGroup[i]);
-    }
+	}
+	else if(params.sigma().has_inv_gamma_prior()){
+		alpha_Sigma = params.sigma().inv_gamma_prior().alpha();
+		beta_Sigma = params.sigma().inv_gamma_prior().beta();
+	}
+	else {
+		throw std::runtime_error("Hyperparameters for sigma are in wrong format");
+	}
+	
+	/*node2comp = utils::findConnectedComponents(W_init);
+	auto it = std::max_element(node2comp.begin(), node2comp.end());
+	num_connected_comps = *it + 1;
 
-    for (int h = 0; h < numComponents; h++) {
-        means[h] = normal_rng(0.0, 10.0, rng);
-        stddevs[h] = uniform_rng(0.5, 2.0, rng);
-    }
+	comp2node.resize(num_connected_comps);
+	for (int i = 0; i < numGroups; i++) {
+			comp2node[node2comp[i]].push_back(i);
+	}*/
 
-    for (int i = 0; i < numGroups; i++) {
-        weights.row(i) = dirichlet_rng(Eigen::VectorXd::Ones(numComponents), rng);
-        transformed_weights.row(i) = utils::Alr(weights.row(i), true);
-    }
+	// Now proper initialization
 
-    for (int i = 0; i < numGroups; i++) {
-        for (int j = 0; j < std::min(numComponents, samplesPerGroup[i]); j++)
-            cluster_allocs[i][j] = j;
+	if(params.rho().has_fixed())
+		rho = params.rho().fixed();
+	else
+		rho = 0.99;
+	
+	rho_sum = 0;
+	rho_sum_sq = 0;
 
-        for (int j = numComponents; j < samplesPerGroup[i]; j++)
-            cluster_allocs[i][j] = categorical_rng(weights.row(i), rng) - 1;
-    }
+	Sigma = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
+
+	means.resize(numComponents);
+	stddevs.resize(numComponents);
+	weights = Eigen::MatrixXd::Zero(numGroups, numComponents);
+	transformed_weights = Eigen::MatrixXd::Zero(numGroups, numComponents);
+	cluster_allocs.resize(numGroups);
+	probs_in_clust.resize(numGroups);
+	for (int i = 0; i < numGroups; i++) {
+		cluster_allocs[i].resize(samplesPerGroup[i]);
+		probs_in_clust[i].resize(samplesPerGroup[i]);
+	}
+
+	for (int h = 0; h < numComponents; h++) {
+		means[h] = normal_rng(0.0, 10.0, rng);
+		stddevs[h] = uniform_rng(0.5, 2.0, rng);
+	}
+
+	for (int i = 0; i < numGroups; i++) {
+		weights.row(i) = dirichlet_rng(Eigen::VectorXd::Ones(numComponents), rng);
+		transformed_weights.row(i) = utils::Alr(weights.row(i), true);
+	}
+
+	for (int i = 0; i < numGroups; i++) {
+		for (int j = 0; j < std::min(numComponents, samplesPerGroup[i]); j++)
+			cluster_allocs[i][j] = j;
+
+		for (int j = numComponents; j < samplesPerGroup[i]; j++)
+			cluster_allocs[i][j] = categorical_rng(weights.row(i), rng) - 1;
+	}
 
     // Setting W to the initial matrix and (eventually) initialize boundary detection members
     W = W_init;
@@ -432,8 +457,9 @@ void SpatialMixtureSamplerBase::sampleW() {
 				Eigen::VectorXd mtilde_j = mtildes.row(node2comp[neighbors[i][j]]).head(numComponents - 1);
 
 				// Computing probabilities
-				logProbas(1) = std::log(p) - std::log(1-p) +
-				               rho / (2*Sigma(0,0)) * ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j));
+				double tmp = (wtilde_i - mtilde_i).transpose() * SigmaInv *(wtilde_j - mtilde_j);
+				logProbas(1) = std::log(p) - std::log(1-p) + 0.5*rho*tmp;
+				               // 0.5 * rho * ((wtilde_i - mtilde_i).transpose() * SigmaInv *(wtilde_j - mtilde_j));
 				Eigen::VectorXd probas = stan::math::softmax(logProbas);
 				// double addendum_ij = rho/(2*Sigma(0,0)) * ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j));
 
@@ -480,6 +506,49 @@ void SpatialMixtureSamplerBase::sampleP() {
 		}*/
 	}
 
+	return;
+}
+
+void SpatialMixtureSamplerBase::sampleSigma() {
+	
+	if(params.sigma().has_inv_wishart_prior()){
+		// Inverse Wisart Case
+		Eigen::MatrixXd Vn = V0;
+		double nu_n = nu + numGroups;
+		Eigen::MatrixXd F_m_rhoG = F - W * rho;
+
+  	for (int i = 0; i < numGroups; i++) {
+    	Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents - 1);
+    	Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents - 1);
+	    for (int j = 0; j < numGroups; j++) {
+				Eigen::VectorXd wtilde_j = transformed_weights.row(j).head(numComponents - 1);
+				Eigen::VectorXd mtilde_j = mtildes.row(node2comp[j]).head(numComponents - 1);
+				Vn += ((wtilde_i - mtilde_i) * (wtilde_j - mtilde_j).transpose()) * F_m_rhoG(i, j);
+	    }
+		}
+		Sigma = inv_wishart_rng(nu_n, Vn, rng);
+	}
+	else if(params.sigma().has_inv_gamma_prior()){
+		// Inverse Gamma case
+		double alpha_n = alpha_Sigma + numGroups * (numComponents - 1);
+		double beta_n = beta_Sigma;
+		Eigen::MatrixXd F_m_rhoG = F - W * rho;
+
+		for (int i = 0; i < numGroups; i++) {
+			Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents - 1);
+			Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents - 1);
+			for (int j = 0; j < numGroups; j++) {
+				Eigen::VectorXd wtilde_j = transformed_weights.row(j).head(numComponents - 1);
+				Eigen::VectorXd mtilde_j = mtildes.row(node2comp[j]).head(numComponents - 1);
+				beta_n += ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j)) * F_m_rhoG(i, j);
+			}
+		}
+		double sigma_new = stan::math::inv_gamma_rng(alpha_n / 2, beta_n / 2, rng);
+		Sigma = sigma_new * Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
+	}
+
+	// Compute sigma related quantities and return
+	_computeInvSigmaH();
 	return;
 }
 
