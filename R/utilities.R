@@ -38,19 +38,16 @@ DeserializeSPMIXProto <- function(message_type, raw_vector) {
 #'
 #' @param deserialized_chains A list of \code{RProtoBuf::Message} which stores the deserialized output of
 #' the sampler (either with a fixed or a variable number of components).
-#' @param N An integer representing the number of points of the grid on which the estimated density will be computed.
-#' @param ranges A matrix of dimesions \mjseqn{2 \times I}, where \mjseqn{I} is the number of areal locations. This
-#' matrix represents the extrema of the grid on which the density estimation will be performed.
+#' @param x_grid A numeric vector representing the grid of points on which the estimated densities will be evaluated.
 #' @param alpha A double in \code{[0,1]} that indicates the level at which compute credibility bands for the
 #' estimated densities. The deafult value is set to \code{NULL}, thus meaning that the bounds are not computed.
-#' @param names A vector of strings of length \mjseqn{I}, optional input that sets the names of the output elements.
-#' Default value is set to \code{NULL}, thus no name will be attributed.
+#' @param verbose A bool. If \code{TRUE}, prints the progress of the computation.
 #' @return A list of \mjseqn{I} elements, where the \mjseqn{i}-th element is a matrix that represent, by row,
 #' the estimated density, the lower and the upper bounds the corresponding credibility interval
-#' (if such quantity is required) over a fixed grid of \code{N} points between \code{ranges[1,i]} and \code{ranges[2,i]}.
+#' (if such quantity is required) evaluated over \code{x_grid}.
 #'
 #' @export
-ComputeDensities <- function(deserialized_chains, N, ranges, alpha = NULL, names = NULL) {
+ComputeDensities <- function(deserialized_chains, x_grid, alpha = NULL, verbose = FALSE) {
 
   # Check input type for deserialized_chains
   if(!is.list(deserialized_chains)){
@@ -65,16 +62,10 @@ ComputeDensities <- function(deserialized_chains, N, ranges, alpha = NULL, names
   # Elicit numGroups
   numGroups <- length(deserialized_chains[[1]]$groupParams)
 
-  # Check ranges
-  if(!is.matrix(ranges)){
-    stop("'ranges' input is not of type 'matrix'.")
+  # Check x_grid
+  if(!is.numeric(x_grid)){
+    stop("'x_grid' input is not of type 'numeric'.")
   }
-  if(all(dim(ranges) != c(2,numGroups))){
-    stop("'ranges' dimensions does not match.")
-  }
-
-  # Cast to integer N
-  N <- as.integer(N)
 
   # Extract necessary chains
   H_chain <- sapply(deserialized_chains, function(x) x$num_components)
@@ -85,7 +76,6 @@ ComputeDensities <- function(deserialized_chains, N, ranges, alpha = NULL, names
   estimated_densities <- list()
   for (i in 1:numGroups) {
     weights_chain <- lapply(deserialized_chains, function(x) x$groupParams[[i]]$weights)
-    x_grid <- seq(ranges[1,i], ranges[2,i], length.out = N)
     est_dens_mat <- matrix(0,length(deserialized_chains),length(x_grid))
     for (j in 1:length(deserialized_chains)) {
       xgrid_expand <- t(rbind(replicate(H_chain[j], x_grid, simplify = "matrix")))
@@ -101,11 +91,16 @@ ComputeDensities <- function(deserialized_chains, N, ranges, alpha = NULL, names
     } else {
       estimated_densities[[i]] <- rbind("est"=est_dens)
     }
+
+    # Print progress
+    if(verbose){
+      cat(sprintf("\rProcessed Area: %d / %d", i, numGroups))
+    }
   }
 
-  # Set names if passed
-  if (!is.null(names)) {
-    names(estimated_densities) <- names
+  # New line
+  if(verbose){
+    cat("\n")
   }
 
   # Return list
