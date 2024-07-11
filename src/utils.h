@@ -9,7 +9,7 @@
 #include <string>
 #include <fstream>
 
-#include <stan/math/prim/mat.hpp>
+#include <stan/math.hpp>
 #include <Eigen/Dense>
 #define STRICT_R_HEADERS
 #include <Rcpp.h>
