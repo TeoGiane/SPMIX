@@ -30,32 +30,31 @@ DeserializeSPMIXProto <- function(message_type, raw_vector) {
   return(state)
 }
 
-#' Compute the estimated posterior densities
+#' Compute the chain of the estimated posterior densities over a grid of points
 #'
 #' \loadmathjax This utility takes as input the deserialized output of the samplers
-#' (via \code{\link{DeserializeSPMIXProto}}) and compute the posterior estimates of the densities for each
+#' (via \code{\link{DeserializeSPMIXProto}}) and compute the chain of posterior estimates of the densities for each
 #' areal location \mjseqn{i=1,\dots,I}.
 #'
 #' @param deserialized_chains A list of \code{RProtoBuf::Message} which stores the deserialized output of
 #' the sampler (either with a fixed or a variable number of components).
 #' @param x_grid A numeric vector representing the grid of points on which the estimated densities will be evaluated.
-#' @param alpha A double in \code{[0,1]} that indicates the level at which compute credibility bands for the
-#' estimated densities. The deafult value is set to \code{NULL}, thus meaning that the bounds are not computed.
 #' @param verbose A bool. If \code{TRUE}, prints the progress of the computation.
 #' @return A list of \mjseqn{I} elements, where the \mjseqn{i}-th element is a matrix that represent, by row,
 #' the estimated density, the lower and the upper bounds the corresponding credibility interval
 #' (if such quantity is required) evaluated over \code{x_grid}.
 #'
 #' @export
-ComputeDensities <- function(deserialized_chains, x_grid, alpha = NULL, verbose = FALSE) {
+ComputeDensities <- function(deserialized_chains, x_grid, verbose = FALSE) {
 
   # Check input type for deserialized_chains
   if(!is.list(deserialized_chains)){
     stop("'deserialized_chains' input is not of type 'list'.")
   }
-  if(all(!sapply(deserialized_chains, function(x) return(typeof(x)=="S4" &&
-                                                         class(x)=="Message" &&
-                                                         x@type == "UnivariateState")))) {
+  if(all(!sapply(deserialized_chains,
+                 function(x) return(typeof(x)=="S4" &&
+                                    class(x)=="Message" &&
+                                    x@type == "UnivariateState")))) {
     stop("'deserialized_chains' is a list of wrong type.")
   }
 
@@ -83,23 +82,16 @@ ComputeDensities <- function(deserialized_chains, x_grid, alpha = NULL, verbose 
     }
 
     # Build the element of the return list
-    est_dens <- colMeans(est_dens_mat)
-    if (!is.null(alpha)) {
-      up_bound <- apply(est_dens_mat, 2, quantile, probs=1-alpha/2)
-      low_bound <- apply(est_dens_mat, 2, quantile, probs=alpha/2)
-      estimated_densities[[i]] <- rbind("est"=est_dens,"up"=up_bound,"low"=low_bound)
-    } else {
-      estimated_densities[[i]] <- rbind("est"=est_dens)
-    }
+    estimated_densities[[i]] <- est_dens_mat
 
-    # Print progress
+    # Print progress (if verbose)
     if(verbose){
       cat(sprintf("\rProcessed Area: %d / %d", i, numGroups))
     }
   }
 
   # New line
-  if(verbose){
+  if(verbose) {
     cat("\n")
   }
 
