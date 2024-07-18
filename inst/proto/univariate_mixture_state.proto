@@ -26,7 +26,8 @@ message UnivariateState {
 	double rho = 4;
 	EigenMatrix Sigma = 5;
 	EigenMatrix G = 6;
-	repeated double regression_coefficients = 7 [packed=true];
+  double p = 7;
+	repeated double regression_coefficients = 8 [packed=true];
 }
 
 

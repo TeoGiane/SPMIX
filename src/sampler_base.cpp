@@ -687,6 +687,7 @@ UnivariateState SpatialMixtureSamplerBase::getStateAsProto() {
 		state.mutable_g()->set_rows(W.rows());
 		state.mutable_g()->set_cols(W.cols());
 		*state.mutable_g()->mutable_data() = {W.data(), W.data()+W.size()};
+		state.set_p(p);
 	}
 
 	if (regression)
