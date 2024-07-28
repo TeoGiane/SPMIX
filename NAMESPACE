@@ -2,6 +2,7 @@
 
 export(Alr)
 export(ComputeDensities)
+export(ComputePosteriorLPDF)
 export(DeserializeSPMIXProto)
 export(InvAlr)
 export(ReadDataFromCSV)
