@@ -15,11 +15,11 @@ DeserializeSPMIXProto <- function(message_type, raw_vector) {
   # Check Message Descriptor
   if (message_type == "EigenMatrix") {
     RProtoBuf::readProtoFiles(system.file("/proto/eigen.proto", package = "SPMIX"))
-  } else if (message_type == "SamplerParams") {
+  } else if (message_type == "spmix.SamplerParams") {
     RProtoBuf::readProtoFiles(system.file("/proto/sampler_params.proto", package = "SPMIX"))
-  } else if (message_type == "UnivariateState") {
+  } else if (message_type == "spmix.UnivariateState") {
     RProtoBuf::readProtoFiles(system.file("/proto/univariate_mixture_state.proto", package = "SPMIX"))
-  } else if (message_type == "OptimOptions") {
+  } else if (message_type == "spmix.OptimOptions") {
     RProtoBuf::readProtoFiles(system.file("/proto/optimization_options.proto", package = "SPMIX"))
   } else {
     stop("Input 'message_type' is of uknown type")
@@ -53,7 +53,7 @@ ComputeDensities <- function(deserialized_chains, x_grid, verbose = FALSE) {
   if(all(!sapply(deserialized_chains,
                  function(x) return(typeof(x)=="S4" &&
                                     class(x)=="Message" &&
-                                    x@type == "UnivariateState")))) {
+                                    x@type == "spmix.UnivariateState")))) {
     stop("'deserialized_chains' is a list of wrong type.")
   }
   # Elicit numGroups
@@ -117,7 +117,7 @@ ComputePosteriorLPDF <- function(data, deserialized_chains, verbose = FALSE) {
   if(all(!sapply(deserialized_chains,
                  function(x) return(typeof(x)=="S4" &&
                                     class(x)=="Message" &&
-                                    x@type == "UnivariateState")))) {
+                                    x@type == "spmix.UnivariateState")))) {
     stop("'deserialized_chains' is a list of wrong type.")
   }
   # Define buffer
