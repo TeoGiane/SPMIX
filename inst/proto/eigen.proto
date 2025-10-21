@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package spmix;
+
 message EigenMatrix {
 	uint32 rows = 1;
 	uint32 cols = 2;
