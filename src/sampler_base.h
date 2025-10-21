@@ -31,7 +31,7 @@ class SpatialMixtureSamplerBase {
   protected:
 
 	// Params
-	SamplerParams params;
+	spmix::SamplerParams params;
 
 	// Data
 	int numGroups;
@@ -120,12 +120,12 @@ class SpatialMixtureSamplerBase {
 	SpatialMixtureSamplerBase() {}
 
 	SpatialMixtureSamplerBase(
-		const SamplerParams &_params,
+		const spmix::SamplerParams &_params,
 		const std::vector<std::vector<double>> &_data,
 		const Eigen::MatrixXd &_W);
 
 	SpatialMixtureSamplerBase(
-		const SamplerParams &_params,
+		const spmix::SamplerParams &_params,
 		const std::vector<std::vector<double>> &_data,
 		const Eigen::MatrixXd &_W, const std::vector<Eigen::MatrixXd> &X);
 
@@ -188,9 +188,9 @@ class SpatialMixtureSamplerBase {
 
 	//void sample_mtilde();
 
-	void saveState(Collector<UnivariateState>* collector);
+	void saveState(Collector<spmix::UnivariateState>* collector);
 
-	UnivariateState getStateAsProto();
+	spmix::UnivariateState getStateAsProto();
 
 	void printDebugString();
 

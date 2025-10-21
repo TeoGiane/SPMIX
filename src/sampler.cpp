@@ -2,7 +2,7 @@
 
 using namespace stan::math;
 
-SpatialMixtureSampler::SpatialMixtureSampler(const SamplerParams &_params,
+SpatialMixtureSampler::SpatialMixtureSampler(const spmix::SamplerParams &_params,
                                              const std::vector<std::vector<double>> &_data,
                                              const Eigen::MatrixXd &_W,
 																						 bool _boundary_detection):
@@ -15,7 +15,7 @@ SpatialMixtureSamplerBase(_params, _data, _W) {
 	// }
 };
 
-SpatialMixtureSampler::SpatialMixtureSampler(const SamplerParams &_params,
+SpatialMixtureSampler::SpatialMixtureSampler(const spmix::SamplerParams &_params,
                                              const std::vector<std::vector<double>> &_data,
                                              const Eigen::MatrixXd &_W,
                                              const std::vector<Eigen::MatrixXd> &X,

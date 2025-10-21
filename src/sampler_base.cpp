@@ -2,7 +2,7 @@
 
 using namespace stan::math;
 
-SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(const SamplerParams &_params,
+SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(const spmix::SamplerParams &_params,
     const std::vector<std::vector<double>> &_data,
     const Eigen::MatrixXd &_W): params(_params), data(_data), W_init(_W)
 {
@@ -14,7 +14,7 @@ SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(const SamplerParams &_param
     numdata = std::accumulate(samplesPerGroup.begin(), samplesPerGroup.end(), 0);
 }
 
-SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(const SamplerParams &_params,
+SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(const spmix::SamplerParams &_params,
 	const std::vector<std::vector<double>> &_data,
 	const Eigen::MatrixXd &_W, const std::vector<Eigen::MatrixXd> &X): params(_params), data(_data), W_init(_W) {
 
@@ -135,15 +135,15 @@ void SpatialMixtureSamplerBase::init() {
 	}
 
     // Setting W to the initial matrix and (eventually) initialize boundary detection members
-    W = W_init;
-
+    W = W_init; // W.setZero();
+	// std::cout << "W: " << W.sum() << std::endl;
 	  /*Rcpp::Rcout << "W:\n" << W << std::endl;
 	  Rcpp::Rcout << "W_up:\n" << W_up << std::endl;
 	  Rcpp::Rcout << "total_edges: " << total_edges << std::endl;*/
 
     if (boundary_detection) {
     	//Rcpp::Rcout << "Inside boundary_detection condition!" << std::endl;
-		W_up = Eigen::TriangularView<Eigen::MatrixXd, Eigen::StrictlyUpper>(W);
+		W_up = Eigen::TriangularView<Eigen::MatrixXd, Eigen::StrictlyUpper>(W_init);
 		total_edges = W_up.sum();
     	if (params.graph_params().has_beta_prior())
 			  p = stan::math::beta_rng(params.graph_params().beta_prior().a(),params.graph_params().beta_prior().b(), rng);
@@ -652,17 +652,17 @@ void SpatialMixtureSamplerBase::_computeWrelatedQuantities(bool W_has_changed) {
 	}
 }*/
 
-void SpatialMixtureSamplerBase::saveState(Collector<UnivariateState> *collector) {
+void SpatialMixtureSamplerBase::saveState(Collector<spmix::UnivariateState> *collector) {
   collector->collect(getStateAsProto());
 }
 
-UnivariateState SpatialMixtureSamplerBase::getStateAsProto() {
+spmix::UnivariateState SpatialMixtureSamplerBase::getStateAsProto() {
 
-	UnivariateState state;
+	spmix::UnivariateState state;
 
 	state.set_num_components(numComponents);
 	for (int i = 0; i < numGroups; i++) {
-		UnivariateState::GroupParams *p;
+		spmix::UnivariateState::GroupParams *p;
 		p = state.add_groupparams();
 		Eigen::VectorXd w = weights.row(i);
 
@@ -672,7 +672,7 @@ UnivariateState SpatialMixtureSamplerBase::getStateAsProto() {
 	}
 
 	for (int h = 0; h < numComponents; h++) {
-		UnivariateMixtureAtom *atom;
+		spmix::UnivariateMixtureAtom *atom;
 		atom = state.add_atoms();
 		atom->set_mean(means[h]);
 		atom->set_stdev(stddevs[h]);

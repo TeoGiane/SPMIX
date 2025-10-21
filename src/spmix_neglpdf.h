@@ -21,7 +21,7 @@ class spmix_neglpdf_internal
   Eigen::VectorXd means;
 	Eigen::VectorXd log_stddevs;
   Eigen::MatrixXd cov_weights;
-  SamplerParams params;
+  spmix::SamplerParams params;
 	// Matrix W;
 	// Scalar rho;
 	// Scalar sigma;
@@ -141,7 +141,7 @@ class spmix_neglpdf_internal
     const Eigen::VectorXd& _means,
     const Eigen::VectorXd& _log_stddevs,
     const Eigen::MatrixXd& _cov_weights,
-    const SamplerParams& _params,
+    const spmix::SamplerParams& _params,
     int _dropped_index = -1):
       data(_data),
       transformed_weights(_transformed_weights),
@@ -181,7 +181,7 @@ public:
     const Eigen::VectorXd& _means,
     const Eigen::VectorXd& _log_stddevs,
     const Eigen::MatrixXd& _cov_weights,
-    const SamplerParams& _params,
+    const spmix::SamplerParams& _params,
     int _dropped_index = -1):
       fun(_data, _transformed_weights, _means, _log_stddevs, _cov_weights, _params, _dropped_index) {};
 

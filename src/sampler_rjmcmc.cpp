@@ -1,9 +1,9 @@
 #include "sampler_rjmcmc.h"
 
-SpatialMixtureRJSampler::SpatialMixtureRJSampler(const SamplerParams &_params,
+SpatialMixtureRJSampler::SpatialMixtureRJSampler(const spmix::SamplerParams &_params,
 												 const std::vector<std::vector<double>> &_data,
 												 const Eigen::MatrixXd &_W,
-												 const OptimOptions &_options,
+												 const spmix::OptimOptions &_options,
 												 bool _boundary_detection) : SpatialMixtureSamplerBase(_params, _data, _W) {
 
 	// Set up optimization options from proto
@@ -22,10 +22,10 @@ SpatialMixtureRJSampler::SpatialMixtureRJSampler(const SamplerParams &_params,
 	}
 }
 
-SpatialMixtureRJSampler::SpatialMixtureRJSampler(const SamplerParams &_params,
+SpatialMixtureRJSampler::SpatialMixtureRJSampler(const spmix::SamplerParams &_params,
 												 const std::vector<std::vector<double>> &_data,
 												 const Eigen::MatrixXd &_W,
-												 const OptimOptions &_options,
+												 const spmix::OptimOptions &_options,
 												 const std::vector<Eigen::MatrixXd> &X,
 												 bool _boundary_detection) : SpatialMixtureSamplerBase(_params, _data, _W, X) {
 

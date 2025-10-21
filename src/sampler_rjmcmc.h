@@ -38,16 +38,16 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
   public:
 	SpatialMixtureRJSampler() = default;
 
-	SpatialMixtureRJSampler(const SamplerParams &_params,
+	SpatialMixtureRJSampler(const spmix::SamplerParams &_params,
 							const std::vector<std::vector<double>> &_data,
 							const Eigen::MatrixXd &_W,
-							const OptimOptions &_options,
+							const spmix::OptimOptions &_options,
 							bool _boundary_detection);
 
-	SpatialMixtureRJSampler(const SamplerParams &_params,
+	SpatialMixtureRJSampler(const spmix::SamplerParams &_params,
 							const std::vector<std::vector<double>> &_data,
 							const Eigen::MatrixXd &_W,
-							const OptimOptions &_options,
+							const spmix::OptimOptions &_options,
 							const std::vector<Eigen::MatrixXd> &X,
 							bool _boundary_detection);
 
