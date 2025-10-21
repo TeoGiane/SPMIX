@@ -1,6 +1,6 @@
 # Setting compiler standard
 CXX_STD = CXX17
-NOCRANFLAGS = -Wno-ignored-attributes -Wno-deprecated-declarations
+NOCRANFLAGS = -Wno-ignored-attributes -Wno-deprecated-declarations -fno-tree-vectorize
 
 # GSL library flags
 GSL_CFLAGS = $(shell gsl-config --cflags)
@@ -36,5 +36,3 @@ compile_protos:
 		do \
 			protoc -I$(PROTO_DIR) --cpp_out=$(PWD)/cpp_proto $${file}; \
 		done
-		
-# -fopenmp

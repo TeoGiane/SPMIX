@@ -9,7 +9,7 @@ PROTOC = $(PROTOBUF_WINLIB)/bin$(if ${R_ARCH}==/x64,64,32)/protoc
 
 # Setting compiler standard
 CXX_STD = CXX17
-NOCRANFLAGS = -Wno-attributes -Wno-ignored-attributes -Wno-deprecated-declarations
+NOCRANFLAGS = -Wno-attributes -Wno-ignored-attributes -Wno-deprecated-declarations -fno-tree-vectorize
 RTOOLS = $(shell $(echo '$(RTOOLS40_HOME)' | sed 's/\\/\//g'))
 
 #ifeq ($(R_ARCH), /x64)
