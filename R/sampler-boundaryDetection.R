@@ -43,13 +43,13 @@ Sampler.BoundaryDetection <- function(burnin, niter, thin, data, W, params,
   # Check and parse of input members
   data_in <- parseData(data)
   W_in <- parseW(W)
-  params_in <- parseParams(params)
+  params_in <- parseParams(params, out_dir)
 
   # Execute sampler
   if (type == "no_rjmcmc") {
     output <- SPMIX:::runSpatialSampler(burnin, niter, thin, data_in, W_in, params_in, list(), TRUE, display_progress)
   } else if (type == "rjmcmc") {
-    options_in <- parseOptions(options)
+    options_in <- parseOptions(options, out_dir)
     output <- SPMIX:::runSpatialRJSampler(burnin, niter, thin, data_in, W_in, params_in, list(), options_in, TRUE, display_progress)
   } else {
     stop("Input parameter 'type' is of unknown type.")
@@ -57,5 +57,6 @@ Sampler.BoundaryDetection <- function(burnin, niter, thin, data, W, params,
 
   # Remove temporary files amd return
   unlink(paste0(out_dir,"/*.asciipb"))
+  unlink(paste0(out_dir,"/*.bin"))
   return(output)
 }

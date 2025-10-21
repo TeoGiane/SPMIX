@@ -45,13 +45,13 @@ Sampler.LinearRegression <- function(burnin, niter, thin, data, W, params, cov =
   # Check and parse of input members
   data_in <- parseData(data)
   W_in <- parseW(W)
-  params_in <- parseParams(params)
+  params_in <- parseParams(params, out_dir)
 
   # Check sampler type to run
   if (type == "no_rjmcmc") {
     output <- SPMIX:::runSpatialSampler(burnin,niter,thin,data_in,W_in,params_in,cov,display_progress)
   } else if (type == "rjmcmc") {
-    options_in <- parseOptions(options)
+    options_in <- parseOptions(options, out_dir)
     output <- SPMIX:::runSpatialRJSampler(burnin,niter,thin,data_in,W_in,params_in,cov,options_in,display_progress)
   } else {
     stop("Input parameter 'type' is of unknown type.")
@@ -59,5 +59,6 @@ Sampler.LinearRegression <- function(burnin, niter, thin, data, W, params, cov =
 
   # Remove temporary files amd return
   unlink(paste0(out_dir,"/*.asciipb"))
+  unlink(paste0(out_dir,"/*.bin"))
   return(output)
 }
