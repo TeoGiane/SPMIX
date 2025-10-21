@@ -72,11 +72,19 @@ Eigen::VectorXd InvAlr(Eigen::VectorXd x) {
 /* Spatial Sampler execution routine (no RJMCMC, w/ or w/o covariates,data,W and params as strings or proper data types from R)*/
 // [[Rcpp::export]]
 std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>> & data,
-    										  										 const Eigen::MatrixXd & W, std::string params_str,
-    										   										 const std::vector<Eigen::MatrixXd> & covariates,
-											   											 bool boundary_detection, bool display_progress) {
-	// Messages Parsing
-	SamplerParams params; google::protobuf::TextFormat::ParseFromString(params_str, &params);
+    										   const Eigen::MatrixXd & W, std::string params_filename,
+    										   const std::vector<Eigen::MatrixXd> & covariates,
+											   bool boundary_detection, bool display_progress) {
+	
+	// Parse Sampler Parameters
+	spmix::SamplerParams params;
+	std::ifstream params_file(params_filename);
+	if (params_file.is_open()) {
+		params.ParseFromIstream(&params_file);
+		params_file.close();
+	} else {
+		throw std::runtime_error("Cannot open parameters file: " + params_filename);
+	}
 
 	// Initializarion
 	SpatialMixtureSampler spSampler(params, data, W, covariates, boundary_detection);
@@ -124,13 +132,29 @@ std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, 
 /* Spatial Sampler execution routine (RJMCMC, w/ or w/o covariates,data,W and params as strings or proper data types from R)*/
 // [[Rcpp::export]]
 std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>> & data,
-    											 const Eigen::MatrixXd & W, std::string params_str,
+    											 const Eigen::MatrixXd & W, const std::string & params_filename,
     											 const std::vector<Eigen::MatrixXd> & covariates,
-    											 const std::string & options_str, bool boundary_detection, bool display_progress) {
+    											 const std::string & options_filename, bool boundary_detection, bool display_progress) {
+	
+	// Parse Sampler Parameters
+	spmix::SamplerParams params;
+	std::ifstream params_file(params_filename);
+	if (params_file.is_open()) {
+		params.ParseFromIstream(&params_file);
+		params_file.close();
+	} else {
+		throw std::runtime_error("Cannot open parameters file: " + params_filename);
+	}
 
-	// Messages Parsing
-	SamplerParams params; google::protobuf::TextFormat::ParseFromString(params_str, &params);
-	OptimOptions options; google::protobuf::TextFormat::ParseFromString(options_str, &options);
+	// Parse Optimization Options
+	spmix::OptimOptions options;
+	std::ifstream options_file(options_filename);
+	if (options_file.is_open()) {
+		options.ParseFromIstream(&options_file);
+		options_file.close();
+	} else {
+		throw std::runtime_error("Cannot open optimization options file: " + options_filename);
+	}
 
 	// Initializarion
 	SpatialMixtureRJSampler spSampler(params, data, W, options, covariates, boundary_detection);
