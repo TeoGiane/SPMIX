@@ -17,9 +17,8 @@ Biarch: true
 Depends: 
     R (>= 3.5.0),
 Imports:
-    methods (>= 3.5.0),
-    rstan (>= 2.18.1),
     mathjaxr (>= 1.0-1),
+    Rcpp (>= 0.12.0),
     RProtoBuf (>= 0.4.17)
 LinkingTo: 
     BH (>= 1.66.0),
