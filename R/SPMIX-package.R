@@ -1,8 +1,9 @@
 ## usethis namespace: start
-#' @import Rcpp
-#' @import methods
-#' @import mathjaxr
 # #' @importFrom rstan sampling
+#' @import mathjaxr
+# #' @import methods
+# #' @import Rcpp
+#' @importFrom Rcpp sourceCpp
 #' @useDynLib SPMIX, .registration = TRUE
 ## usethis namespace: end
 NULL
