@@ -74,16 +74,20 @@ parseParams <- function(params, out_dir = NULL) {
     # Read ASCII file
     cat("readParamsfromASCII ... ")
     RProtoBuf::readProtoFiles(file = system.file("proto/sampler_params.proto", package = "SPMIX"))
-    RProtoBuf::serialize(RProtoBuf::readASCII(spmix.SamplerParams, file(params)), serialized_params_file)
+    parsed_params <- RProtoBuf::readASCII(spmix.SamplerParams, file(params))
+    mcmc_type <- ifelse(parsed_params$num_components$has("shifted_poisson_prior"), "rjmcmc", "no_rjmcmc")
+    RProtoBuf::serialize(parsed_params, serialized_params_file)
     cat("done!\n")
   } else if ( is(params)=="Message" && params@type=="spmix.SamplerParams" ) {
     cat("Hyperparameters are provided as an RProtoBuf::Message\n")
+    mcmc_type <- ifelse(params$num_components$has("shifted_poisson_prior"), "rjmcmc", "no_rjmcmc")
     RProtoBuf::serialize(params, serialized_params_file)
   } else {
     stop("Input parameter 'params' is of unknown type.")
   }
   # Return the serialized params file path for samplers
-  return(serialized_params_file)
+  returned_list <- list("filepath" = serialized_params_file, "mcmc_type" = mcmc_type)
+  return(returned_list)
 }
 
 ###########################################################################

@@ -17,10 +17,10 @@
 #' Google Protocol Buffer Message available in the package and interfaced to R through \code{\link{RProtoBuf}}.
 #' @param cov A list of vectors that represents covariates. As default value, it is an empty list.
 #' In case this input parameter is not empty, the sampler performs a regression on these covariates.
-#' @param type A string identifying the type of sampler to run. If type is "rjmcmc", the algorithm will run
-#' the spatial mixture sampler putting a prior on the number of components \mjseqn{H}.
-#' The default value is "no_rjmcmc", which samples from the spatial mixture model with a fixed number
-#' of components.
+# param type A string identifying the type of sampler to run. If type is "rjmcmc", the algorithm will run
+# the spatial mixture sampler putting a prior on the number of components \mjseqn{H}.
+# The default value is "no_rjmcmc", which samples from the spatial mixture model with a fixed number
+# of components.
 #' @param options The sampler optimization options used in the execution of the reversible jump sampler.
 #' Default value is set to \code{NULL} and in case type is "rjmcmc", a \code{S4::Message} object of type
 #' OptimOptions is istanciated with default values. In order to override the default values, options can be
@@ -34,8 +34,7 @@
 #' Each state can be easily deserialized in R using the \code{\link{DeserializeSPMIXProto}} function of this package.
 #'
 #' @export
-Sampler.LinearRegression <- function(burnin, niter, thin, data, W, params, cov = list(),
-                                     type = "no_rjmcmc", options = NULL, display_progress = TRUE) {
+Sampler.LinearRegression <- function(burnin, niter, thin, data, W, params, cov = list(), options = NULL, display_progress = TRUE) {
 
   # Create .asciipb files in temporary directory if needed
   out_dir = tempdir()
@@ -45,7 +44,9 @@ Sampler.LinearRegression <- function(burnin, niter, thin, data, W, params, cov =
   # Check and parse of input members
   data_in <- parseData(data)
   W_in <- parseW(W)
-  params_in <- parseParams(params, out_dir)
+  params_info <- parseParams(params, out_dir)
+  params_in <- params_info$filepath
+  type <- params_info$mcmc_type
 
   # Check sampler type to run
   if (type == "no_rjmcmc") {
