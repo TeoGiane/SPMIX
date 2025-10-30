@@ -12,7 +12,6 @@ Sampler.LinearRegression(
   W,
   params,
   cov = list(),
-  type = "no_rjmcmc",
   options = NULL,
   display_progress = TRUE
 )
@@ -38,11 +37,6 @@ Google Protocol Buffer Message available in the package and interfaced to R thro
 
 \item{cov}{A list of vectors that represents covariates. As default value, it is an empty list.
 In case this input parameter is not empty, the sampler performs a regression on these covariates.}
-
-\item{type}{A string identifying the type of sampler to run. If type is "rjmcmc", the algorithm will run
-the spatial mixture sampler putting a prior on the number of components \mjseqn{H}.
-The default value is "no_rjmcmc", which samples from the spatial mixture model with a fixed number
-of components.}
 
 \item{options}{The sampler optimization options used in the execution of the reversible jump sampler.
 Default value is set to \code{NULL} and in case type is "rjmcmc", a \code{S4::Message} object of type
