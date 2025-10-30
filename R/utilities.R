@@ -14,13 +14,13 @@ DeserializeSPMIXProto <- function(message_type, raw_vector) {
 
   # Check Message Descriptor
   if (message_type == "EigenMatrix") {
-    RProtoBuf::readProtoFiles(system.file("/proto/eigen.proto", package = "SPMIX"))
+    RProtoBuf::readProtoFiles(system.file("proto/eigen.proto", package = "SPMIX"))
   } else if (message_type == "spmix.SamplerParams") {
-    RProtoBuf::readProtoFiles(system.file("/proto/sampler_params.proto", package = "SPMIX"))
+    RProtoBuf::readProtoFiles(system.file("proto/sampler_params.proto", package = "SPMIX"))
   } else if (message_type == "spmix.UnivariateState") {
-    RProtoBuf::readProtoFiles(system.file("/proto/univariate_mixture_state.proto", package = "SPMIX"))
+    RProtoBuf::readProtoFiles(system.file("proto/univariate_mixture_state.proto", package = "SPMIX"))
   } else if (message_type == "spmix.OptimOptions") {
-    RProtoBuf::readProtoFiles(system.file("/proto/optimization_options.proto", package = "SPMIX"))
+    RProtoBuf::readProtoFiles(system.file("proto/optimization_options.proto", package = "SPMIX"))
   } else {
     stop("Input 'message_type' is of uknown type")
   }
