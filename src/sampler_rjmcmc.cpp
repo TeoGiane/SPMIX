@@ -323,8 +323,8 @@ void SpatialMixtureRJSampler::increaseMove() {
 
 	// Compute acceptance rate
 	double log_arate = - target_nlpdf(prop_state) + target_nlpdf.value() +
-					   stan::math::poisson_lpmf((numComponents + 1 - 2), 1) -
-					   stan::math::poisson_lpmf((numComponents - 2), 1) -
+					   stan::math::poisson_lpmf((numComponents + 1 - 2), shifted_poisson_rate) -
+					   stan::math::poisson_lpmf((numComponents - 2), shifted_poisson_rate) -
 					   stan::math::multi_normal_cholesky_lpdf(prop_state, opt, optCov_chol);
 
 	// Update state to augment dimension
@@ -412,8 +412,8 @@ void SpatialMixtureRJSampler::reduceMove() {
 
 	// Compute acceptance rate
 	double log_arate = -target_nlpdf.value() + target_nlpdf(prop_state) +
-					   stan::math::poisson_lpmf((numComponents - 1 - 2), 1) -
-					   stan::math::poisson_lpmf((numComponents - 2), 1) +
+					   stan::math::poisson_lpmf((numComponents - 1 - 2), shifted_poisson_rate) -
+					   stan::math::poisson_lpmf((numComponents - 2), shifted_poisson_rate) +
 					   stan::math::multi_normal_cholesky_lpdf(prop_state, opt, optCov_chol);
 
 	// Update state to reduce dimension

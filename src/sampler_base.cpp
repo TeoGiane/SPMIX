@@ -50,10 +50,18 @@ void SpatialMixtureSamplerBase::init() {
 	pg_rng = new PolyaGammaHybridDouble(seed);
 
 	// Set numComponents
-	numComponents = params.num_components();
+	if(params.num_components().has_fixed()){
+		numComponents = params.num_components().fixed();
+	}
+	else if (params.num_components().has_shifted_poisson_prior()) {
+		shifted_poisson_rate = params.num_components().shifted_poisson_prior().rate();
+		numComponents = 10; // + stan::math::poisson_rng(shifted_poisson_rate, rng);
+	} else {
+		throw std::runtime_error("numComponents parameter is in wrong format");
+	}
 	// mtilde_sigmasq = params.mtilde_sigmasq();
 	
-	// Set P= parameters
+	// Set P0 parameters
 	priorMean = params.p0_params().mu0();
 	priorA = params.p0_params().a();
 	priorB = params.p0_params().b();
@@ -68,19 +76,16 @@ void SpatialMixtureSamplerBase::init() {
 	// Set prior hyperparameters for Sigma
 	if (params.sigma().has_inv_wishart_prior()) {
 		nu = params.sigma().inv_wishart_prior().nu();
-    if (params.sigma().inv_wishart_prior().identity()){
-      V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
-    }
-    else {
+		if (params.sigma().inv_wishart_prior().identity()){
+			V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
+		} else {
 			V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
 			Rcpp::Rcout << "Case not yet implemented, settig V0 to identity" << std::endl;
-    }
-	}
-	else if(params.sigma().has_inv_gamma_prior()){
+		}
+	} else if(params.sigma().has_inv_gamma_prior()){
 		alpha_Sigma = params.sigma().inv_gamma_prior().alpha();
 		beta_Sigma = params.sigma().inv_gamma_prior().beta();
-	}
-	else {
+	} else {
 		throw std::runtime_error("Hyperparameters for sigma are in wrong format");
 	}
 	

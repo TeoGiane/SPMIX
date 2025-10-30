@@ -42,6 +42,7 @@ class SpatialMixtureSamplerBase {
 
 	// Mixtures
 	int numComponents;
+	double shifted_poisson_rate;
 	std::vector<double> means;
 	std::vector<double> stddevs;
 	Eigen::MatrixXd postNormalGammaParams;
