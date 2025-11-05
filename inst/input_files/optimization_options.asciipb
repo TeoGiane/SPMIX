@@ -1,3 +1,4 @@
 max_iter: 10
 tol: 1e-06
+jump_every: 1
 

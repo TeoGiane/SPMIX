@@ -101,7 +101,7 @@ parseOptions <- function(options, out_dir = NULL) {
   if (is.null(options)) {
     cat("Optimization Options required but not given: setting default values ... ")
     RProtoBuf::readProtoFiles(file = system.file("proto/optimization_options.proto", package = "SPMIX"))
-    RProtoBuf::serialize(RProtoBuf::new(spmix.OptimOptions, max_iter = 20, tol = 1e-6), serialized_options_file)
+    RProtoBuf::serialize(RProtoBuf::new(spmix.OptimOptions, max_iter = 20, tol = 1e-6, jump_every = 1), serialized_options_file)
     cat("done!\n")
   } else if(typeof(options) == "character") {
     cat("Optimization Options are provided as a path to an asciipb file\n")
