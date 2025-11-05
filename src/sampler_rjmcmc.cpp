@@ -9,15 +9,15 @@ SpatialMixtureRJSampler::SpatialMixtureRJSampler(const spmix::SamplerParams &_pa
 	// Set up optimization options from proto
 	options.epsilon = _options.tol();
 	options.max_iterations = _options.max_iter();
+	jump_every = _options.jump_every();
 
 	// Setting boundary detection flag
 	boundary_detection = _boundary_detection;
 
 	// Control the prior for Sigma
-	if (!_params.sigma().has_inv_gamma_prior())
-	{
+	if (!_params.sigma().has_fixed() && !_params.sigma().has_inv_gamma_prior()) {
 		std::string message = "Cannot build object of class 'SpatialMixtureRJSampler': "
-							  "expected parameters for an Inverse Gamma distribution.";
+							  "expected either a fixed value or parameters for an Inverse Gamma distribution.";
 		throw std::runtime_error(message);
 	}
 }
@@ -32,6 +32,7 @@ SpatialMixtureRJSampler::SpatialMixtureRJSampler(const spmix::SamplerParams &_pa
 	// Set up optimization options from proto
 	options.epsilon = _options.tol();
 	options.max_iterations = _options.max_iter();
+	jump_every = _options.jump_every();
 
 	// Setting boundary detection flag
 	boundary_detection = _boundary_detection;
@@ -44,10 +45,9 @@ SpatialMixtureRJSampler::SpatialMixtureRJSampler(const spmix::SamplerParams &_pa
 	}
 
 	// Control the prior for Sigma
-	if (!_params.sigma().has_inv_gamma_prior())
-	{
+	if (!_params.sigma().has_fixed() && !_params.sigma().has_inv_gamma_prior()) {
 		std::string message = "Cannot build object of class 'SpatialMixtureRJSampler': "
-	                        "expected parameters for an Inverse Gamma distribution.";
+							  "expected either a fixed value or parameters for an Inverse Gamma distribution.";
 		throw std::runtime_error(message);
 	}
 }
@@ -124,7 +124,7 @@ void SpatialMixtureRJSampler::sample() {
 	// Rcpp::Rcout << "weights, ";
 	sampleWeights();
 
-	if (itercounter % 1 == 0) {
+	if (itercounter % jump_every == 0) {
 	  // Rcpp::Rcout << "jump, ";
 	  betweenModelMove();
 	  // Rcpp::Rcout << "label, ";

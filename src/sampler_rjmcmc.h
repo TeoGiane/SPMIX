@@ -33,6 +33,7 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 
 	// Options for Optimization Algorithm
 	LBFGSpp::LBFGSParam<double> options;
+	int jump_every;
 	// OptimOptions options;
 
   public:
