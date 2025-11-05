@@ -55,7 +55,7 @@ void SpatialMixtureSamplerBase::init() {
 	}
 	else if (params.num_components().has_shifted_poisson_prior()) {
 		shifted_poisson_rate = params.num_components().shifted_poisson_prior().rate();
-		numComponents = 10; // + stan::math::poisson_rng(shifted_poisson_rate, rng);
+		numComponents = 2 + stan::math::poisson_rng(shifted_poisson_rate, rng);
 	} else {
 		throw std::runtime_error("numComponents parameter is in wrong format");
 	}
@@ -74,7 +74,10 @@ void SpatialMixtureSamplerBase::init() {
 	}
 
 	// Set prior hyperparameters for Sigma
-	if (params.sigma().has_inv_wishart_prior()) {
+	if (params.sigma().has_fixed()) {
+		sigma_fixed = params.sigma().fixed();
+
+	} else if (params.sigma().has_inv_wishart_prior()) {
 		nu = params.sigma().inv_wishart_prior().nu();
 		if (params.sigma().inv_wishart_prior().identity()){
 			V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
@@ -82,9 +85,11 @@ void SpatialMixtureSamplerBase::init() {
 			V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
 			Rcpp::Rcout << "Case not yet implemented, settig V0 to identity" << std::endl;
 		}
+
 	} else if(params.sigma().has_inv_gamma_prior()){
 		alpha_Sigma = params.sigma().inv_gamma_prior().alpha();
 		beta_Sigma = params.sigma().inv_gamma_prior().beta();
+		
 	} else {
 		throw std::runtime_error("Hyperparameters for sigma are in wrong format");
 	}
@@ -108,7 +113,7 @@ void SpatialMixtureSamplerBase::init() {
 	rho_sum = 0;
 	rho_sum_sq = 0;
 
-	Sigma = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
+	Sigma = sigma_fixed * Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
 
 	means.resize(numComponents);
 	stddevs.resize(numComponents);
@@ -515,25 +520,27 @@ void SpatialMixtureSamplerBase::sampleP() {
 }
 
 void SpatialMixtureSamplerBase::sampleSigma() {
+
+	if (params.sigma().has_fixed()) {
+		return;
 	
-	if(params.sigma().has_inv_wishart_prior()){
+	} else if(params.sigma().has_inv_wishart_prior()) {
 		// Inverse Wisart Case
 		Eigen::MatrixXd Vn = V0;
 		double nu_n = nu + numGroups;
 		Eigen::MatrixXd F_m_rhoG = F - W * rho;
-
-  	for (int i = 0; i < numGroups; i++) {
-    	Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents - 1);
-    	Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents - 1);
-	    for (int j = 0; j < numGroups; j++) {
+  		for (int i = 0; i < numGroups; i++) {
+			Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents - 1);
+			Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents - 1);
+			for (int j = 0; j < numGroups; j++) {
 				Eigen::VectorXd wtilde_j = transformed_weights.row(j).head(numComponents - 1);
 				Eigen::VectorXd mtilde_j = mtildes.row(node2comp[j]).head(numComponents - 1);
 				Vn += ((wtilde_i - mtilde_i) * (wtilde_j - mtilde_j).transpose()) * F_m_rhoG(i, j);
-	    }
+			}
 		}
 		Sigma = inv_wishart_rng(nu_n, Vn, rng);
-	}
-	else if(params.sigma().has_inv_gamma_prior()){
+
+	} else if(params.sigma().has_inv_gamma_prior()) {
 		// Inverse Gamma case
 		double alpha_n = alpha_Sigma + numGroups * (numComponents - 1);
 		double beta_n = beta_Sigma;
@@ -550,6 +557,7 @@ void SpatialMixtureSamplerBase::sampleSigma() {
 		}
 		double sigma_new = stan::math::inv_gamma_rng(alpha_n / 2, beta_n / 2, rng);
 		Sigma = sigma_new * Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
+
 	}
 
 	// Compute sigma related quantities and return

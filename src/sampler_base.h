@@ -86,6 +86,9 @@ class SpatialMixtureSamplerBase {
 
 	// prior for Sigma --> depends on the derivation
 
+	// prior for Sigma - Fixed
+	double sigma_fixed = 1.0;
+
 	// prior for Sigma - Inverse Wishart
 	double nu;
 	Eigen::MatrixXd V0;
