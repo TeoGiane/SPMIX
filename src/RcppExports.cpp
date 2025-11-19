@@ -94,6 +94,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// ComputePosteriorLPDFs
+std::vector<Eigen::MatrixXd> ComputePosteriorLPDFs(const std::vector<Rcpp::RawVector>& serialized_states, const std::vector<std::vector<double>>& data, bool display_progress);
+RcppExport SEXP _SPMIX_ComputePosteriorLPDFs(SEXP serialized_statesSEXP, SEXP dataSEXP, SEXP display_progressSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<Rcpp::RawVector>& >::type serialized_states(serialized_statesSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<double>>& >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< bool >::type display_progress(display_progressSEXP);
+    rcpp_result_gen = Rcpp::wrap(ComputePosteriorLPDFs(serialized_states, data, display_progress));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ComputePredictiveLPDFs
+std::vector<Eigen::MatrixXd> ComputePredictiveLPDFs(const std::vector<Rcpp::RawVector>& serialized_states, const Eigen::VectorXd& grid, bool display_progress);
+RcppExport SEXP _SPMIX_ComputePredictiveLPDFs(SEXP serialized_statesSEXP, SEXP gridSEXP, SEXP display_progressSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<Rcpp::RawVector>& >::type serialized_states(serialized_statesSEXP);
+    Rcpp::traits::input_parameter< const Eigen::VectorXd& >::type grid(gridSEXP);
+    Rcpp::traits::input_parameter< bool >::type display_progress(display_progressSEXP);
+    rcpp_result_gen = Rcpp::wrap(ComputePredictiveLPDFs(serialized_states, grid, display_progress));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_Alr", (DL_FUNC) &_SPMIX_Alr, 1},
@@ -102,6 +128,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SPMIX_runSpatialRJSampler", (DL_FUNC) &_SPMIX_runSpatialRJSampler, 10},
     {"_SPMIX_ReadMatrixFromCSV", (DL_FUNC) &_SPMIX_ReadMatrixFromCSV, 1},
     {"_SPMIX_ReadDataFromCSV", (DL_FUNC) &_SPMIX_ReadDataFromCSV, 1},
+    {"_SPMIX_ComputePosteriorLPDFs", (DL_FUNC) &_SPMIX_ComputePosteriorLPDFs, 3},
+    {"_SPMIX_ComputePredictiveLPDFs", (DL_FUNC) &_SPMIX_ComputePredictiveLPDFs, 3},
     {NULL, NULL, 0}
 };
 

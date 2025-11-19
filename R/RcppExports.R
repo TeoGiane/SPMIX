@@ -65,3 +65,44 @@ ReadDataFromCSV <- function(filename) {
     .Call(`_SPMIX_ReadDataFromCSV`, filename)
 }
 
+#' Compute the log posterior densities for each group and for each data point
+#'
+#' \loadmathjax This utility takes as input the deserialized output of the samplers
+#' (via \code{\link{DeserializeSPMIXProto}}) and compute the chain of posterior log-likelihood
+#' for each data point
+#'
+#' @param serialized_states A list of `raw` vectore which stores the serialized output of
+#' the sampler (either with a fixed or a variable number of components).
+#' @param data The data that needs to be fitted by the model. Data are passed as a list of vectors, whose
+#' \mjseqn{i}-th element represents the vector of data assigned to the \mjseqn{i}-th location.
+#' @param display_progress A bool. If \code{TRUE}, prints the progress of the computation.
+#' 
+#' @return A \mjseqn{T \times N} matrix, \mjseqn{T} being the number of iterations
+#' of the MCMC chain and \mjseqn{N} the total number of data points.
+#' Element \mjseqn{t,n} of the matrix is the log-likelihood of the \mjseqn{n}-th
+#' data point at \mjseqn{t}-th iteration.
+#'
+#' @export
+ComputePosteriorLPDFs <- function(serialized_states, data, display_progress = TRUE) {
+    .Call(`_SPMIX_ComputePosteriorLPDFs`, serialized_states, data, display_progress)
+}
+
+#' Compute the log predictive densities for each group across a grid of values.
+#'
+#' Given the serialized MCMC chain from \code{Sampler.DensityEstimation} or \code{Sampler.BoundaryDetection}, this function
+#' computes the predictive log density in each area over the points specified by \code{grid}.
+#'
+#' @param serialized_states A list of `raw` vectors, where each element is a serialized `UnivariateState` protobuf object.
+#' Each serialized state represents a sample from the MCMC chain.
+#' @param grid An numeric vector representing the grid of values at which to compute the predictive log pdf.
+#' @param display_progress (Optional) a bool, if `TRUE`, it display a progress bar during the computation.
+#'
+#' @return A list of matrices. Each element of the list is associated to a group and contains a matrix of size
+#' `number_of_iterations` times `len(grid)`, each element representing the log predictive density for that group
+#' at the corresponding iteration and grid point.
+#'
+#' @export
+ComputePredictiveLPDFs <- function(serialized_states, grid, display_progress = TRUE) {
+    .Call(`_SPMIX_ComputePredictiveLPDFs`, serialized_states, grid, display_progress)
+}
+
