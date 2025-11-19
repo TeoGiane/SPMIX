@@ -33,8 +33,8 @@ PROTOBUF_LIBS = -L$(PROTOBUF_WINLIB)/lib${subst gcc,,${COMPILED_BY}}${R_ARCH} \
 #PROTOBUF_LIBS = $(shell $(FOLDER)/bin/pkg-config --libs protobuf)
 
 # Setting Package Flags
-PKG_CXXFLAGS += $(GSL_INC) $(PROTOBUF_INC) -I'.' -I'./optimization' -I'./polyagamma' -I'./cpp_proto' \
-								$(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::CxxFlags()") \
+PKG_CXXFLAGS += $(GSL_INC) $(PROTOBUF_INC) -I'.' -I'./functors' -I'./optimization' -I'./polyagamma' -I'./cpp_proto' \
+				$(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::CxxFlags()") \
                 -D_REENTRANT -DSTAN_THREADS -DBOOST_MATH_DISABLE_DEPRECATED_03_WARNING \
                 -fopenmp $(NOCRANFLAGS)
 PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH)/Rscript.exe" -e "RcppParallel::LdFlags()") \

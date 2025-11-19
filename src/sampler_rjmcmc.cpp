@@ -14,6 +14,18 @@ SpatialMixtureRJSampler::SpatialMixtureRJSampler(const spmix::SamplerParams &_pa
 	// Setting boundary detection flag
 	boundary_detection = _boundary_detection;
 
+	// Compute subset size
+	// subset_size = std::min_element(data.begin(), data.end(),
+	// 							   [](const std::vector<double> &a, const std::vector<double> &b) { return a.size() < b.size(); }) -> size();
+	// subset_size = subset_size > 100 ? 100 : subset_size;
+	
+	// Check if beta prior is passed as rho
+	if(boundary_detection and _params.rho().has_beta_prior()) {
+	  std::string message = "A beta prior for rho is not supported for boundary detection: "
+	                        "fix rho to a value between 0 and 1.";
+	  throw std::runtime_error(message);
+	}
+
 	// Control the prior for Sigma
 	if (!_params.sigma().has_fixed() && !_params.sigma().has_inv_gamma_prior()) {
 		std::string message = "Cannot build object of class 'SpatialMixtureRJSampler': "
@@ -36,6 +48,11 @@ SpatialMixtureRJSampler::SpatialMixtureRJSampler(const spmix::SamplerParams &_pa
 
 	// Setting boundary detection flag
 	boundary_detection = _boundary_detection;
+
+	// Compute subset size
+	// subset_size = std::min_element(data.begin(), data.end(),
+	// 							   [](const std::vector<double> &a, const std::vector<double> &b) { return a.size() < b.size(); }) -> size();
+	// subset_size = subset_size > 100 ? 100 : subset_size;
 
 	// Check if beta prior is passed as rho
 	if(boundary_detection and _params.rho().has_beta_prior()) {
@@ -125,12 +142,11 @@ void SpatialMixtureRJSampler::sample() {
 	sampleWeights();
 
 	if (itercounter % jump_every == 0) {
-	  // Rcpp::Rcout << "jump, ";
-	  betweenModelMove();
-	  // Rcpp::Rcout << "label, ";
-	  labelSwitch();
+		// Rcpp::Rcout << "jump, ";
+		betweenModelMove();
+		// Rcpp::Rcout << "label, ";
+		labelSwitch();
 	}
-
 	// Rcpp::Rcout << "allocs, ";
 	sampleAllocations();
 	// Rcpp::Rcout << "weights, ";
@@ -256,6 +272,10 @@ void SpatialMixtureRJSampler::labelSwitch() {
 
 void SpatialMixtureRJSampler::betweenModelMove() {
 
+	// randomly select an area
+	// selected_area = stan::math::categorical_rng(Eigen::VectorXd::Constant(numGroups, 1. / numGroups), rng) - 1;
+	// subset_data = utils::subsample_data(data, subset_size, rng);
+
 	// Guess an Increase or a Reduction in the number of components
 	bool increase;
 	if (numComponents == 2)
@@ -274,51 +294,40 @@ void SpatialMixtureRJSampler::betweenModelMove() {
 
 void SpatialMixtureRJSampler::increaseMove() {
 
-  /*std::cout << std::endl;
-  std::cout << "Increase" << std::endl;*/
+	// std::cout << std::endl;
+	// std::cout << "Increase" << std::endl;
+
 	// Compute required quantities
 	Eigen::Map<Eigen::VectorXd> means_map(means.data(), means.size());
 	Eigen::VectorXd log_stddevs(numComponents);
 	for (int i = 0; i < numComponents; ++i)
 		log_stddevs(i) = std::log(stddevs[i]);
-	double sigma = Sigma(0, 0);
 	Eigen::MatrixXd I = Eigen::MatrixXd::Identity(numGroups, numGroups);
-	Eigen::MatrixXd cov_weights = sigma * (F - rho * W).llt().solve(I);
+	Eigen::MatrixXd cov_weights = Sigma(0,0) * (F-rho*W).llt().solve(I);
 
-	// Build target negative lpdf to optimize
-	spmix_neglpdf target_nlpdf(data, transformed_weights, means_map, log_stddevs, cov_weights, params);
-
-	// Create solver object
-	LBFGSpp::LBFGSSolver<double> solver(options);
-
-	// Initial guess
+	// Construct target lpdf
+	conditional_posterior_neglpdf target_nlpdf(data, transformed_weights, means_map, log_stddevs, cov_weights, params);
+	
+	// Construct proposal lpdf in implicit form
+	conditional_posterior_neglpdf prop_nlpdf_implicit(data, transformed_weights, means_map, log_stddevs, cov_weights, params);
+	
+	// Optimize implicit proposal
+	LBFGSpp::LBFGSSolver<double> solver(options); double fx;
 	Eigen::VectorXd opt(numGroups + 2);
-	Eigen::VectorXd logProbs = Eigen::VectorXd::Zero(numGroups);
-	int min_i = stan::math::categorical_rng(stan::math::softmax(logProbs), rng) - 1;
-	int min_j = utils::min(probs_in_clust[min_i]);
-	opt << -5*Eigen::VectorXd::Ones(numGroups), data[min_i][min_j], log(1);
-
-	// Optimize
-	double fx; //int niter = -1, max = 1;
-	int niter = solver.minimize(target_nlpdf, opt, fx);
-	if(niter == -1) { /*std::cout << "gave -1" << std::endl;*/ niter = solver.minimize(target_nlpdf, opt, fx); }
-	// while (niter == -1 and max != 0) { niter = solver.minimize(target_nlpdf, opt, fx); max--; }
-  // int niter = solver.minimize(target_nlpdf, opt, fx);
-  // std::cout << "Here!" << std::endl;
-
-  // Check inverse Hessian matrix
-  Eigen::LLT<Eigen::MatrixXd> iHess_chol(solver.final_ihess());
-  Eigen::MatrixXd optCov_chol;
-  if(iHess_chol.info() == Eigen::NumericalIssue){
-    // std::cout << "using I" << std::endl;
-    optCov_chol = 1e-1 * Eigen::MatrixXd::Identity(numGroups+2, numGroups+2);
-  } else {
-    optCov_chol = iHess_chol.matrixL();
-  }
-
-	// Compute proposal state
+	opt << Eigen::VectorXd::Constant(numGroups, 0), stan::math::mean(means_map), log(1.0);
+	int niter = solver.minimize(prop_nlpdf_implicit, opt, fx);
+	if(niter == -1) { niter = solver.minimize(prop_nlpdf_implicit, opt, fx); }
+	// Check inverse Hessian matrix
+	Eigen::LLT<Eigen::MatrixXd> iHess_chol(solver.final_ihess());
+	Eigen::MatrixXd optCov_chol;
+	if(iHess_chol.info() == Eigen::NumericalIssue){
+		optCov_chol = 1e-1 * Eigen::MatrixXd::Identity(numGroups + 2, numGroups + 2);
+	} else {
+		optCov_chol = iHess_chol.matrixL();
+	}
+	
+	// Sample from proposal distribution
 	Eigen::VectorXd prop_state = stan::math::multi_normal_cholesky_rng(opt, optCov_chol, rng);
-
 	// std::cout << "prop_state: " << prop_state.transpose() << std::endl;
 
 	// Compute acceptance rate
@@ -329,7 +338,7 @@ void SpatialMixtureRJSampler::increaseMove() {
 
 	// Update state to augment dimension
 	if (std::log(stan::math::uniform_rng(0, 1, rng)) < log_arate) {
-
+		++numAccepted;
 		++numComponents;
 		means.resize(numComponents, means[numComponents - 2]);
 		means[numComponents - 2] = prop_state(numGroups);
@@ -343,26 +352,25 @@ void SpatialMixtureRJSampler::increaseMove() {
 			weights.row(i) = utils::InvAlr(Eigen::VectorXd(transformed_weights.row(i)), true);
 		mtildes.conservativeResize(num_connected_comps, numComponents);
 		mtildes.col(numComponents - 1) = Eigen::VectorXd::Zero(num_connected_comps);
-		Sigma = sigma * Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
+		Sigma = Sigma(0,0) * Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
 		pippo.resize(numComponents - 1);
 		sigma_star_h.resize(numGroups, numComponents - 1);
 		_computeInvSigmaH();
 
-		/*std::cout << "Accepting!" << std::endl;
-		std::cout << "numComponents: " << numComponents << std::endl;
-		std::cout << "means: " << Eigen::Map<Eigen::VectorXd>(means.data(), means.size()).transpose() << std::endl;
-		std::cout << "stddevs: " << Eigen::Map<Eigen::VectorXd>(stddevs.data(), stddevs.size()).transpose() << std::endl;
-		std::cout << "transformed_weights:\n" << transformed_weights << std::endl;*/
-
+		// std::cout << "Accepting!" << std::endl;
+		// std::cout << "numComponents: " << numComponents << std::endl;
+		// std::cout << "means: " << Eigen::Map<Eigen::VectorXd>(means.data(), means.size()).transpose() << std::endl;
+		// std::cout << "stddevs: " << Eigen::Map<Eigen::VectorXd>(stddevs.data(), stddevs.size()).transpose() << std::endl;
+		// std::cout << "transformed_weights:\n" << transformed_weights << std::endl;
 	}
-
 	return;
 }
 
 void SpatialMixtureRJSampler::reduceMove() {
 
-  /*std::cout << std::endl;
-  std::cout << "Reduce" << std::endl;*/
+	// std::cout << std::endl;
+	// std::cout << "Reduce" << std::endl;
+	
 	// Randomly select the component to drop
 	int to_drop = stan::math::categorical_rng(Eigen::VectorXd::Constant(numComponents - 1, 1. / (numComponents - 1)), rng) - 1;
 
@@ -371,43 +379,33 @@ void SpatialMixtureRJSampler::reduceMove() {
 	Eigen::VectorXd log_stddevs(numComponents);
 	for (int i = 0; i < numComponents; ++i)
 		log_stddevs(i) = std::log(stddevs[i]);
-	double sigma = Sigma(0, 0);
 	Eigen::MatrixXd I = Eigen::MatrixXd::Identity(numGroups, numGroups);
-	Eigen::MatrixXd cov_weights = sigma * (F - rho * W).llt().solve(I);
+	Eigen::MatrixXd cov_weights = Sigma(0,0) * (F-rho*W).llt().solve(I);
 
-	// Build target negative lpdf to optimize
-	spmix_neglpdf target_nlpdf(data, utils::removeColumn(transformed_weights, to_drop),
-							 utils::removeElem(means_map, to_drop), utils::removeElem(log_stddevs, to_drop),
-							 cov_weights, params);
+	// Construct target lpdf
+	conditional_posterior_neglpdf target_nlpdf(data, utils::removeColumn(transformed_weights, to_drop),
+											   utils::removeElem(means_map,to_drop), utils::removeElem(log_stddevs,to_drop), cov_weights, params);
 
-	// Create solver object
-	LBFGSpp::LBFGSSolver<double> solver(options);
-
-	// Initial guess
+	// Construct proposal lpdf in implicit form
+	conditional_posterior_neglpdf prop_nlpdf_implicit(data, utils::removeColumn(transformed_weights, to_drop),
+													  utils::removeElem(means_map, to_drop), utils::removeElem(log_stddevs, to_drop), cov_weights, params);
+	
+	// Optimize implicit proposal
+	LBFGSpp::LBFGSSolver<double> solver(options); double fx;
 	Eigen::VectorXd opt(numGroups + 2);
-	opt << transformed_weights.col(to_drop), means_map(to_drop), log_stddevs(to_drop);
-
-	// Optimize
-	double fx; // int niter = -1, max = 1;
-	int niter = solver.minimize(target_nlpdf, opt, fx);
-	if(niter == -1) { /*std::cout << "gave -1" << std::endl;*/ niter = solver.minimize(target_nlpdf, opt, fx); }
-	// while (niter == -1 and max != 0) { niter = solver.minimize(target_nlpdf, opt, fx); max--; }
-	// int niter = solver.minimize(target_nlpdf, opt, fx);
-	// std::cout << "Here!" << std::endl;
-
+	opt << Eigen::VectorXd::Constant(numGroups, 0), stan::math::mean(means_map), log(1.0); //means_map(to_drop), log_stddevs(to_drop);
+	int niter = solver.minimize(prop_nlpdf_implicit, opt, fx);
+	if(niter == -1) { niter = solver.minimize(prop_nlpdf_implicit, opt, fx); }
 	// Check inverse Hessian matrix
 	Eigen::LLT<Eigen::MatrixXd> iHess_chol(solver.final_ihess());
 	Eigen::MatrixXd optCov_chol;
 	if(iHess_chol.info() == Eigen::NumericalIssue) {
-	  // std::cout << "using I" << std::endl;
-	  optCov_chol = 1e-1 * Eigen::MatrixXd::Identity(numGroups+2, numGroups+2);
+		optCov_chol = 1e-1 * Eigen::MatrixXd::Identity(numGroups+2, numGroups+2);
 	} else {
-	  optCov_chol = iHess_chol.matrixL();
+		optCov_chol = iHess_chol.matrixL();
 	}
-
-	// Compute proposal state
+	// Sample from proposal distribution
 	Eigen::VectorXd prop_state = stan::math::multi_normal_cholesky_rng(opt, optCov_chol, rng);
-
 	// std::cout << "prop_state: " << prop_state.transpose() << std::endl;
 
 	// Compute acceptance rate
@@ -418,7 +416,7 @@ void SpatialMixtureRJSampler::reduceMove() {
 
 	// Update state to reduce dimension
 	if (std::log(stan::math::uniform_rng(0, 1, rng)) < log_arate) {
-
+		++numAccepted;
 		--numComponents;
 		means.erase(means.begin() + to_drop);
 		stddevs.erase(stddevs.begin() + to_drop);
@@ -432,11 +430,11 @@ void SpatialMixtureRJSampler::reduceMove() {
 		sigma_star_h.resize(numGroups, numComponents - 1);
 		_computeInvSigmaH();
 
-		/*std::cout << "Accepting!" << std::endl;
-		std::cout << "numComponents: " << numComponents << std::endl;
-		std::cout << "means: " << Eigen::Map<Eigen::VectorXd>(means.data(), means.size()).transpose() << std::endl;
-		std::cout << "stddevs: " << Eigen::Map<Eigen::VectorXd>(stddevs.data(), stddevs.size()).transpose() << std::endl;
-		std::cout << "transformed_weights:\n" << transformed_weights << std::endl;*/
+		// std::cout << "Accepting!" << std::endl;
+		// std::cout << "numComponents: " << numComponents << std::endl;
+		// std::cout << "means: " << Eigen::Map<Eigen::VectorXd>(means.data(), means.size()).transpose() << std::endl;
+		// std::cout << "stddevs: " << Eigen::Map<Eigen::VectorXd>(stddevs.data(), stddevs.size()).transpose() << std::endl;
+		// std::cout << "transformed_weights:\n" << transformed_weights << std::endl;
 
 	}
 

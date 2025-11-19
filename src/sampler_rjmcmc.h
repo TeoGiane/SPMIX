@@ -1,12 +1,13 @@
 #ifndef RJMCMC_SAMPLER_HH
 #define RJMCMC_SAMPLER_HH
 
-#include "LBFGS.h"
-
-#include "optimization_options.pb.h"
-
+#include "cpp_proto/optimization_options.pb.h"
+// #include "functors/areal_conditional_posterior_neglpdf.h"
+#include "functors/conditional_posterior_neglpdf.h"
+#include "optimization/LBFGS.h"
 #include "sampler_base.h"
-#include "spmix_neglpdf.h"
+
+// #include "spmix_neglpdf.h"
 
 // #include "functors.h"
 // #include "gradient_ascent.h"
@@ -27,9 +28,15 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 	double lowerBound, upperBound;
 
 	// Iteration counter for sample method
-	int itercounter{0};
+	int numAccepted = 0;
+	int itercounter = 1;
 	//int cutoff{10};
 	//int acceptedMoves{0};
+
+	// Selected area
+	// int selected_area;
+	// int subset_size;
+	// std::vector<std::vector<double>> subset_data;
 
 	// Options for Optimization Algorithm
 	LBFGSpp::LBFGSParam<double> options;
@@ -69,6 +76,8 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 	void increaseMove();
 
 	void reduceMove();
+
+	// double computeAcceptanceRate() const { return static_cast<double>(numAccepted) / itercounter; }
 
 	//int get_acceptedMoves() {return acceptedMoves;};
 };

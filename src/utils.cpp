@@ -1,7 +1,4 @@
 #include "utils.h"
-#include <iostream>
-#include <filesystem>
-#include <exception>
 
 namespace utils {
 
@@ -274,5 +271,106 @@ int min(const std::vector<double> & vect) {
   }
   return min_idx;
 }
+
+std::vector<Eigen::VectorXd> post_lpdf_from_state(const spmix::UnivariateState & current_state, const std::vector<std::vector<double>> & data) {
+    // Get dimensions
+    int numGroups = current_state.groupparams_size();
+    int numComponents = current_state.num_components();
+    // Pre-cache component parameters
+    std::vector<double> means(numComponents), stdevs(numComponents);
+    for (int h = 0; h < numComponents; ++h) {
+        means[h] = current_state.atoms(h).mean();
+        stdevs[h] = current_state.atoms(h).stdev();
+    }
+    // Compute posterior lpdfs for each group
+    std::vector<Eigen::VectorXd> post_lpdfs(numGroups);
+    for (int i = 0; i < numGroups; ++i) {
+        // Get number of data points
+        int numDataPoints = data[i].size();
+        post_lpdfs[i] = Eigen::VectorXd(numDataPoints);        
+        // Pre-compute log weights for this group
+        std::vector<double> log_weights(numComponents);
+        for (int h = 0; h < numComponents; ++h) {
+            log_weights[h] = std::log(current_state.groupparams(i).weights(h));
+        }
+        // Compute posterior lpdf for each data point
+        for (int j = 0; j < numDataPoints; ++j) {
+            Eigen::VectorXd log_probs(numComponents);
+            for (int h = 0; h < numComponents; ++h) {
+                log_probs(h) = log_weights[h] + stan::math::normal_lpdf(data[i][j], means[h], stdevs[h]);
+            }
+            post_lpdfs[i](j) = stan::math::log_sum_exp(log_probs);
+        }
+    }
+    return post_lpdfs;
+}
+
+std::vector<Eigen::VectorXd> pred_lpdf_from_state(const spmix::UnivariateState & current_state, const Eigen::VectorXd & grid) {
+    // Get dimensions
+    int numGroups = current_state.groupparams_size();
+    int numComponents = current_state.num_components();
+    int gridSize = grid.size();
+    
+    // Pre-cache component parameters
+    std::vector<double> means(numComponents), stdevs(numComponents); //, log_weights_component(numComponents);
+    for (int h = 0; h < numComponents; ++h) {
+        means[h] = current_state.atoms(h).mean();
+        stdevs[h] = current_state.atoms(h).stdev();
+    }
+    
+    // Pre-compute component lpdf matrix: [gridSize x numComponents]
+    Eigen::MatrixXd component_lpdfs(gridSize, numComponents);
+    for (int j = 0; j < gridSize; ++j) {
+        for (int h = 0; h < numComponents; ++h) {
+            component_lpdfs(j, h) = stan::math::normal_lpdf(grid(j), means[h], stdevs[h]);
+        }
+    }
+    
+    // Compute predictive lpdfs for each group
+    std::vector<Eigen::VectorXd> pred_lpdfs(numGroups);
+    for (int i = 0; i < numGroups; ++i) {
+        // Pre-compute log weights for this group
+        std::vector<double> log_weights(numComponents);
+        for (int h = 0; h < numComponents; ++h) {
+            log_weights[h] = std::log(current_state.groupparams(i).weights(h));
+        }
+        
+        // Vectorize: add log weights to each column and compute log_sum_exp per row
+        Eigen::MatrixXd weighted_lpdfs = component_lpdfs;
+        for (int h = 0; h < numComponents; ++h) {
+            weighted_lpdfs.col(h).array() += log_weights[h];
+        }
+        
+        pred_lpdfs[i] = Eigen::VectorXd(gridSize);
+        for (int j = 0; j < gridSize; ++j) {
+            pred_lpdfs[i](j) = stan::math::log_sum_exp(weighted_lpdfs.row(j));
+        }
+    }
+    
+    return pred_lpdfs;
+}
+
+// std::vector<std::vector<double>> subsample_data(const std::vector<std::vector<double>>& data, int num_samples, std::mt19937_64& rng) {
+
+//     if (num_samples < 0) {
+//         throw std::invalid_argument("Number of samples cannot be negative.");
+//     }
+
+//     std::vector<std::vector<double>> subsampled_data;
+//     subsampled_data.reserve(data.size());
+
+//     for (const auto & group_data : data) {
+//         int original_size = group_data.size();
+//         if (num_samples >= original_size) {
+//             subsampled_data.push_back(group_data);
+//         } else {
+//             std::vector<double> temp_data = group_data;
+//             std::shuffle(temp_data.begin(), temp_data.end(), rng);
+//             subsampled_data.emplace_back(temp_data.begin(), temp_data.begin() + num_samples);
+//         }
+//     }
+
+//     return subsampled_data;
+// }
 
 } // namespace utils
