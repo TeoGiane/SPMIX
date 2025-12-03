@@ -1,6 +1,6 @@
 Package: SPMIX
 Title: Spatial Mixture Models in R
-Version: 2.5
+Version: 2.6
 Authors@R: 
     person(given = "Matteo",
            family = "Gianella",
@@ -18,7 +18,8 @@ Depends:
 Imports:
     mathjaxr (>= 1.0-1),
     Rcpp (>= 0.12.0),
-    RProtoBuf (>= 0.4.17)
+    RProtoBuf (>= 0.4.17),
+    sf (>= 1.0.23),
 LinkingTo: 
     BH (>= 1.66.0),
     Rcpp (>= 0.12.0),
