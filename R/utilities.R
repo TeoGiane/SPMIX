@@ -30,6 +30,68 @@ DeserializeSPMIXProto <- function(message_type, raw_vector) {
   return(state)
 }
 
+
+#' Compute the geometry of the boundaries between areal units
+#'
+#' This utility takes as input a list of boundaries between areal units and the
+#' corresponding \code{sf} geometry object and computes the geometry of the boundaries
+#' between the areal units.
+#'
+#' @param boundary_list A list of length \mjseqn{I}, where \mjseqn{I} is the number of areal units.
+#' Element \mjseqn{i} of the list contains a vector of indices representing the areal units
+#' that share a boundary with areal unit \mjseqn{i}.
+#' @param sf_geometry An \code{sf} object representing the geometry of the areal units.
+#' @return An \code{sf} object containing the geometry of the boundaries between the areal units.
+#'
+#' @export
+BoundaryGeometry <- function(boundary_list, sf_geometry) {
+
+  # Check inputs
+  if (!is.list(boundary_list)) {
+    stop("'boundary_list' must be a list")
+  }
+  if (!inherits(sf_geometry, "sf")) {
+    stop("'sf_geometry' must be an sf object")
+  }
+  if (nrow(sf_geometry) != length(boundary_list)) {
+    stop("Length of 'boundary_list' must match number of rows in 'sf_geometry'")
+  }
+
+  # Add id column if not present
+  if(!("id" %in% names(sf_geometry))){
+    sf_geometry$id <- 1:nrow(sf_geometry)
+  }
+
+  # Create empty list to store boundary geometries
+  geom_bdd <- list()
+
+  # Populate list
+  for(i in 1:nrow(sf_geometry)) {
+    # Get current area and its boundaries
+    if (length(boundary_list[[i]]) > 0) {
+      for (j in boundary_list[[i]]) {
+        # Compute geometry of boundary
+        sel_geom <- sf_geometry[c(i, j), "id"]
+        bounds <- suppressWarnings(sf::st_intersection(sel_geom, sel_geom))
+        bounds <- sf::st_union(sf::st_geometry(bounds[bounds$id != bounds$id.1, ]))
+        # Append to list
+        geom_bdd <- append(geom_bdd, list(sf::st_sf(geometry = bounds)))
+      }
+    }
+  }
+  # Bind all objects
+  geom_bdd <- do.call(rbind, geom_bdd)
+
+  # Drop points if present
+  points <- which(attr(geom_bdd$geometry, "classes") == "POINT")
+  if(length(points) > 0){
+    geom_bdd <- geom_bdd[-points, ]
+  }
+
+  # Condense everything into a unique sf object and return
+  return(geom_bdd)
+}
+
 # #' Compute the chain of the estimated posterior densities over a grid of points
 # #'
 # #' \loadmathjax This utility takes as input the deserialized output of the samplers
