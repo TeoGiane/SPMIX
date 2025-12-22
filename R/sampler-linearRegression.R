@@ -53,7 +53,7 @@ Sampler.LinearRegression <- function(burnin, niter, thin, data, W, params, cov =
   # Set random seed
   if (is.null(seed)) {
     seed <- as.integer(Sys.time()) %% 1e8
-    print(paste0("No seed provided. Using: ", seed))
+    # print(paste0("No seed provided. Using: ", seed))
   }
 
   # Check sampler type to run

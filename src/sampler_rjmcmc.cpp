@@ -80,7 +80,7 @@ void SpatialMixtureRJSampler::init() {
 	// Rcpp::Rcout << "boundary_detection? " << std::boolalpha << boundary_detection << std::endl;
 
 	// Base class init
-	Rcpp::Rcout << "Random Seed is set to: " << seed << std::endl;
+	// Rcpp::Rcout << "Random Seed is set to: " << seed << std::endl;
 	SpatialMixtureSamplerBase::init();
 
 	// Setting InvGamma Params

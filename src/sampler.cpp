@@ -39,7 +39,7 @@ void SpatialMixtureSampler::init() {
 	// boundary_detection = false;
 
 	// Base class init
-	Rcpp::Rcout << "Random Seed is set to: " << seed << std::endl;
+	// Rcpp::Rcout << "Random Seed is set to: " << seed << std::endl;
 	SpatialMixtureSamplerBase::init();
 
 	// Setting InvWishart Params
