@@ -1,10 +1,12 @@
 #include "sampler_rjmcmc.h"
 
-SpatialMixtureRJSampler::SpatialMixtureRJSampler(const spmix::SamplerParams &_params,
-												 const std::vector<std::vector<double>> &_data,
-												 const Eigen::MatrixXd &_W,
-												 const spmix::OptimOptions &_options,
-												 bool _boundary_detection) : SpatialMixtureSamplerBase(_params, _data, _W) {
+SpatialMixtureRJSampler::SpatialMixtureRJSampler(
+	const spmix::SamplerParams &_params,
+	const std::vector<std::vector<double>> &_data,
+	const Eigen::MatrixXd &_W,
+	const spmix::OptimOptions &_options,
+	bool _boundary_detection,
+	unsigned long _seed) : SpatialMixtureSamplerBase(_params, _data, _W, _seed) {
 
 	// Set up optimization options from proto
 	options.epsilon = _options.tol();
@@ -34,12 +36,14 @@ SpatialMixtureRJSampler::SpatialMixtureRJSampler(const spmix::SamplerParams &_pa
 	}
 }
 
-SpatialMixtureRJSampler::SpatialMixtureRJSampler(const spmix::SamplerParams &_params,
-												 const std::vector<std::vector<double>> &_data,
-												 const Eigen::MatrixXd &_W,
-												 const spmix::OptimOptions &_options,
-												 const std::vector<Eigen::MatrixXd> &X,
-												 bool _boundary_detection) : SpatialMixtureSamplerBase(_params, _data, _W, X) {
+SpatialMixtureRJSampler::SpatialMixtureRJSampler(
+	const spmix::SamplerParams &_params,
+	const std::vector<std::vector<double>> &_data,
+	const Eigen::MatrixXd &_W,
+	const spmix::OptimOptions &_options,
+	const std::vector<Eigen::MatrixXd> &X,
+	bool _boundary_detection,
+	unsigned long _seed) : SpatialMixtureSamplerBase(_params, _data, _W, X, _seed) {
 
 	// Set up optimization options from proto
 	options.epsilon = _options.tol();
@@ -76,6 +80,7 @@ void SpatialMixtureRJSampler::init() {
 	// Rcpp::Rcout << "boundary_detection? " << std::boolalpha << boundary_detection << std::endl;
 
 	// Base class init
+	Rcpp::Rcout << "Random Seed is set to: " << seed << std::endl;
 	SpatialMixtureSamplerBase::init();
 
 	// Setting InvGamma Params

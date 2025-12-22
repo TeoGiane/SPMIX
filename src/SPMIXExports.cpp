@@ -74,7 +74,7 @@ Eigen::VectorXd InvAlr(Eigen::VectorXd x) {
 std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>> & data,
     										   const Eigen::MatrixXd & W, std::string params_filename,
     										   const std::vector<Eigen::MatrixXd> & covariates,
-											   bool boundary_detection, bool display_progress) {
+											   bool boundary_detection, bool display_progress, unsigned long seed) {
 	
 	// Parse Sampler Parameters
 	spmix::SamplerParams params;
@@ -87,7 +87,7 @@ std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, 
 	}
 
 	// Initializarion
-	SpatialMixtureSampler spSampler(params, data, W, covariates, boundary_detection);
+	SpatialMixtureSampler spSampler(params, data, W, covariates, boundary_detection, seed);
 	spSampler.init();
 
 	// Initialize output container
@@ -136,7 +136,7 @@ std::vector<Rcpp::RawVector> runSpatialSampler(int burnin, int niter, int thin, 
 std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin, const std::vector<std::vector<double>> & data,
     											 const Eigen::MatrixXd & W, const std::string & params_filename,
     											 const std::vector<Eigen::MatrixXd> & covariates,
-    											 const std::string & options_filename, bool boundary_detection, bool display_progress) {
+    											 const std::string & options_filename, bool boundary_detection, bool display_progress, unsigned long seed) {
 	
 	// Parse Sampler Parameters
 	spmix::SamplerParams params;
@@ -159,7 +159,7 @@ std::vector<Rcpp::RawVector> runSpatialRJSampler(int burnin, int niter, int thin
 	}
 
 	// Initializarion
-	SpatialMixtureRJSampler spSampler(params, data, W, options, covariates, boundary_detection);
+	SpatialMixtureRJSampler spSampler(params, data, W, options, covariates, boundary_detection, seed);
 	spSampler.init();
 
 	// Initialize output container

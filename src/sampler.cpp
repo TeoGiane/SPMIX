@@ -2,11 +2,13 @@
 
 using namespace stan::math;
 
-SpatialMixtureSampler::SpatialMixtureSampler(const spmix::SamplerParams &_params,
-                                             const std::vector<std::vector<double>> &_data,
-                                             const Eigen::MatrixXd &_W,
-																						 bool _boundary_detection):
-SpatialMixtureSamplerBase(_params, _data, _W) {
+SpatialMixtureSampler::SpatialMixtureSampler(
+	const spmix::SamplerParams &_params,
+	const std::vector<std::vector<double>> &_data,
+	const Eigen::MatrixXd &_W,
+	bool _boundary_detection,
+	unsigned long _seed): SpatialMixtureSamplerBase(_params, _data, _W, _seed) {
+	
 	// Setting boundary detection flag
 	boundary_detection = _boundary_detection;
 	// Control the prior for Sigma
@@ -16,11 +18,12 @@ SpatialMixtureSamplerBase(_params, _data, _W) {
 };
 
 SpatialMixtureSampler::SpatialMixtureSampler(const spmix::SamplerParams &_params,
-                                             const std::vector<std::vector<double>> &_data,
-                                             const Eigen::MatrixXd &_W,
-                                             const std::vector<Eigen::MatrixXd> &X,
-																						 bool _boundary_detection):
-SpatialMixtureSamplerBase(_params, _data, _W, X) {
+	const std::vector<std::vector<double>> &_data,
+	const Eigen::MatrixXd &_W,
+	const std::vector<Eigen::MatrixXd> & X,
+	bool _boundary_detection,
+	unsigned long _seed): SpatialMixtureSamplerBase(_params, _data, _W, X, _seed) {
+	
 	// Setting boundary detection flag
 	boundary_detection = _boundary_detection;
 	// Control the prior for Sigma
@@ -31,11 +34,12 @@ SpatialMixtureSamplerBase(_params, _data, _W, X) {
 
 void SpatialMixtureSampler::init() {
 
-  // Setting variables for W sampling
-	std::cout << "boundary detection: " << std::boolalpha << boundary_detection << std::endl;
-  // boundary_detection = false;
+	// Setting variables for W sampling
+	// std::cout << "boundary detection: " << std::boolalpha << boundary_detection << std::endl;
+	// boundary_detection = false;
 
 	// Base class init
+	Rcpp::Rcout << "Random Seed is set to: " << seed << std::endl;
 	SpatialMixtureSamplerBase::init();
 
 	// Setting InvWishart Params

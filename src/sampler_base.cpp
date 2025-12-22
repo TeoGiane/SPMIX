@@ -2,10 +2,25 @@
 
 using namespace stan::math;
 
-SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(const spmix::SamplerParams &_params,
+// SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(
+//     const spmix::SamplerParams &_params,
+//     const std::vector<std::vector<double>> &_data,
+//     const Eigen::MatrixXd &_W,
+//     unsigned long _seed = 213513435)  // Default value
+//     : params(_params), data(_data), W_init(_W), seed(_seed) {
+//     rng.seed(seed);  // Initialize RNG with seed
+//     // ... rest of constructor
+// }
+
+SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(
+	const spmix::SamplerParams &_params,
     const std::vector<std::vector<double>> &_data,
-    const Eigen::MatrixXd &_W): params(_params), data(_data), W_init(_W)
-{
+    const Eigen::MatrixXd & _W,
+	unsigned long _seed = 213513435): params(_params), data(_data), W_init(_W), seed(_seed) {
+	
+	// Initialize RNG with seed
+	rng.seed(seed);
+	// Deduce problem dimensions
     numGroups = data.size();
     samplesPerGroup.resize(numGroups);
     for (int i = 0; i < numGroups; i++) {
@@ -14,17 +29,22 @@ SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(const spmix::SamplerParams 
     numdata = std::accumulate(samplesPerGroup.begin(), samplesPerGroup.end(), 0);
 }
 
-SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(const spmix::SamplerParams &_params,
+SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(
+	const spmix::SamplerParams &_params,
 	const std::vector<std::vector<double>> &_data,
-	const Eigen::MatrixXd &_W, const std::vector<Eigen::MatrixXd> &X): params(_params), data(_data), W_init(_W) {
-
+	const Eigen::MatrixXd &_W, const std::vector<Eigen::MatrixXd> &X,
+	unsigned long _seed = 213513435): params(_params), data(_data), W_init(_W), seed(_seed) {
+	
+	// Initialize RNG with seed
+	rng.seed(seed);
+	// Deduce problem dimensions
     numGroups = data.size();
     samplesPerGroup.resize(numGroups);
     for (int i = 0; i < numGroups; i++) {
         samplesPerGroup[i] = data[i].size();
     }
     numdata = std::accumulate(samplesPerGroup.begin(), samplesPerGroup.end(), 0);
-
+	// Regression setup
     if (X.size() > 0) {
         regression = true;
         p_size = X[0].cols();
@@ -170,7 +190,7 @@ void SpatialMixtureSamplerBase::init() {
 						tmp_p.emplace_back(stan::math::beta_rng(params.graph_params().beta().a(),
 																params.graph_params().beta().b(), rng));
 					else
-						tmp_p.emplace_back(params.graph_params().fixed());*/
+					 tmp_p.emplace_back(params.graph_params().fixed());*/
 				}
 			}
 			neighbors.emplace_back(tmp);
@@ -474,8 +494,7 @@ void SpatialMixtureSamplerBase::sampleW() {
 				Eigen::VectorXd probas = stan::math::softmax(logProbas);
 				// double addendum_ij = rho/(2*Sigma(0,0)) * ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j));
 
-				// logProbas(0) = std::log(1-p); logProbas(1) = std::log(p) + addendum_ij;
-				//logProbas(0) = std::log(1-p[i][j]); logProbas(1) = std::log(p[i][j]) + addendum_ij;
+				// logProbas(0) = std::log(1-p[i][j]); logProbas(1) = std::log(p[i][j]) + addendum_ij;
 				// Eigen::VectorXd probas = logProbas.array().exp(); probas /= probas.sum();
 				//Rcpp::Rcout << " new_probs: " << probas.transpose() << std::endl;
 

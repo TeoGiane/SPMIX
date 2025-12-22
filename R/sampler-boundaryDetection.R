@@ -26,13 +26,15 @@
 #' object of type OptimOptions generated via \code{\link{RProtoBuf}}.
 #' @param display_progress Boolean, it allows you display on the console the progress bar during burn-in
 #' and sampling phase. As default value, it is set to TRUE.
+#' @param seed Integer, the random seed to be used in the sampler. If set to NULL (default value),
+#' the seed is generated using the current system time.
 #'
 #' @return A list of raw vectors where the \mjseqn{i}-th element is the \mjseqn{i}-th saved draw.
 #' In order to reduce the space occupied by these draws, data are serialized using Google Protocol Buffers.
 #' Each state can be easily deserialized in R using the \code{\link{DeserializeSPMIXProto}} function of this package.
 #'
 #' @export
-Sampler.BoundaryDetection <- function(burnin, niter, thin, data, W, params, options = NULL, display_progress = TRUE) {
+Sampler.BoundaryDetection <- function(burnin, niter, thin, data, W, params, options = NULL, display_progress = TRUE, seed = NULL) {
 
   # Create .asciipb files in temporary directory if needed
   out_dir = tempdir()
@@ -46,12 +48,18 @@ Sampler.BoundaryDetection <- function(burnin, niter, thin, data, W, params, opti
   params_in <- params_info$filepath
   type <- params_info$mcmc_type
 
+  # Set random seed
+  if (is.null(seed)) {
+    seed <- as.integer(Sys.time()) %% 1e8
+    print(paste0("No seed provided. Using: ", seed))
+  }
+
   # Execute sampler
   if (type == "no_rjmcmc") {
-    output <- SPMIX:::runSpatialSampler(burnin, niter, thin, data_in, W_in, params_in, list(), TRUE, display_progress)
+    output <- SPMIX:::runSpatialSampler(burnin, niter, thin, data_in, W_in, params_in, list(), TRUE, display_progress, seed)
   } else if (type == "rjmcmc") {
     options_in <- parseOptions(options, out_dir)
-    output <- SPMIX:::runSpatialRJSampler(burnin, niter, thin, data_in, W_in, params_in, list(), options_in, TRUE, display_progress)
+    output <- SPMIX:::runSpatialRJSampler(burnin, niter, thin, data_in, W_in, params_in, list(), options_in, TRUE, display_progress, seed)
   } else {
     stop("Input parameter 'type' is of unknown type.")
   }

@@ -50,14 +50,16 @@ class SpatialMixtureRJSampler: public SpatialMixtureSamplerBase {
 							const std::vector<std::vector<double>> &_data,
 							const Eigen::MatrixXd &_W,
 							const spmix::OptimOptions &_options,
-							bool _boundary_detection);
+							bool _boundary_detection,
+							unsigned long _seed);
 
 	SpatialMixtureRJSampler(const spmix::SamplerParams &_params,
 							const std::vector<std::vector<double>> &_data,
 							const Eigen::MatrixXd &_W,
 							const spmix::OptimOptions &_options,
 							const std::vector<Eigen::MatrixXd> &X,
-							bool _boundary_detection);
+							bool _boundary_detection,
+							unsigned long _seed);
 
 	void init();
 

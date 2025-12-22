@@ -113,9 +113,9 @@ class SpatialMixtureSamplerBase {
 	// HyperParams for NormalGamma
 	double priorMean, priorA, priorB, priorLambda;
 
-	unsigned long seed = 213513435;
+	unsigned long seed;
 	PolyaGammaHybridDouble* pg_rng = nullptr;
-	std::mt19937_64 rng{213513435};
+	std::mt19937_64 rng;
 
 	// diagnostic for the MH sampler
 	int numAccepted = 0;
