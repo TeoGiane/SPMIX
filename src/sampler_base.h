@@ -126,12 +126,15 @@ class SpatialMixtureSamplerBase {
 	SpatialMixtureSamplerBase(
 		const spmix::SamplerParams &_params,
 		const std::vector<std::vector<double>> &_data,
-		const Eigen::MatrixXd &_W);
+		const Eigen::MatrixXd &_W,
+		unsigned long _seed);
 
 	SpatialMixtureSamplerBase(
 		const spmix::SamplerParams &_params,
 		const std::vector<std::vector<double>> &_data,
-		const Eigen::MatrixXd &_W, const std::vector<Eigen::MatrixXd> &X);
+		const Eigen::MatrixXd &_W,
+		const std::vector<Eigen::MatrixXd> &X,
+		unsigned long _seed);
 
 	virtual ~SpatialMixtureSamplerBase() {
 		delete(pg_rng);
