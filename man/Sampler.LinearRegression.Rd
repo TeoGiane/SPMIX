@@ -13,7 +13,8 @@ Sampler.LinearRegression(
   params,
   cov = list(),
   options = NULL,
-  display_progress = TRUE
+  display_progress = TRUE,
+  seed = NULL
 )
 }
 \arguments{
@@ -46,6 +47,9 @@ object of type OptimOptions generated via \code{\link{RProtoBuf}}.}
 
 \item{display_progress}{Boolean, it allows you display on the console the progress bar during burn-in
 and sampling phase. As default value, it is set to TRUE.}
+
+\item{seed}{Integer, the random seed to be used in the sampler. If set to NULL (default value),
+the seed is generated using the current system time.}
 }
 \value{
 A list of raw vectors where the \mjseqn{i}-th element is the \mjseqn{i}-th saved draw.

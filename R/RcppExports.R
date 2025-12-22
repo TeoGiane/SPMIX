@@ -30,12 +30,12 @@ InvAlr <- function(x) {
     .Call(`_SPMIX_InvAlr`, x)
 }
 
-runSpatialSampler <- function(burnin, niter, thin, data, W, params_filename, covariates, boundary_detection, display_progress) {
-    .Call(`_SPMIX_runSpatialSampler`, burnin, niter, thin, data, W, params_filename, covariates, boundary_detection, display_progress)
+runSpatialSampler <- function(burnin, niter, thin, data, W, params_filename, covariates, boundary_detection, display_progress, seed) {
+    .Call(`_SPMIX_runSpatialSampler`, burnin, niter, thin, data, W, params_filename, covariates, boundary_detection, display_progress, seed)
 }
 
-runSpatialRJSampler <- function(burnin, niter, thin, data, W, params_filename, covariates, options_filename, boundary_detection, display_progress) {
-    .Call(`_SPMIX_runSpatialRJSampler`, burnin, niter, thin, data, W, params_filename, covariates, options_filename, boundary_detection, display_progress)
+runSpatialRJSampler <- function(burnin, niter, thin, data, W, params_filename, covariates, options_filename, boundary_detection, display_progress, seed) {
+    .Call(`_SPMIX_runSpatialRJSampler`, burnin, niter, thin, data, W, params_filename, covariates, options_filename, boundary_detection, display_progress, seed)
 }
 
 #' Import Proximity Matrix from File
