@@ -1,6 +1,9 @@
 syntax = "proto3";
 
+package spmix;
+
 message OptimOptions {
 	double max_iter = 1;
 	double tol = 2;
+	int32 jump_every = 3;
 }

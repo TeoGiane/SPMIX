@@ -8,11 +8,16 @@
 #include <sstream>
 #include <string>
 #include <fstream>
+#include <iostream>
+#include <filesystem>
+#include <exception>
 
 #include <stan/math.hpp>
-#include <Eigen/Dense>
+// #include <Eigen/Dense>
 #define STRICT_R_HEADERS
 #include <Rcpp.h>
+
+#include "univariate_mixture_state.pb.h"
 
 
 namespace utils {
@@ -70,6 +75,12 @@ std::string raw2str(const Rcpp::RawVector & raw_vect);
 std::pair<double,double> range(const std::vector<std::vector<double>> & vectvect);
 
 int min(const std::vector<double> & vect);
+
+std::vector<Eigen::VectorXd> post_lpdf_from_state(const spmix::UnivariateState & current_state, const std::vector<std::vector<double>> & data);
+
+std::vector<Eigen::VectorXd> pred_lpdf_from_state(const spmix::UnivariateState & current_state, const Eigen::VectorXd & grid);
+
+// std::vector<std::vector<double>> subsample_data(const std::vector<std::vector<double>>& data, int num_samples, std::mt19937_64& rng);
 
 } // namespace utils
 

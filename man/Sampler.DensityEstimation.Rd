@@ -11,9 +11,9 @@ Sampler.DensityEstimation(
   data,
   W,
   params,
-  type = "no_rjmcmc",
   options = NULL,
-  display_progress = TRUE
+  display_progress = TRUE,
+  seed = NULL
 )
 }
 \arguments{
@@ -35,11 +35,6 @@ the path to a \code{.csv} file storing the proximity matrix, or as a simple R ma
 containing the path to an \code{.asciipb} file or as an \code{S4::Message} class of type SamplerParams, i.e. a
 Google Protocol Buffer Message available in the package and interfaced to R through \code{\link{RProtoBuf}}.}
 
-\item{type}{A string identifying the type of sampler to run. If type is "rjmcmc", the algorithm will run
-the spatial mixture sampler putting a prior on the number of components \mjseqn{H}.
-The default value is "no_rjmcmc", which samples from the spatial mixture model with a fixed number
-of components.}
-
 \item{options}{The sampler optimization options used in the execution of the reversible jump sampler.
 Default value is set to \code{NULL} and in case type is "rjmcmc", a \code{S4::Message} object of type
 OptimOptions is istanciated with default values. In order to override the default values, options can be
@@ -48,6 +43,9 @@ object of type OptimOptions generated via \code{\link{RProtoBuf}}.}
 
 \item{display_progress}{Boolean, it allows you display on the console the progress bar during burn-in
 and sampling phase. As default value, it is set to TRUE.}
+
+\item{seed}{Integer, the random seed to be used in the sampler. If set to NULL (default value),
+the seed is generated using the current system time.}
 }
 \value{
 A list of raw vectors where the \mjseqn{i}-th element is the \mjseqn{i}-th saved draw.

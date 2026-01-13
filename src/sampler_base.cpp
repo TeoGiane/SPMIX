@@ -2,10 +2,25 @@
 
 using namespace stan::math;
 
-SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(const SamplerParams &_params,
+// SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(
+//     const spmix::SamplerParams &_params,
+//     const std::vector<std::vector<double>> &_data,
+//     const Eigen::MatrixXd &_W,
+//     unsigned long _seed = 213513435)  // Default value
+//     : params(_params), data(_data), W_init(_W), seed(_seed) {
+//     rng.seed(seed);  // Initialize RNG with seed
+//     // ... rest of constructor
+// }
+
+SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(
+	const spmix::SamplerParams &_params,
     const std::vector<std::vector<double>> &_data,
-    const Eigen::MatrixXd &_W): params(_params), data(_data), W_init(_W)
-{
+    const Eigen::MatrixXd & _W,
+	unsigned long _seed = 213513435): params(_params), data(_data), W_init(_W), seed(_seed) {
+	
+	// Initialize RNG with seed
+	rng.seed(seed);
+	// Deduce problem dimensions
     numGroups = data.size();
     samplesPerGroup.resize(numGroups);
     for (int i = 0; i < numGroups; i++) {
@@ -14,17 +29,22 @@ SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(const SamplerParams &_param
     numdata = std::accumulate(samplesPerGroup.begin(), samplesPerGroup.end(), 0);
 }
 
-SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(const SamplerParams &_params,
+SpatialMixtureSamplerBase::SpatialMixtureSamplerBase(
+	const spmix::SamplerParams &_params,
 	const std::vector<std::vector<double>> &_data,
-	const Eigen::MatrixXd &_W, const std::vector<Eigen::MatrixXd> &X): params(_params), data(_data), W_init(_W) {
-
+	const Eigen::MatrixXd &_W, const std::vector<Eigen::MatrixXd> &X,
+	unsigned long _seed = 213513435): params(_params), data(_data), W_init(_W), seed(_seed) {
+	
+	// Initialize RNG with seed
+	rng.seed(seed);
+	// Deduce problem dimensions
     numGroups = data.size();
     samplesPerGroup.resize(numGroups);
     for (int i = 0; i < numGroups; i++) {
         samplesPerGroup[i] = data[i].size();
     }
     numdata = std::accumulate(samplesPerGroup.begin(), samplesPerGroup.end(), 0);
-
+	// Regression setup
     if (X.size() > 0) {
         regression = true;
         p_size = X[0].cols();
@@ -50,10 +70,18 @@ void SpatialMixtureSamplerBase::init() {
 	pg_rng = new PolyaGammaHybridDouble(seed);
 
 	// Set numComponents
-	numComponents = params.num_components();
+	if(params.num_components().has_fixed()){
+		numComponents = params.num_components().fixed();
+	}
+	else if (params.num_components().has_shifted_poisson_prior()) {
+		shifted_poisson_rate = params.num_components().shifted_poisson_prior().rate();
+		numComponents = 2 + stan::math::poisson_rng(shifted_poisson_rate, rng);
+	} else {
+		throw std::runtime_error("numComponents parameter is in wrong format");
+	}
 	// mtilde_sigmasq = params.mtilde_sigmasq();
 	
-	// Set P= parameters
+	// Set P0 parameters
 	priorMean = params.p0_params().mu0();
 	priorA = params.p0_params().a();
 	priorB = params.p0_params().b();
@@ -66,21 +94,23 @@ void SpatialMixtureSamplerBase::init() {
 	}
 
 	// Set prior hyperparameters for Sigma
-	if (params.sigma().has_inv_wishart_prior()) {
+	if (params.sigma().has_fixed()) {
+		sigma_fixed = params.sigma().fixed();
+
+	} else if (params.sigma().has_inv_wishart_prior()) {
 		nu = params.sigma().inv_wishart_prior().nu();
-    if (params.sigma().inv_wishart_prior().identity()){
-      V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
-    }
-    else {
+		if (params.sigma().inv_wishart_prior().identity()){
+			V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
+		} else {
 			V0 = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
 			Rcpp::Rcout << "Case not yet implemented, settig V0 to identity" << std::endl;
-    }
-	}
-	else if(params.sigma().has_inv_gamma_prior()){
+		}
+
+	} else if(params.sigma().has_inv_gamma_prior()){
 		alpha_Sigma = params.sigma().inv_gamma_prior().alpha();
 		beta_Sigma = params.sigma().inv_gamma_prior().beta();
-	}
-	else {
+		
+	} else {
 		throw std::runtime_error("Hyperparameters for sigma are in wrong format");
 	}
 	
@@ -103,7 +133,7 @@ void SpatialMixtureSamplerBase::init() {
 	rho_sum = 0;
 	rho_sum_sq = 0;
 
-	Sigma = Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
+	Sigma = sigma_fixed * Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
 
 	means.resize(numComponents);
 	stddevs.resize(numComponents);
@@ -135,15 +165,15 @@ void SpatialMixtureSamplerBase::init() {
 	}
 
     // Setting W to the initial matrix and (eventually) initialize boundary detection members
-    W = W_init;
-
+    W = W_init; // W.setZero();
+	// std::cout << "W: " << W.sum() << std::endl;
 	  /*Rcpp::Rcout << "W:\n" << W << std::endl;
 	  Rcpp::Rcout << "W_up:\n" << W_up << std::endl;
 	  Rcpp::Rcout << "total_edges: " << total_edges << std::endl;*/
 
     if (boundary_detection) {
     	//Rcpp::Rcout << "Inside boundary_detection condition!" << std::endl;
-		W_up = Eigen::TriangularView<Eigen::MatrixXd, Eigen::StrictlyUpper>(W);
+		W_up = Eigen::TriangularView<Eigen::MatrixXd, Eigen::StrictlyUpper>(W_init);
 		total_edges = W_up.sum();
     	if (params.graph_params().has_beta_prior())
 			  p = stan::math::beta_rng(params.graph_params().beta_prior().a(),params.graph_params().beta_prior().b(), rng);
@@ -160,7 +190,7 @@ void SpatialMixtureSamplerBase::init() {
 						tmp_p.emplace_back(stan::math::beta_rng(params.graph_params().beta().a(),
 																params.graph_params().beta().b(), rng));
 					else
-						tmp_p.emplace_back(params.graph_params().fixed());*/
+					 tmp_p.emplace_back(params.graph_params().fixed());*/
 				}
 			}
 			neighbors.emplace_back(tmp);
@@ -250,70 +280,71 @@ void SpatialMixtureSamplerBase::sampleAllocations() {
 
 void SpatialMixtureSamplerBase::sampleWeights() {
 
-  // std::cout << "sampleWeights()" << std::endl;
+	// std::cout << "sampleWeights()" << std::endl;
 
 	for (int i = 0; i < numGroups; i++) {
 	  // std::cout << "Area " << i << std::endl;
 		std::vector<int> cluster_sizes(numComponents, 0);
 
-	//#pragma omp parallel for
-	for (int j = 0; j < samplesPerGroup[i]; j++)
-		cluster_sizes[cluster_allocs[i][j]] += 1;
+		//#pragma omp parallel for
+		for (int j = 0; j < samplesPerGroup[i]; j++) {
+			cluster_sizes[cluster_allocs[i][j]] += 1;
+		}
 
-	for (int h = 0; h < numComponents - 1; h++) {
-	  // std::cout << "Component " << h << std::endl;
-		/* we draw omega from a Polya-Gamma distribution */
-		Eigen::VectorXd weightsForCih =
-		utils::removeElem(transformed_weights.row(i), h);
-		double C_ih = stan::math::log_sum_exp(weightsForCih);
+		for (int h = 0; h < numComponents - 1; h++) {
+			// std::cout << "Component " << h << std::endl;
+			/* we draw omega from a Polya-Gamma distribution */
+			Eigen::VectorXd weightsForCih =
+			utils::removeElem(transformed_weights.row(i), h);
+			double C_ih = stan::math::log_sum_exp(weightsForCih);
 
-    // std::cout << "weightsForCih: " << weightsForCih.transpose() << std::endl;
-    // std::cout << "transformed_weights(i, h)" << transformed_weights(i, h) << std::endl;
-		// std::cout << "C_ih: " << C_ih << std::endl;
+			// std::cout << "weightsForCih: " << weightsForCih.transpose() << std::endl;
+			// std::cout << "transformed_weights(i, h)" << transformed_weights(i, h) << std::endl;
+			// std::cout << "C_ih: " << C_ih << std::endl;
 
-		double omega_ih = pg_rng->draw(samplesPerGroup[i], transformed_weights(i, h) - C_ih);
+			double omega_ih = pg_rng->draw(samplesPerGroup[i], transformed_weights(i, h) - C_ih);
 
-		// std::cout << "omega is sampled!" << std::endl;
+			// std::cout << "omega is sampled!" << std::endl;
 
-		Eigen::VectorXd mu_i = (W.row(i)*transformed_weights).array() * rho +
-								mtildes.row(node2comp[i]).array() * (1 - rho);
-		// std::cout << "qt1: " << ((W.row(i)*transformed_weights).array() * rho).transpose() << std::endl;
-		// std::cout << "qt2: " << (mtildes.row(node2comp[i]).array() * (1 - rho)).transpose() << std::endl;
-		// std::cout << "1-mu_i: " << mu_i.transpose() << std::endl;
-		mu_i = mu_i.array() / (W.row(i).sum() * rho + 1 - rho);
-		// std::cout << "2-mu_i: " << mu_i.transpose() << std::endl;
-		mu_i = mu_i.head(numComponents - 1).eval();
-		// std::cout << "3-mu_i: " << mu_i.transpose() << std::endl;
-		Eigen::VectorXd wtilde = transformed_weights.row(i).head(numComponents-1);
+			Eigen::VectorXd mu_i = (W.row(i)*transformed_weights).array() * rho +
+									mtildes.row(node2comp[i]).array() * (1 - rho);
+			// std::cout << "qt1: " << ((W.row(i)*transformed_weights).array() * rho).transpose() << std::endl;
+			// std::cout << "qt2: " << (mtildes.row(node2comp[i]).array() * (1 - rho)).transpose() << std::endl;
+			// std::cout << "1-mu_i: " << mu_i.transpose() << std::endl;
+			mu_i = mu_i.array() / (W.row(i).sum() * rho + 1 - rho);
+			// std::cout << "2-mu_i: " << mu_i.transpose() << std::endl;
+			mu_i = mu_i.head(numComponents - 1).eval();
+			// std::cout << "3-mu_i: " << mu_i.transpose() << std::endl;
+			Eigen::VectorXd wtilde = transformed_weights.row(i).head(numComponents-1);
 
-		// std::cout << "(W.row(i)*transformed_weights)" << (W.row(i)*transformed_weights) << std::endl;
-		// std::cout << "rho: " << rho << std::endl;
-		// std::cout << "mtildes.row(node2comp[i])" << mtildes.row(node2comp[i]) << std::endl;
+			// std::cout << "(W.row(i)*transformed_weights)" << (W.row(i)*transformed_weights) << std::endl;
+			// std::cout << "rho: " << rho << std::endl;
+			// std::cout << "mtildes.row(node2comp[i])" << mtildes.row(node2comp[i]) << std::endl;
 
 
-		double mu_star_ih = mu_i[h] + pippo[h].dot(utils::removeElem(wtilde, h) -
-		utils::removeElem(mu_i, h));
+			double mu_star_ih = mu_i[h] + pippo[h].dot(utils::removeElem(wtilde, h) -
+			utils::removeElem(mu_i, h));
 
-    // std::cout << "wtilde: " << wtilde.transpose() << std::endl;
-		// std::cout << "mu_i: " << mu_i.transpose() << std::endl;
-		// std::cout << "pippo[h]" << pippo[h].transpose() << std::endl;
+			// std::cout << "wtilde: " << wtilde.transpose() << std::endl;
+			// std::cout << "mu_i: " << mu_i.transpose() << std::endl;
+			// std::cout << "pippo[h]" << pippo[h].transpose() << std::endl;
 
-		double sigma_hat_ih = 1.0 / (1.0 / sigma_star_h(i, h) + omega_ih);
-		int N_ih = cluster_sizes[h];
-		double mu_hat_ih = (mu_star_ih / sigma_star_h(i, h) + N_ih -
-							0.5 * samplesPerGroup[i] + omega_ih * C_ih) * (sigma_hat_ih);
+			double sigma_hat_ih = 1.0 / (1.0 / sigma_star_h(i, h) + omega_ih);
+			int N_ih = cluster_sizes[h];
+			double mu_hat_ih = (mu_star_ih / sigma_star_h(i, h) + N_ih -
+								0.5 * samplesPerGroup[i] + omega_ih * C_ih) * (sigma_hat_ih);
 
-		// std::cout << "mu_hat_ih: " << mu_hat_ih << std::endl;
-		// std::cout << "sigma_hat_ih: " << sigma_hat_ih << std::endl;
+			// std::cout << "mu_hat_ih: " << mu_hat_ih << std::endl;
+			// std::cout << "sigma_hat_ih: " << sigma_hat_ih << std::endl;
 
-		transformed_weights(i, h) = normal_rng(mu_hat_ih, std::sqrt(sigma_hat_ih), rng);
+			transformed_weights(i, h) = normal_rng(mu_hat_ih, std::sqrt(sigma_hat_ih), rng);
+		}
+		weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), true);
 	}
-	weights.row(i) = utils::InvAlr(static_cast<Eigen::VectorXd>(transformed_weights.row(i)), true);
-}
 
-/*#pragma omp parallel for
-for (int i = 0; i < numGroups; i++)
-transformed_weights.row(i) = utils::Alr(weights.row(i), true);*/
+	/*#pragma omp parallel for
+	for (int i = 0; i < numGroups; i++)
+	transformed_weights.row(i) = utils::Alr(weights.row(i), true);*/
 }
 
 // We use a MH step with a truncated normal proposal
@@ -463,8 +494,7 @@ void SpatialMixtureSamplerBase::sampleW() {
 				Eigen::VectorXd probas = stan::math::softmax(logProbas);
 				// double addendum_ij = rho/(2*Sigma(0,0)) * ((wtilde_i - mtilde_i).dot(wtilde_j - mtilde_j));
 
-				// logProbas(0) = std::log(1-p); logProbas(1) = std::log(p) + addendum_ij;
-				//logProbas(0) = std::log(1-p[i][j]); logProbas(1) = std::log(p[i][j]) + addendum_ij;
+				// logProbas(0) = std::log(1-p[i][j]); logProbas(1) = std::log(p[i][j]) + addendum_ij;
 				// Eigen::VectorXd probas = logProbas.array().exp(); probas /= probas.sum();
 				//Rcpp::Rcout << " new_probs: " << probas.transpose() << std::endl;
 
@@ -510,25 +540,27 @@ void SpatialMixtureSamplerBase::sampleP() {
 }
 
 void SpatialMixtureSamplerBase::sampleSigma() {
+
+	if (params.sigma().has_fixed()) {
+		return;
 	
-	if(params.sigma().has_inv_wishart_prior()){
+	} else if(params.sigma().has_inv_wishart_prior()) {
 		// Inverse Wisart Case
 		Eigen::MatrixXd Vn = V0;
 		double nu_n = nu + numGroups;
 		Eigen::MatrixXd F_m_rhoG = F - W * rho;
-
-  	for (int i = 0; i < numGroups; i++) {
-    	Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents - 1);
-    	Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents - 1);
-	    for (int j = 0; j < numGroups; j++) {
+  		for (int i = 0; i < numGroups; i++) {
+			Eigen::VectorXd wtilde_i = transformed_weights.row(i).head(numComponents - 1);
+			Eigen::VectorXd mtilde_i = mtildes.row(node2comp[i]).head(numComponents - 1);
+			for (int j = 0; j < numGroups; j++) {
 				Eigen::VectorXd wtilde_j = transformed_weights.row(j).head(numComponents - 1);
 				Eigen::VectorXd mtilde_j = mtildes.row(node2comp[j]).head(numComponents - 1);
 				Vn += ((wtilde_i - mtilde_i) * (wtilde_j - mtilde_j).transpose()) * F_m_rhoG(i, j);
-	    }
+			}
 		}
 		Sigma = inv_wishart_rng(nu_n, Vn, rng);
-	}
-	else if(params.sigma().has_inv_gamma_prior()){
+
+	} else if(params.sigma().has_inv_gamma_prior()) {
 		// Inverse Gamma case
 		double alpha_n = alpha_Sigma + numGroups * (numComponents - 1);
 		double beta_n = beta_Sigma;
@@ -545,6 +577,7 @@ void SpatialMixtureSamplerBase::sampleSigma() {
 		}
 		double sigma_new = stan::math::inv_gamma_rng(alpha_n / 2, beta_n / 2, rng);
 		Sigma = sigma_new * Eigen::MatrixXd::Identity(numComponents - 1, numComponents - 1);
+
 	}
 
 	// Compute sigma related quantities and return
@@ -652,17 +685,17 @@ void SpatialMixtureSamplerBase::_computeWrelatedQuantities(bool W_has_changed) {
 	}
 }*/
 
-void SpatialMixtureSamplerBase::saveState(Collector<UnivariateState> *collector) {
+void SpatialMixtureSamplerBase::saveState(Collector<spmix::UnivariateState> *collector) {
   collector->collect(getStateAsProto());
 }
 
-UnivariateState SpatialMixtureSamplerBase::getStateAsProto() {
+spmix::UnivariateState SpatialMixtureSamplerBase::getStateAsProto() {
 
-	UnivariateState state;
+	spmix::UnivariateState state;
 
 	state.set_num_components(numComponents);
 	for (int i = 0; i < numGroups; i++) {
-		UnivariateState::GroupParams *p;
+		spmix::UnivariateState::GroupParams *p;
 		p = state.add_groupparams();
 		Eigen::VectorXd w = weights.row(i);
 
@@ -672,7 +705,7 @@ UnivariateState SpatialMixtureSamplerBase::getStateAsProto() {
 	}
 
 	for (int h = 0; h < numComponents; h++) {
-		UnivariateMixtureAtom *atom;
+		spmix::UnivariateMixtureAtom *atom;
 		atom = state.add_atoms();
 		atom->set_mean(means[h]);
 		atom->set_stdev(stddevs[h]);

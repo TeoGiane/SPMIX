@@ -32,7 +32,6 @@ parseData <- function(data) {
   } else {
     stop("Input parameter 'data' is of unknown type.")
   }
-
   # Return the parsed data structure for samplers
   return(data_in)
 }
@@ -55,7 +54,6 @@ parseW <- function(W) {
   } else {
     stop("Input parameter 'W' is of unknown type.")
   }
-
   # Return the parsed W structure for samplers
   return(W_in)
 }
@@ -64,7 +62,9 @@ parseW <- function(W) {
 
 ###########################################################################
 # Parameters parser -------------------------------------------------------
-parseParams <- function(params) {
+parseParams <- function(params, out_dir = NULL) {
+  # Create file where to store serialized params
+  serialized_params_file <- sprintf("%s/sampler_params.bin", out_dir)
   # Checking if params is given or needs to be read from file
   if(typeof(params) == "character") {
     cat("Hyperparameters are provided as a path to an asciipb file\n")
@@ -74,29 +74,34 @@ parseParams <- function(params) {
     # Read ASCII file
     cat("readParamsfromASCII ... ")
     RProtoBuf::readProtoFiles(file = system.file("proto/sampler_params.proto", package = "SPMIX"))
-    params_in <- RProtoBuf::toString(RProtoBuf::readASCII(SamplerParams, file(params)))
+    parsed_params <- RProtoBuf::readASCII(spmix.SamplerParams, file(params))
+    mcmc_type <- ifelse(parsed_params$num_components$has("shifted_poisson_prior"), "rjmcmc", "no_rjmcmc")
+    RProtoBuf::serialize(parsed_params, serialized_params_file)
     cat("done!\n")
-  } else if ( is(params)=="Message" && params@type=="SamplerParams" ) {
+  } else if ( is(params)=="Message" && params@type=="spmix.SamplerParams" ) {
     cat("Hyperparameters are provided as an RProtoBuf::Message\n")
-    params_in <- RProtoBuf::toString(params)
+    mcmc_type <- ifelse(params$num_components$has("shifted_poisson_prior"), "rjmcmc", "no_rjmcmc")
+    RProtoBuf::serialize(params, serialized_params_file)
   } else {
     stop("Input parameter 'params' is of unknown type.")
   }
-
-  # Return the parsed params structure for samplers
-  return(params_in)
+  # Return the serialized params file path for samplers
+  returned_list <- list("filepath" = serialized_params_file, "mcmc_type" = mcmc_type)
+  return(returned_list)
 }
 
 ###########################################################################
 
 ###########################################################################
 # Option parser -----------------------------------------------------------
-parseOptions <- function(options) {
+parseOptions <- function(options, out_dir = NULL) {
+  # Create file where to store serialized options
+  serialized_options_file <- sprintf("%s/optim_options.bin", out_dir)
   # Checking if options is NULL, given or needs to be read from file
   if (is.null(options)) {
     cat("Optimization Options required but not given: setting default values ... ")
     RProtoBuf::readProtoFiles(file = system.file("proto/optimization_options.proto", package = "SPMIX"))
-    options_in <- RProtoBuf::toString(RProtoBuf::new(OptimOptions, max_iter = 20, tol = 1e-6))
+    RProtoBuf::serialize(RProtoBuf::new(spmix.OptimOptions, max_iter = 20, tol = 1e-6, jump_every = 1), serialized_options_file)
     cat("done!\n")
   } else if(typeof(options) == "character") {
     cat("Optimization Options are provided as a path to an asciipb file\n")
@@ -106,17 +111,16 @@ parseOptions <- function(options) {
     # Read ASCII file
     cat("readOptimOptionsfromASCII ... ")
     RProtoBuf::readProtoFiles(file = system.file("proto/optimization_options.proto", package = "SPMIX"))
-    options_in <- RProtoBuf::toString(RProtoBuf::readASCII(OptimOptions, file(options)))
+    RProtoBuf::serialize(RProtoBuf::readASCII(spmix.OptimOptions, file(options)), serialized_options_file)
     cat("done!\n")
-  } else if ( is(options)=="Message" && options@type=="OptimOptions" ) {
+  } else if ( is(options)=="Message" && options@type=="spmix.OptimOptions" ) {
     cat("Optimization Options are provided as an RProtoBuf::Message\n")
-    options_in <- RProtoBuf::toString(options)
+    RProtoBuf::serialize(options, serialized_options_file)
   } else {
     stop("Input parameter 'options' is of unknown type.")
   }
-
-  # Return the parsed options structure for samplers
-  return(options_in)
+  # Return the serialized options file path for samplers
+  return(serialized_options_file)
 }
 
 ###########################################################################

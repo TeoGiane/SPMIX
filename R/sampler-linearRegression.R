@@ -17,10 +17,10 @@
 #' Google Protocol Buffer Message available in the package and interfaced to R through \code{\link{RProtoBuf}}.
 #' @param cov A list of vectors that represents covariates. As default value, it is an empty list.
 #' In case this input parameter is not empty, the sampler performs a regression on these covariates.
-#' @param type A string identifying the type of sampler to run. If type is "rjmcmc", the algorithm will run
-#' the spatial mixture sampler putting a prior on the number of components \mjseqn{H}.
-#' The default value is "no_rjmcmc", which samples from the spatial mixture model with a fixed number
-#' of components.
+# param type A string identifying the type of sampler to run. If type is "rjmcmc", the algorithm will run
+# the spatial mixture sampler putting a prior on the number of components \mjseqn{H}.
+# The default value is "no_rjmcmc", which samples from the spatial mixture model with a fixed number
+# of components.
 #' @param options The sampler optimization options used in the execution of the reversible jump sampler.
 #' Default value is set to \code{NULL} and in case type is "rjmcmc", a \code{S4::Message} object of type
 #' OptimOptions is istanciated with default values. In order to override the default values, options can be
@@ -28,14 +28,15 @@
 #' object of type OptimOptions generated via \code{\link{RProtoBuf}}.
 #' @param display_progress Boolean, it allows you display on the console the progress bar during burn-in
 #' and sampling phase. As default value, it is set to TRUE.
+#' @param seed Integer, the random seed to be used in the sampler. If set to NULL (default value),
+#' the seed is generated using the current system time.
 #'
 #' @return A list of raw vectors where the \mjseqn{i}-th element is the \mjseqn{i}-th saved draw.
 #' In order to reduce the space occupied by these draws, data are serialized using Google Protocol Buffers.
 #' Each state can be easily deserialized in R using the \code{\link{DeserializeSPMIXProto}} function of this package.
 #'
 #' @export
-Sampler.LinearRegression <- function(burnin, niter, thin, data, W, params, cov = list(),
-                                     type = "no_rjmcmc", options = NULL, display_progress = TRUE) {
+Sampler.LinearRegression <- function(burnin, niter, thin, data, W, params, cov = list(), options = NULL, display_progress = TRUE, seed = NULL) {
 
   # Create .asciipb files in temporary directory if needed
   out_dir = tempdir()
@@ -45,19 +46,28 @@ Sampler.LinearRegression <- function(burnin, niter, thin, data, W, params, cov =
   # Check and parse of input members
   data_in <- parseData(data)
   W_in <- parseW(W)
-  params_in <- parseParams(params)
+  params_info <- parseParams(params, out_dir)
+  params_in <- params_info$filepath
+  type <- params_info$mcmc_type
+
+  # Set random seed
+  if (is.null(seed)) {
+    seed <- as.integer(Sys.time()) %% 1e8
+    # print(paste0("No seed provided. Using: ", seed))
+  }
 
   # Check sampler type to run
   if (type == "no_rjmcmc") {
-    output <- SPMIX:::runSpatialSampler(burnin,niter,thin,data_in,W_in,params_in,cov,display_progress)
+    output <- SPMIX:::runSpatialSampler(burnin, niter, thin, data_in, W_in, params_in, cov, display_progress, seed)
   } else if (type == "rjmcmc") {
-    options_in <- parseOptions(options)
-    output <- SPMIX:::runSpatialRJSampler(burnin,niter,thin,data_in,W_in,params_in,cov,options_in,display_progress)
+    options_in <- parseOptions(options, out_dir)
+    output <- SPMIX:::runSpatialRJSampler(burnin, niter, thin, data_in, W_in, params_in, cov, options_in, display_progress, seed)
   } else {
     stop("Input parameter 'type' is of unknown type.")
   }
 
   # Remove temporary files amd return
   unlink(paste0(out_dir,"/*.asciipb"))
+  unlink(paste0(out_dir,"/*.bin"))
   return(output)
 }

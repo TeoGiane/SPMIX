@@ -1,6 +1,6 @@
 Package: SPMIX
 Title: Spatial Mixture Models in R
-Version: 1.6
+Version: 2.8
 Authors@R: 
     person(given = "Matteo",
            family = "Gianella",
@@ -9,18 +9,17 @@ Authors@R:
 Description: SPMIX collects sampling schemes that performs density estimation for spatially dependent areal data, in a Bayesian Non-Parametric setting. Data on each area are modelled as a finite mixture of Gaussian kernels and the weights provides the spatial dependence among neighbors via the logistic multivariate CAR prior. The number of components of the mixture can be either fixed or variable: in the second case, a prior on such quantity is added and a reversible jump scheme is adopted to estimate the posterior distribution of the model.
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 RdMacros: mathjaxr
 Biarch: true
 Depends: 
     R (>= 3.5.0),
-    RProtoBuf (>= 0.4.17)
 Imports:
-    methods (>= 3.5.0),
-    rstan (>= 2.18.1),
-    mathjaxr (>= 1.0-1)
+    mathjaxr (>= 1.0-1),
+    Rcpp (>= 0.12.0),
+    RProtoBuf (>= 0.4.17),
+    sf (>= 1.0.23),
 LinkingTo: 
     BH (>= 1.66.0),
     Rcpp (>= 0.12.0),

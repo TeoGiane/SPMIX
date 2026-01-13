@@ -31,7 +31,7 @@ class SpatialMixtureSamplerBase {
   protected:
 
 	// Params
-	SamplerParams params;
+	spmix::SamplerParams params;
 
 	// Data
 	int numGroups;
@@ -42,6 +42,7 @@ class SpatialMixtureSamplerBase {
 
 	// Mixtures
 	int numComponents;
+	double shifted_poisson_rate;
 	std::vector<double> means;
 	std::vector<double> stddevs;
 	Eigen::MatrixXd postNormalGammaParams;
@@ -85,6 +86,9 @@ class SpatialMixtureSamplerBase {
 
 	// prior for Sigma --> depends on the derivation
 
+	// prior for Sigma - Fixed
+	double sigma_fixed = 1.0;
+
 	// prior for Sigma - Inverse Wishart
 	double nu;
 	Eigen::MatrixXd V0;
@@ -109,9 +113,9 @@ class SpatialMixtureSamplerBase {
 	// HyperParams for NormalGamma
 	double priorMean, priorA, priorB, priorLambda;
 
-	unsigned long seed = 213513435;
+	unsigned long seed;
 	PolyaGammaHybridDouble* pg_rng = nullptr;
-	std::mt19937_64 rng{213513435};
+	std::mt19937_64 rng;
 
 	// diagnostic for the MH sampler
 	int numAccepted = 0;
@@ -120,14 +124,17 @@ class SpatialMixtureSamplerBase {
 	SpatialMixtureSamplerBase() {}
 
 	SpatialMixtureSamplerBase(
-		const SamplerParams &_params,
+		const spmix::SamplerParams &_params,
 		const std::vector<std::vector<double>> &_data,
-		const Eigen::MatrixXd &_W);
+		const Eigen::MatrixXd &_W,
+		unsigned long _seed);
 
 	SpatialMixtureSamplerBase(
-		const SamplerParams &_params,
+		const spmix::SamplerParams &_params,
 		const std::vector<std::vector<double>> &_data,
-		const Eigen::MatrixXd &_W, const std::vector<Eigen::MatrixXd> &X);
+		const Eigen::MatrixXd &_W,
+		const std::vector<Eigen::MatrixXd> &X,
+		unsigned long _seed);
 
 	virtual ~SpatialMixtureSamplerBase() {
 		delete(pg_rng);
@@ -188,9 +195,9 @@ class SpatialMixtureSamplerBase {
 
 	//void sample_mtilde();
 
-	void saveState(Collector<UnivariateState>* collector);
+	void saveState(Collector<spmix::UnivariateState>* collector);
 
-	UnivariateState getStateAsProto();
+	spmix::UnivariateState getStateAsProto();
 
 	void printDebugString();
 

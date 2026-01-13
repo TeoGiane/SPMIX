@@ -2,6 +2,8 @@ syntax = "proto3";
 
 import "eigen.proto";
 
+package spmix;
+
 message SamplerParams {
 
 	message NormalGammaParams {
@@ -27,6 +29,17 @@ message SamplerParams {
 		double beta = 2;
 	}
 
+	message ShiftedPoissonParams {
+		double rate = 1;
+	}
+
+	message NumComponentsParams {
+		oneof numcomponents_type {
+			int32 fixed = 1;
+			ShiftedPoissonParams shifted_poisson_prior = 2;
+		};
+	}
+
 	message RhoParams {
 	  oneof rhoparams_type {
 	    double fixed = 1;
@@ -36,8 +49,9 @@ message SamplerParams {
 
 	message VarianceParams {
 		oneof varianceparams_type {
-			InverseWishartParams inv_wishart_prior = 1;
-			InverseGammaParams inv_gamma_prior = 2;
+			double fixed = 1;
+			InverseWishartParams inv_wishart_prior = 2;
+			InverseGammaParams inv_gamma_prior = 3;
 		};
 	}
 
@@ -48,7 +62,7 @@ message SamplerParams {
 		};
 	}
 
-	int32 num_components = 1;
+	NumComponentsParams num_components = 1;
 	NormalGammaParams p0_params = 2;
 	RhoParams rho = 3;
 	VarianceParams sigma = 4;
